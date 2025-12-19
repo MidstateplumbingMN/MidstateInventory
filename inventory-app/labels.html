@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrated Label Maker - Firebase Connected</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- JsBarcode Library -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Public+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0e17;
+            --bg-secondary: #141824;
+            --bg-tertiary: #1e2433;
+            --accent-primary: #00ff87;
+            --accent-secondary: #00d4ff;
+            --accent-warning: #ffd700;
+            --accent-danger: #ff4757;
+            --text-primary: #e8eaed;
+            --text-secondary: #9aa0ab;
+            --border: #2d3548;
+        }
+
+        body {
+            font-family: 'Public Sans', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .background-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 135, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 135, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .app-container {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .screen-only {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .sidebar {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .card {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent-primary);
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .required::after {
+            content: " *";
+            color: var(--accent-danger);
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-primary);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: 'Public Sans', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(0, 255, 135, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Public Sans', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: var(--bg-primary);
+            margin-bottom: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 135, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 2px solid var(--border);
+            margin-bottom: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .btn-danger {
+            width: 100%;
+            background: var(--accent-danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e63946;
+        }
+
+        .sheet-preview-container {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 40px;
+            overflow: auto;
+        }
+
+        .preview-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .sheet-wrapper {
+            background: white;
+            width: 816px;
+            height: 1056px;
+            margin: 0 auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            position: relative;
+            padding: 48px 18px;
+        }
+
+        .label-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 252px);
+            grid-template-rows: repeat(10, 96px);
+            gap: 0;
+        }
+
+        .label-cell {
+            border: 1px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 4px;
+            overflow: hidden;
+        }
+
+        .label-cell:hover {
+            background: rgba(0, 255, 135, 0.05);
+            border-color: var(--accent-primary);
+        }
+
+        .label-cell.selected {
+            background: rgba(0, 212, 255, 0.1);
+            border: 2px solid var(--accent-secondary);
+        }
+
+        .label-cell.filled {
+            background: rgba(0, 255, 135, 0.05);
+        }
+
+        .label-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .label-barcode {
+            max-width: 95%;
+            height: auto;
+        }
+
+        .label-description {
+            font-size: 5px;
+            color: #333;
+            margin-top: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        .label-number {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            font-size: 8px;
+            color: #999;
+            font-weight: bold;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: var(--bg-primary);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent-primary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            border-left: 4px solid;
+            font-size: 13px;
+        }
+
+        .alert-info {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: var(--accent-secondary);
+            color: var(--accent-secondary);
+        }
+
+        .alert-success {
+            background: rgba(0, 255, 135, 0.1);
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .alert-warning {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: var(--accent-warning);
+            color: var(--accent-warning);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-primary);
+            cursor: pointer;
+        }
+
+        .field-preview {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px;
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .field-preview strong {
+            color: var(--accent-primary);
+        }
+
+        .spinner {
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--accent-primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            .screen-only {
+                display: none !important;
+            }
+            .print-sheet {
+                display: block !important;
+            }
+        }
+
+        .print-sheet {
+            display: none;
+            width: 8.5in;
+            height: 11in;
+            padding: 0.5in 0.1875in;
+            page-break-after: always;
+        }
+
+        .print-label-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 2.625in);
+            grid-template-rows: repeat(10, 1in);
+            gap: 0;
+        }
+
+        .print-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.05in;
+            overflow: hidden;
+        }
+
+        .print-label svg {
+            max-width: 95%;
+            height: auto;
+        }
+
+        .print-label-description {
+            font-size: 6pt;
+            text-align: center;
+            color: #333;
+            margin-top: 1px;
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                position: static;
+            }
+            .sheet-wrapper {
+                transform: scale(0.7);
+                transform-origin: top center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-grid"></div>
+    
+    <div class="app-container">
+        <div class="screen-only">
+            <div class="header">
+                <h1>🏷️ Integrated Label Maker</h1>
+                <p>A1A OL877WX - Creates labels AND adds to inventory database</p>
+            </div>
+
+            <div id="authRequired" style="display: none; max-width: 600px; margin: 100px auto; text-align: center;">
+                <div class="alert alert-info">
+                    <strong>⚠️ Login Required</strong><br>
+                    Please log in through your inventory system first, then refresh this page.
+                </div>
+            </div>
+
+            <div id="mainContent" style="display: none;">
+                <div class="main-content">
+                    <div class="sidebar">
+                        <div class="stats">
+                            <div class="stat-box">
+                                <div class="stat-value" id="filledCount">0</div>
+                                <div class="stat-label">Filled</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value" id="emptyCount">30</div>
+                                <div class="stat-label">Empty</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value" id="selectedCell">-</div>
+                                <div class="stat-label">Selected</div>
+                            </div>
+                        </div>
+
+                        <div id="selectionAlert" class="alert alert-info" style="display: none;">
+                            <strong>Label #<span id="selectedNumber">1</span> selected</strong><br>
+                            Fill out required fields and click "Add to Label"
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">🔢 Auto-Barcode</div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Prefix</label>
+                                <input type="text" id="barcodePrefix" class="form-input" value="ITEM-" placeholder="e.g., ITEM-, SKU-">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Next Number</label>
+                                <input type="number" id="nextNumber" class="form-input" value="1" min="1">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Padding</label>
+                                <input type="number" id="padding" class="form-input" value="4" min="0" max="10">
+                            </div>
+
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="autoIncrement" class="checkbox" checked>
+                                <label>Auto-increment</label>
+                            </div>
+
+                            <div class="field-preview">
+                                <strong>Next Barcode:</strong> <span id="nextBarcodePreview">ITEM-0001</span>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">📦 Required Fields</div>
+                            
+                            <div class="form-group">
+                                <label class="form-label required">Item Name</label>
+                                <input type="text" id="itemName" class="form-input" placeholder="Red Widget">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label required">Product Description</label>
+                                <textarea id="productDescription" class="form-textarea" placeholder="Detailed product description"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label required">Location</label>
+                                <input type="text" id="location" class="form-input" placeholder="Warehouse A">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label required">Bin Location</label>
+                                <input type="text" id="binLocation" class="form-input" placeholder="Shelf 3, Bin 12">
+                            </div>
+
+                            <div class="field-preview">
+                                <strong>Label will show:</strong><br>
+                                <div id="labelPreviewText">Fill in fields to preview...</div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">⚙️ Settings</div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Barcode Format</label>
+                                <select id="barcodeFormat" class="form-select">
+                                    <option value="CODE128">CODE128 (Recommended)</option>
+                                    <option value="CODE39">CODE39</option>
+                                    <option value="EAN13">EAN13</option>
+                                    <option value="UPC">UPC-A</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Fill Mode</label>
+                                <select id="fillMode" class="form-select">
+                                    <option value="single">Single Label</option>
+                                    <option value="fill">Fill Remaining</option>
+                                </select>
+                            </div>
+
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="showText" class="checkbox" checked>
+                                <label>Show barcode text</label>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary" id="addToLabelBtn" onclick="addToLabel()">
+                            ➕ Add to Label & Database
+                        </button>
+
+                        <button class="btn btn-secondary" onclick="clearSelected()">
+                            🗑️ Clear Selected
+                        </button>
+
+                        <button class="btn btn-secondary" onclick="clearAll()">
+                            🗑️ Clear All Labels
+                        </button>
+
+                        <button class="btn btn-primary" onclick="printLabels()">
+                            🖨️ Print Labels
+                        </button>
+
+                        <button class="btn btn-secondary" onclick="window.open('/', '_blank')" style="margin-top: 20px; border-top: 2px solid var(--border); padding-top: 20px;">
+                            📦 Back to Inventory
+                        </button>
+
+                        <button class="btn btn-secondary" onclick="handleLogout()" style="margin-top: 10px; background: var(--accent-danger); border-color: var(--accent-danger);">
+                            🚪 Logout
+                        </button>
+
+                        <div class="alert alert-success" style="margin-top: 20px;">
+                            <strong>✅ Database Integration</strong><br>
+                            Labels automatically create inventory records when printed!
+                        </div>
+
+                        <div id="statusMessage" style="margin-top: 10px;"></div>
+                    </div>
+
+                    <div class="sheet-preview-container">
+                        <div class="preview-title">Label Sheet Preview</div>
+                        <div class="sheet-wrapper">
+                            <div class="label-grid" id="labelGrid"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="printArea"></div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBS-a3pzozzUEBeFlVQzPs4cD6uNDPzN2c",
+            authDomain: "midstateinventory-43f99.firebaseapp.com",
+            projectId: "midstateinventory-43f99",
+            storageBucket: "midstateinventory-43f99.firebasestorage.app",
+            messagingSenderId: "20000371750",
+            appId: "1:20000371750:web:e255b4b72661c27c2b62e7",
+            measurementId: "G-814FR7GR7T"
+        };
+
+        let app, auth, db;
+        try {
+            app = firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.firestore();
+        } catch (error) {
+            console.error("Firebase initialization error:", error);
+        }
+
+        // State
+        let labels = Array(30).fill(null);
+        let selectedCell = null;
+        let currentUser = null;
+
+        // Logout function
+        async function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                try {
+                    await auth.signOut();
+                    currentUser = null;
+                    window.location.reload();
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    alert('Error logging out. Please try again.');
+                }
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            auth.onAuthStateChanged((user) => {
+                currentUser = user;
+                if (user) {
+                    document.getElementById('authRequired').style.display = 'none';
+                    document.getElementById('mainContent').style.display = 'block';
+                    renderGrid();
+                    updateStats();
+                    updateNextBarcodePreview();
+                } else {
+                    document.getElementById('authRequired').style.display = 'block';
+                    document.getElementById('mainContent').style.display = 'none';
+                }
+            });
+
+            ['barcodePrefix', 'nextNumber', 'padding'].forEach(id => {
+                document.getElementById(id)?.addEventListener('input', updateNextBarcodePreview);
+            });
+
+            ['itemName', 'productDescription', 'location', 'binLocation'].forEach(id => {
+                document.getElementById(id)?.addEventListener('input', updateLabelPreview);
+            });
+        });
+
+        function updateNextBarcodePreview() {
+            const prefix = document.getElementById('barcodePrefix').value;
+            const nextNum = parseInt(document.getElementById('nextNumber').value) || 1;
+            const padding = parseInt(document.getElementById('padding').value) || 4;
+            
+            const barcode = generateBarcode(prefix, nextNum, padding);
+            document.getElementById('nextBarcodePreview').textContent = barcode;
+        }
+
+        function updateLabelPreview() {
+            const name = document.getElementById('itemName').value;
+            const location = document.getElementById('location').value;
+            const binLocation = document.getElementById('binLocation').value;
+
+            let preview = '';
+            if (name) preview += `<strong>${name}</strong><br>`;
+            if (location && binLocation) {
+                preview += `${location} - ${binLocation}`;
+            } else if (location) {
+                preview += location;
+            } else if (binLocation) {
+                preview += binLocation;
+            }
+
+            document.getElementById('labelPreviewText').innerHTML = preview || 'Fill in fields to preview...';
+        }
+
+        function generateBarcode(prefix, number, padding) {
+            const paddedNumber = String(number).padStart(padding, '0');
+            return prefix + paddedNumber;
+        }
+
+        function getNextBarcode() {
+            const prefix = document.getElementById('barcodePrefix').value;
+            const nextNum = parseInt(document.getElementById('nextNumber').value) || 1;
+            const padding = parseInt(document.getElementById('padding').value) || 4;
+            return generateBarcode(prefix, nextNum, padding);
+        }
+
+        function incrementBarcode() {
+            const autoIncrement = document.getElementById('autoIncrement').checked;
+            if (autoIncrement) {
+                const nextNumInput = document.getElementById('nextNumber');
+                const currentNum = parseInt(nextNumInput.value) || 1;
+                nextNumInput.value = currentNum + 1;
+                updateNextBarcodePreview();
+            }
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('labelGrid');
+            grid.innerHTML = '';
+
+            for (let i = 0; i < 30; i++) {
+                const cell = document.createElement('div');
+                cell.className = `label-cell ${selectedCell === i ? 'selected' : ''} ${labels[i] ? 'filled' : ''}`;
+                cell.onclick = () => selectCell(i);
+
+                const number = document.createElement('div');
+                number.className = 'label-number';
+                number.textContent = i + 1;
+                cell.appendChild(number);
+
+                if (labels[i]) {
+                    const content = document.createElement('div');
+                    content.className = 'label-content';
+
+                    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    svg.className = 'label-barcode';
+                    svg.id = `preview-barcode-${i}`;
+                    content.appendChild(svg);
+
+                    if (labels[i].labelDescription) {
+                        const desc = document.createElement('div');
+                        desc.className = 'label-description';
+                        desc.textContent = labels[i].labelDescription;
+                        content.appendChild(desc);
+                    }
+
+                    cell.appendChild(content);
+
+                    setTimeout(() => {
+                        try {
+                            JsBarcode(`#preview-barcode-${i}`, labels[i].barcode, {
+                                format: labels[i].format,
+                                width: 1.5,
+                                height: 30,
+                                displayValue: labels[i].showText,
+                                fontSize: 8,
+                                margin: 1
+                            });
+                        } catch (error) {
+                            console.error('Barcode error:', error);
+                        }
+                    }, 50);
+                }
+
+                grid.appendChild(cell);
+            }
+        }
+
+        function selectCell(index) {
+            selectedCell = index;
+            renderGrid();
+            updateStats();
+            
+            document.getElementById('selectionAlert').style.display = 'block';
+            document.getElementById('selectedNumber').textContent = index + 1;
+        }
+
+        function updateStats() {
+            const filled = labels.filter(l => l !== null).length;
+            document.getElementById('filledCount').textContent = filled;
+            document.getElementById('emptyCount').textContent = 30 - filled;
+            document.getElementById('selectedCell').textContent = selectedCell !== null ? selectedCell + 1 : '-';
+        }
+
+        function showStatus(message, isError = false) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.innerHTML = `<div class="alert ${isError ? 'alert-warning' : 'alert-success'}">${message}</div>`;
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        async function addToLabel() {
+            if (selectedCell === null) {
+                alert('Please select a label cell first');
+                return;
+            }
+
+            if (!currentUser) {
+                alert('Please log in first');
+                return;
+            }
+
+            const itemName = document.getElementById('itemName').value.trim();
+            const productDescription = document.getElementById('productDescription').value.trim();
+            const location = document.getElementById('location').value.trim();
+            const binLocation = document.getElementById('binLocation').value.trim();
+
+            if (!itemName || !productDescription || !location || !binLocation) {
+                alert('Please fill in all required fields (Item Name, Product Description, Location, Bin Location)');
+                return;
+            }
+
+            const barcode = getNextBarcode();
+            const format = document.getElementById('barcodeFormat').value;
+            const showText = document.getElementById('showText').checked;
+            const fillMode = document.getElementById('fillMode').value;
+
+            // Label description for printing
+            const labelDescription = `${location} - ${binLocation}`;
+
+            const labelData = {
+                barcode: barcode,
+                itemName: itemName,
+                productDescription: productDescription,
+                location: location,
+                binLocation: binLocation,
+                labelDescription: labelDescription,
+                format: format,
+                showText: showText,
+                createdAt: new Date().toISOString(),
+                createdBy: currentUser.displayName || currentUser.email
+            };
+
+            if (fillMode === 'fill') {
+                // Fill from selected to end
+                for (let i = selectedCell; i < 30; i++) {
+                    const currentBarcode = getNextBarcode();
+                    labels[i] = {
+                        ...labelData,
+                        barcode: currentBarcode
+                    };
+                    incrementBarcode();
+                }
+            } else {
+                labels[selectedCell] = labelData;
+                incrementBarcode();
+                
+                if (selectedCell < 29) {
+                    selectedCell++;
+                }
+            }
+
+            renderGrid();
+            updateStats();
+            updateLabelPreview();
+            
+            showStatus('✓ Label added! Will be saved to database when you print.');
+        }
+
+        async function saveLabelToDatabase(labelData) {
+            try {
+                // Check if item with this serial number already exists
+                const existingItemQuery = await db.collection('inventory')
+                    .where('serial', '==', labelData.barcode)
+                    .get();
+
+                if (!existingItemQuery.empty) {
+                    // Item already exists - skip it
+                    console.log(`Item with serial ${labelData.barcode} already exists, skipping...`);
+                    return { exists: true, serial: labelData.barcode };
+                }
+
+                // Create inventory record only if it doesn't exist
+                const inventoryData = {
+                    serial: labelData.barcode,
+                    name: labelData.itemName,
+                    brand: '', // Can be added later
+                    model: '', // Can be added later
+                    style: '',
+                    department: '',
+                    location: labelData.location,
+                    binLocation: labelData.binLocation,
+                    secondaryLocation: '', // Can be added later
+                    productDescription: labelData.productDescription,
+                    quantity: 0, // Will be updated when stocked
+                    price: 0,
+                    reorderPoint: 10,
+                    hasMissingParts: false,
+                    missingPartsNotes: '',
+                    pickedBy: currentUser.displayName || currentUser.email,
+                    pickedByUid: currentUser.uid,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    scannerType: 'label-maker',
+                    mode: 'label-created'
+                };
+
+                await db.collection('inventory').add(inventoryData);
+                return { exists: false, serial: labelData.barcode };
+            } catch (error) {
+                console.error('Error saving to database:', error);
+                return { error: true, message: error.message };
+            }
+        }
+
+        function clearSelected() {
+            if (selectedCell === null) return;
+            labels[selectedCell] = null;
+            renderGrid();
+            updateStats();
+        }
+
+        function clearAll() {
+            if (confirm('Clear all labels?')) {
+                labels = Array(30).fill(null);
+                selectedCell = null;
+                renderGrid();
+                updateStats();
+                document.getElementById('selectionAlert').style.display = 'none';
+            }
+        }
+
+        async function printLabels() {
+            const filledLabels = labels.filter(l => l !== null);
+            if (filledLabels.length === 0) {
+                alert('Please add at least one label');
+                return;
+            }
+
+            const btn = document.getElementById('addToLabelBtn');
+            btn.disabled = true;
+            btn.textContent = 'Saving to database...';
+
+            // Save all labels to database
+            let successCount = 0;
+            let duplicateCount = 0;
+            let errorCount = 0;
+            const duplicates = [];
+
+            for (const label of filledLabels) {
+                const result = await saveLabelToDatabase(label);
+                if (result.exists) {
+                    duplicateCount++;
+                    duplicates.push(result.serial);
+                } else if (result.error) {
+                    errorCount++;
+                } else {
+                    successCount++;
+                }
+            }
+
+            btn.disabled = false;
+            btn.textContent = '➕ Add to Label & Database';
+
+            let message = '';
+            if (successCount > 0) {
+                message += `✓ ${successCount} new item(s) saved. `;
+            }
+            if (duplicateCount > 0) {
+                message += `⚠ ${duplicateCount} duplicate(s) skipped (already exist): ${duplicates.join(', ')}. `;
+            }
+            if (errorCount > 0) {
+                message += `❌ ${errorCount} failed. `;
+            }
+
+            showStatus(message, errorCount > 0);
+
+            // Generate print layout
+            generatePrintSheet();
+            
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        }
+
+        function generatePrintSheet() {
+            const printArea = document.getElementById('printArea');
+            printArea.innerHTML = '';
+
+            const sheet = document.createElement('div');
+            sheet.className = 'print-sheet';
+
+            const grid = document.createElement('div');
+            grid.className = 'print-label-grid';
+
+            labels.forEach((label, index) => {
+                const labelDiv = document.createElement('div');
+                labelDiv.className = 'print-label';
+
+                if (label) {
+                    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    svg.id = `print-barcode-${index}`;
+                    labelDiv.appendChild(svg);
+
+                    if (label.labelDescription) {
+                        const desc = document.createElement('div');
+                        desc.className = 'print-label-description';
+                        desc.textContent = label.labelDescription;
+                        labelDiv.appendChild(desc);
+                    }
+
+                    setTimeout(() => {
+                        try {
+                            JsBarcode(`#print-barcode-${index}`, label.barcode, {
+                                format: label.format,
+                                width: 2,
+                                height: 40,
+                                displayValue: label.showText,
+                                fontSize: 10,
+                                margin: 2
+                            });
+                        } catch (error) {
+                            console.error('Barcode generation error:', error);
+                        }
+                    }, 100);
+                }
+
+                grid.appendChild(labelDiv);
+            });
+
+            sheet.appendChild(grid);
+            printArea.appendChild(sheet);
+        }
+    </script>
+</body>
+</html>
