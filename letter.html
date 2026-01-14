@@ -176,23 +176,14 @@
 
         .letter-logo {
             text-align: center;
-            margin-bottom: 0.3in;
+            margin-bottom: 0.5in;
         }
 
         .letter-logo img {
-            max-width: 4in;
+            max-width: 4.5in;
             height: auto;
-        }
-
-        .letter-from {
-            text-align: center;
-            margin-bottom: 0.4in;
-            font-size: 10pt;
-            line-height: 1.4;
-        }
-
-        .letter-from strong {
-            font-size: 11pt;
+            display: block;
+            margin: 0 auto;
         }
 
         .letter-date {
@@ -450,14 +441,6 @@
                     <div class="letter-logo">
                         <img src="${LOGO_DATA_URL}" alt="Mid-State Plumbing & Heating">
                     </div>
-                    
-                    <div class="letter-from">
-                        <strong>Robert Danaher</strong><br>
-                        Mid-State Plumbing & Heating<br>
-                        3500 Cannon St. #101<br>
-                        Hastings, MN 55033<br>
-                        (651) 438-3252
-                    </div>
 
                     <div class="letter-date">
                         ${formatDate()}
@@ -500,14 +483,19 @@
 
                     <div class="letter-closing">
                         <div class="letter-signature">Warmly,</div>
-                        <div style="margin-top: 0.5in;">
+                        <div style="margin-top: 0.5in; margin-bottom: 0.3in;">
                             <strong>Robert Danaher</strong><br>
                             Mid-State Plumbing & Heating
                         </div>
                     </div>
 
                     <div class="letter-ps">
-                        P.S. Please don't hesitate to reach out if you have any questions or need assistance with your home's systems!
+                        <em>P.S. Please don't hesitate to reach out if you have any questions or need assistance with your home's systems!</em>
+                    </div>
+
+                    <div style="margin-top: 0.4in; padding-top: 0.15in; border-top: 1px solid #ccc; font-size: 10pt; text-align: center; color: #666;">
+                        <strong>Robert Danaher</strong> | Mid-State Plumbing & Heating<br>
+                        3500 Cannon St. #101, Hastings, MN 55033 | (651) 438-3252 | www.midstateplumbing.com
                     </div>
                 </div>
             `;
