@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Bob's Seasonings - Reorder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f4a261 0%, #2a9d8f 100%);
+            min-height: 100vh;
+            padding: 15px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .welcome-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .welcome-image {
+            max-width: 300px;
+            width: 90%;
+            height: auto;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            color: #e76f51;
+            font-size: 2em;
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+
+        .tagline {
+            color: #666;
+            font-size: 1em;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .shop-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .section-title {
+            color: #2a9d8f;
+            font-size: 1.6em;
+            margin-bottom: 25px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .product-display {
+            display: block;
+            margin-bottom: 30px;
+        }
+
+        .product-image-container {
+            text-align: center;
+        }
+
+        .product-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .quantity-control button {
+            background: #2a9d8f;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.4em;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            -webkit-appearance: none;
+            touch-action: manipulation;
+        }
+
+        .quantity-control button:active {
+            transform: scale(0.95);
+        }
+
+        .quantity-control button:hover {
+            background: #238276;
+        }
+
+        .quantity-control input {
+            width: 70px;
+            text-align: center;
+            font-size: 1.3em;
+            border: 2px solid #2a9d8f;
+            border-radius: 8px;
+            padding: 8px;
+            -webkit-appearance: none;
+        }
+
+        .product-card {
+            background: linear-gradient(135deg, #fefae0 0%, #d4e09b 100%);
+            border-radius: 15px;
+            padding: 25px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-color: #2a9d8f;
+        }
+
+        .product-card.selected {
+            border-color: #e76f51;
+            background: linear-gradient(135deg, #ffe5d9 0%, #c7f0bd 100%);
+        }
+
+        .product-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .product-price {
+            font-size: 1.5em;
+            color: #e76f51;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .quantity-control button {
+            background: #2a9d8f;
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .quantity-control button:hover {
+            background: #238276;
+        }
+
+        .quantity-control input {
+            width: 60px;
+            text-align: center;
+            font-size: 1.2em;
+            border: 2px solid #2a9d8f;
+            border-radius: 8px;
+            padding: 5px;
+        }
+
+        .order-summary {
+            background: linear-gradient(135deg, #e76f51 0%, #2a9d8f 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .order-summary h3 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .order-total {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid white;
+            text-align: right;
+        }
+
+        .shipping-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .shipping-option {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .shipping-option:hover {
+            border-color: #667eea;
+        }
+
+        .shipping-option.selected {
+            border-color: #764ba2;
+            background: #e0c3fc;
+        }
+
+        .shipping-option input[type="radio"] {
+            margin-right: 15px;
+            width: 20px;
+            height: 20px;
+        }
+
+        .shipping-details {
+            flex: 1;
+        }
+
+        .shipping-price {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        .contact-form {
+            display: grid;
+            gap: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #2a9d8f;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #e76f51 0%, #2a9d8f 100%);
+            color: white;
+            padding: 18px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-top: 20px;
+            width: 100%;
+            -webkit-appearance: none;
+            touch-action: manipulation;
+        }
+
+        .submit-btn:active {
+            transform: scale(0.98);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .payment-info {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+
+        .payment-info strong {
+            color: #856404;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .order-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #764ba2;
+            margin: 10px 0;
+        }
+
+        @media (min-width: 768px) {
+            .product-display {
+                grid-template-columns: 1fr 1fr;
+                gap: 30px;
+            }
+
+            h1 {
+                font-size: 2.5em;
+            }
+
+            .section-title {
+                font-size: 2em;
+            }
+
+            .submit-btn {
+                width: auto;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .container {
+                max-width: 100%;
+            }
+
+            .product-card {
+                padding: 20px;
+            }
+
+            .order-summary {
+                padding: 20px;
+            }
+
+            .contact-form {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <img src="image2.jpg" 
+                 alt="Welcome to Bob's Seasonings" 
+                 class="welcome-image"
+                 id="welcomeImage">
+            <h1>🌶️ Bob's Seasonings 🌶️</h1>
+            <p class="tagline">Premium Spices & Seasonings - Reorder Your Favorites!</p>
+        </div>
+
+        <!-- Shop Section -->
+        <div class="shop-section">
+            <h2 class="section-title">Select Your Products</h2>
+            
+            <div class="product-display">
+                <div class="products-grid" id="productsGrid">
+                    <!-- Products will be dynamically generated -->
+                </div>
+            </div>
+
+            <div id="orderSummaryContainer"></div>
+
+            <!-- Shipping Options -->
+            <div class="shipping-section" id="shippingSection" style="display: none;">
+                <h3 style="color: #764ba2; margin-bottom: 15px;">📦 Shipping Options</h3>
+                
+                <div class="shipping-option" onclick="selectShipping('pickup')">
+                    <input type="radio" name="shipping" value="pickup" id="pickup">
+                    <div class="shipping-details">
+                        <strong>Local Pickup</strong>
+                        <p style="color: #666; margin-top: 5px;">Pick up your order locally</p>
+                    </div>
+                    <div class="shipping-price">FREE</div>
+                </div>
+
+                <div class="shipping-option" onclick="selectShipping('standard')">
+                    <input type="radio" name="shipping" value="standard" id="standard">
+                    <div class="shipping-details">
+                        <strong>Standard Shipping</strong>
+                        <p style="color: #666; margin-top: 5px;">4-6 business days</p>
+                    </div>
+                    <div class="shipping-price" id="standardPrice">$4.50</div>
+                </div>
+
+                <div class="shipping-option" onclick="selectShipping('gift')">
+                    <input type="radio" name="shipping" value="gift" id="gift">
+                    <div class="shipping-details">
+                        <strong>Gift Shipping</strong>
+                        <p style="color: #666; margin-top: 5px;">Includes gift message and special packaging</p>
+                    </div>
+                    <div class="shipping-price" id="giftPrice">$6.50</div>
+                </div>
+
+                <div id="giftMessageSection" style="display: none; margin-top: 20px;">
+                    <label style="font-weight: bold; color: #333; margin-bottom: 10px; display: block;">Gift Message:</label>
+                    <textarea id="giftMessage" rows="3" style="width: 100%; padding: 10px; border: 2px solid #667eea; border-radius: 8px;"></textarea>
+                </div>
+            </div>
+
+            <div class="payment-info">
+                <strong>💳 Payment Method:</strong> Venmo (@robertdanaher)<br>
+                <em>After submitting your order, please send payment to @robertdanaher on Venmo.</em>
+            </div>
+
+            <form class="contact-form" id="orderForm">
+                <h3 style="text-align: center; color: #764ba2; margin-bottom: 20px;">Contact Information</h3>
+                
+                <div class="form-group">
+                    <label for="name">Full Name *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number *</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="venmo">Venmo Username *</label>
+                    <input type="text" id="venmo" name="venmo" placeholder="@yourvenmo" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Shipping Address *</label>
+                    <textarea id="address" name="address" rows="3" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">Order Notes (Optional)</label>
+                    <textarea id="notes" name="notes" rows="2"></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">Place Order 🛒</button>
+            </form>
+
+            <div class="success-message" id="successMessage">
+                ✅ Order submitted successfully!<br>
+                <div class="order-number" id="orderNumber"></div>
+                A confirmation email has been sent to your email address.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Product catalog
+        const products = [
+            { id: 1, name: '"Dill with it" Dill Pickle Chicken Dry Rub (3 oz)', price: 6.00, weight: 4 }
+        ];
+
+        // Cart and shipping state
+        const cart = {};
+        let selectedShipping = 'pickup';
+        let shippingCost = 0;
+
+        // Shipping rates based on weight (4 oz per bottle)
+        const SHIPPING_RATES = {
+            pickup: 0,
+            standard: { base: 4.50, perOz: 0.15 },
+            gift: { base: 6.50, perOz: 0.15 }
+        };
+
+        // Initialize products
+        function initProducts() {
+            const grid = document.getElementById('productsGrid');
+            
+            products.forEach(product => {
+                cart[product.id] = 0;
+                
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.id = `product-${product.id}`;
+                card.innerHTML = `
+                    <div class="product-name">${product.name}</div>
+                    <div class="product-price">$${product.price.toFixed(2)}</div>
+                    <div class="quantity-control">
+                        <button type="button" onclick="updateQuantity(${product.id}, -1)">-</button>
+                        <input type="number" id="qty-${product.id}" value="0" min="0" readonly>
+                        <button type="button" onclick="updateQuantity(${product.id}, 1)">+</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Calculate shipping cost based on weight
+        function calculateShipping() {
+            const totalWeight = products.reduce((sum, product) => {
+                return sum + (cart[product.id] * product.weight);
+            }, 0);
+
+            if (selectedShipping === 'pickup') {
+                return 0;
+            } else {
+                const rate = SHIPPING_RATES[selectedShipping];
+                return rate.base + (totalWeight * rate.perOz);
+            }
+        }
+
+        // Update quantity
+        function updateQuantity(productId, change) {
+            cart[productId] = Math.max(0, cart[productId] + change);
+            document.getElementById(`qty-${productId}`).value = cart[productId];
+            
+            const card = document.getElementById(`product-${productId}`);
+            if (cart[productId] > 0) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+            
+            updateOrderSummary();
+        }
+
+        // Select shipping method
+        function selectShipping(method) {
+            selectedShipping = method;
+            document.querySelectorAll('.shipping-option').forEach(opt => opt.classList.remove('selected'));
+            document.getElementById(method).closest('.shipping-option').classList.add('selected');
+            document.getElementById(method).checked = true;
+            
+            // Show/hide gift message
+            if (method === 'gift') {
+                document.getElementById('giftMessageSection').style.display = 'block';
+            } else {
+                document.getElementById('giftMessageSection').style.display = 'none';
+            }
+            
+            updateOrderSummary();
+        }
+
+        // Update order summary
+        function updateOrderSummary() {
+            const container = document.getElementById('orderSummaryContainer');
+            const items = products.filter(p => cart[p.id] > 0);
+            
+            if (items.length === 0) {
+                container.innerHTML = '';
+                document.getElementById('shippingSection').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('shippingSection').style.display = 'block';
+            
+            let subtotal = 0;
+            let summaryHTML = '<div class="order-summary"><h3>Order Summary</h3>';
+            
+            items.forEach(product => {
+                const qty = cart[product.id];
+                const itemTotal = qty * product.price;
+                subtotal += itemTotal;
+                
+                summaryHTML += `
+                    <div class="order-item">
+                        <span>${product.name} x ${qty}</span>
+                        <span>$${itemTotal.toFixed(2)}</span>
+                    </div>
+                `;
+            });
+            
+            shippingCost = calculateShipping();
+            const total = subtotal + shippingCost;
+            
+            summaryHTML += `
+                <div class="order-item">
+                    <span>Subtotal</span>
+                    <span>$${subtotal.toFixed(2)}</span>
+                </div>
+                <div class="order-item">
+                    <span>Shipping</span>
+                    <span>$${shippingCost.toFixed(2)}</span>
+                </div>
+                <div class="order-total">Total: $${total.toFixed(2)}</div>
+            </div>`;
+            
+            container.innerHTML = summaryHTML;
+            
+            // Update shipping prices in UI
+            const totalWeight = items.reduce((sum, product) => sum + (cart[product.id] * product.weight), 0);
+            const stdShipping = SHIPPING_RATES.standard.base + (totalWeight * SHIPPING_RATES.standard.perOz);
+            const giftShipping = SHIPPING_RATES.gift.base + (totalWeight * SHIPPING_RATES.gift.perOz);
+            
+            document.getElementById('standardPrice').textContent = `$${stdShipping.toFixed(2)}`;
+            document.getElementById('giftPrice').textContent = `$${giftShipping.toFixed(2)}`;
+        }
+
+        // Generate order number
+        function generateOrderNumber() {
+            const date = new Date();
+            const year = date.getFullYear().toString().substr(-2);
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+            return `BS${year}${month}${day}-${random}`;
+        }
+
+        // Handle form submission
+        document.getElementById('orderForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = {
+                orderNumber: generateOrderNumber(),
+                timestamp: new Date().toISOString(),
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                venmo: document.getElementById('venmo').value,
+                address: document.getElementById('address').value,
+                notes: document.getElementById('notes').value,
+                shippingMethod: selectedShipping,
+                shippingCost: shippingCost,
+                giftMessage: selectedShipping === 'gift' ? document.getElementById('giftMessage').value : '',
+                order: []
+            };
+            
+            // Get order items
+            let subtotal = 0;
+            products.forEach(product => {
+                if (cart[product.id] > 0) {
+                    const itemTotal = cart[product.id] * product.price;
+                    subtotal += itemTotal;
+                    formData.order.push({
+                        product: product.name,
+                        quantity: cart[product.id],
+                        price: product.price,
+                        subtotal: itemTotal
+                    });
+                }
+            });
+            
+            if (formData.order.length === 0) {
+                alert('Please select at least one product!');
+                return;
+            }
+            
+            formData.subtotal = subtotal;
+            formData.total = subtotal + shippingCost;
+            
+            // Send to Google Sheets
+            try {
+                await sendToGoogleSheets(formData);
+                
+                // Show success message
+                document.getElementById('orderNumber').textContent = `Order #${formData.orderNumber}`;
+                document.getElementById('successMessage').style.display = 'block';
+                
+                // Reset form
+                setTimeout(() => {
+                    document.getElementById('orderForm').reset();
+                    Object.keys(cart).forEach(key => cart[key] = 0);
+                    document.querySelectorAll('.product-card').forEach(card => card.classList.remove('selected'));
+                    document.querySelectorAll('input[type="number"]').forEach(input => input.value = 0);
+                    updateOrderSummary();
+                    document.getElementById('successMessage').style.display = 'none';
+                    window.scrollTo(0, 0);
+                }, 5000);
+                
+            } catch (error) {
+                console.error('Error submitting order:', error);
+                alert('There was an error submitting your order. Please try again or contact us directly.');
+            }
+        });
+
+        // Send data to Google Sheets
+        async function sendToGoogleSheets(data) {
+            // This needs to be connected to a Google Apps Script Web App
+            // Instructions below for setting this up
+            const GOOGLE_SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+            
+            const response = await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+            
+            // Send confirmation email (this would also be handled by the Google Apps Script)
+            return response;
+        }
+
+        // Initialize on page load
+        initProducts();
+        selectShipping('pickup');
+    </script>
+</body>
+</html>
