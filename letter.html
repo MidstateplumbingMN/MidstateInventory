@@ -369,10 +369,10 @@
                 "It's wonderful to know you've moved into your new home!"
             ],
             introductions: [
-                "Mid-State Plumbing & Heating had the privilege of working with {builder} on the {workType} for your home at {address}. We wanted to reach out personally to introduce ourselves and let you know we're here for you.",
-                "We had the pleasure of partnering with {builder} to complete the {workType} work in your new home at {address}. Now that you're settled in, we wanted to connect with you directly.",
-                "Our team worked alongside {builder} to handle the {workType} installation at {address}, and we're proud to have been part of bringing your new home to life.",
-                "Working with {builder}, we completed the {workType} systems for your home at {address}. As you begin this exciting new chapter, we want you to know we're your local partner for all things plumbing and heating."
+                "Mid-State Plumbing & Heating had the privilege of working with {builder} on the {workType} {workDescription} for your home at {address}. We wanted to reach out personally to introduce ourselves and let you know we're here for you.",
+                "We had the pleasure of partnering with {builder} to complete the {workType} {workDescription} in your new home at {address}. Now that you're settled in, we wanted to connect with you directly.",
+                "Our team worked alongside {builder} to handle the {workType} {workDescription} at {address}, and we're proud to have been part of bringing your new home to life.",
+                "Working with {builder}, we completed the {workType} {workDescription} for your home at {address}. As you begin this exciting new chapter, we want you to know we're your local partner for all things plumbing and heating."
             ],
             services: [
                 "Whether you need help with heating, air conditioning, plumbing, or drain services, our experienced team is just a phone call away.",
@@ -399,9 +399,13 @@
 
         function formatWorkType(workType) {
             if (!workType) return "plumbing and heating";
-            workType = workType.toLowerCase();
+            workType = workType.toLowerCase().trim();
+            
+            if (workType === 'both') {
+                return "plumbing and HVAC";
+            }
             if (workType.includes('hvac') || workType.includes('heating') || workType.includes('ventilation')) {
-                return "heating and ventilation";
+                return "HVAC";
             }
             if (workType.includes('plumb')) {
                 return "plumbing";
@@ -425,6 +429,16 @@
             const workType = formatWorkType(customer.workType);
             const mailingAddress = customer.mailingAddress || address;
             
+            // Determine work description based on department
+            let workDescription;
+            if (customer.workType && customer.workType.toLowerCase().trim() === 'both') {
+                workDescription = "work";
+            } else if (workType.toLowerCase().includes('hvac')) {
+                workDescription = "installation";
+            } else {
+                workDescription = "installation";
+            }
+            
             const greeting = (firstName === "Current" || firstName === "Valued") ? 
                 `Dear Homeowner` : `Dear ${firstName} ${lastName}`;
 
@@ -432,6 +446,7 @@
             const intro = getRandomItem(letterTemplates.introductions)
                 .replace('{builder}', builder)
                 .replace('{workType}', workType)
+                .replace('{workDescription}', workDescription)
                 .replace('{address}', address);
             const services = getRandomItem(letterTemplates.services);
             const community = getRandomItem(letterTemplates.community);
