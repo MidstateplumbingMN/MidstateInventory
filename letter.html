@@ -1,9 +1,11 @@
 <!DOCTYPE html>
+<!-- Mid-State Letter Generator v2.0 - Updated 2026-01-19 14:57:41 -->
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - New Construction Welcome Letters</title>
+    <title>Mid-State Plumbing - New Construction Welcome Letters v2.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -482,6 +484,15 @@
                         <img src="${LOGO_DATA_URL}" alt="Mid-State Plumbing & Heating">
                     </div>
 
+                    <div class="letter-from">
+                        <strong>Robert Danaher</strong><br>
+                        Mid-State Plumbing & Heating<br>
+                        3500 Cannon St. #101<br>
+                        Hastings, MN 55033<br>
+                        (651) 480-1195<br>
+                        robert@midstateplumbing.com
+                    </div>
+
                     <div class="letter-date">
                         ${formatDate()}
                     </div>
@@ -522,9 +533,9 @@
                     </div>
 
                     <div class="letter-closing">
-                        <div class="letter-signature">Warmly,</div>
-                        <div style="margin-top: 0.3in;">
-                            <img src="${SIGNATURE_DATA_URL}" alt="Robert Danaher Signature" style="max-width: 3.5in; height: auto;">
+                        <div class="letter-signature">Warm regards,</div>
+                        <div style="margin-top: 0.5in;">
+                            <strong>Robert Danaher</strong>
                         </div>
                     </div>
 
