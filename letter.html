@@ -176,12 +176,23 @@
 
         .letter-logo {
             text-align: center;
-            margin-bottom: 0.3in;
+            margin-bottom: 0.5in;
         }
 
         .letter-logo img {
-            max-width: 4in;
+            max-width: 4.5in;
+            width: auto;
             height: auto;
+            display: block;
+            margin: 0 auto;
+            object-fit: contain;
+        }
+
+        .letter-page img {
+            max-width: 100%;
+            height: auto !important;
+            width: auto !important;
+            object-fit: contain;
         }
 
         .letter-from {
@@ -469,14 +480,6 @@
                 <div class="letter-page">
                     <div class="letter-logo">
                         <img src="${LOGO_DATA_URL}" alt="Mid-State Plumbing & Heating">
-                    </div>
-                    
-                    <div class="letter-from">
-                        <strong>Robert Danaher</strong><br>
-                        Mid-State Plumbing & Heating<br>
-                        3500 Cannon St. #101<br>
-                        Hastings, MN 55033<br>
-                        (651) 480-1195
                     </div>
 
                     <div class="letter-date">
@@ -770,22 +773,49 @@
             showLoading(true);
             try {
                 const letterPage = document.querySelector('.letter-page');
+                
+                // Create canvas with high quality settings
                 const canvas = await html2canvas(letterPage, {
-                    scale: 2,
+                    scale: 3,
                     useCORS: true,
-                    backgroundColor: '#ffffff'
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    width: letterPage.scrollWidth,
+                    height: letterPage.scrollHeight,
+                    windowWidth: letterPage.scrollWidth,
+                    windowHeight: letterPage.scrollHeight
                 });
                 
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'in', 'letter');
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'in',
+                    format: 'letter'
+                });
                 
-                const imgData = canvas.toDataURL('image/png');
-                pdf.addImage(imgData, 'PNG', 0, 0, 8.5, 11);
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                
+                // Calculate dimensions to fit letter size while maintaining aspect ratio
+                const pageWidth = 8.5;
+                const pageHeight = 11;
+                const imgWidth = canvas.width;
+                const imgHeight = canvas.height;
+                const ratio = Math.min(pageWidth / (imgWidth / 96), pageHeight / (imgHeight / 96));
+                
+                const scaledWidth = (imgWidth / 96) * ratio;
+                const scaledHeight = (imgHeight / 96) * ratio;
+                
+                const xOffset = (pageWidth - scaledWidth) / 2;
+                const yOffset = 0;
+                
+                pdf.addImage(imgData, 'JPEG', xOffset, yOffset, scaledWidth, scaledHeight, undefined, 'FAST');
                 
                 const customer = customerData[currentIndex];
                 const filename = `Letter_${customer.firstName}_${customer.lastName}.pdf`;
                 pdf.save(filename);
             } catch (error) {
+                console.error('PDF error:', error);
                 showError('Error creating PDF: ' + error.message);
             }
             showLoading(false);
@@ -795,32 +825,60 @@
             showLoading(true);
             try {
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'in', 'letter');
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'in',
+                    format: 'letter'
+                });
+                
+                let firstPage = true;
                 
                 for (let i = 0; i < customerData.length; i++) {
-                    if (i > 0) pdf.addPage();
+                    if (!firstPage) {
+                        pdf.addPage();
+                    }
+                    firstPage = false;
                     
                     const tempDiv = document.createElement('div');
                     tempDiv.style.position = 'absolute';
                     tempDiv.style.left = '-9999px';
+                    tempDiv.style.top = '0';
                     tempDiv.innerHTML = generateLetter(customerData[i]);
                     document.body.appendChild(tempDiv);
                     
                     const letterPage = tempDiv.querySelector('.letter-page');
+                    
                     const canvas = await html2canvas(letterPage, {
-                        scale: 2,
+                        scale: 3,
                         useCORS: true,
-                        backgroundColor: '#ffffff'
+                        allowTaint: true,
+                        backgroundColor: '#ffffff',
+                        logging: false,
+                        width: letterPage.scrollWidth,
+                        height: letterPage.scrollHeight
                     });
                     
-                    const imgData = canvas.toDataURL('image/png');
-                    pdf.addImage(imgData, 'PNG', 0, 0, 8.5, 11);
+                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                    
+                    const pageWidth = 8.5;
+                    const pageHeight = 11;
+                    const imgWidth = canvas.width;
+                    const imgHeight = canvas.height;
+                    const ratio = Math.min(pageWidth / (imgWidth / 96), pageHeight / (imgHeight / 96));
+                    
+                    const scaledWidth = (imgWidth / 96) * ratio;
+                    const scaledHeight = (imgHeight / 96) * ratio;
+                    
+                    const xOffset = (pageWidth - scaledWidth) / 2;
+                    
+                    pdf.addImage(imgData, 'JPEG', xOffset, 0, scaledWidth, scaledHeight, undefined, 'FAST');
                     
                     document.body.removeChild(tempDiv);
                 }
                 
                 pdf.save('MidState_Welcome_Letters_All.pdf');
             } catch (error) {
+                console.error('Bulk PDF error:', error);
                 showError('Error creating PDFs: ' + error.message);
             }
             showLoading(false);
