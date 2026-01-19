@@ -494,10 +494,10 @@
             const closing = getRandomItem(letterTemplates.closings);
 
             return `
-                <div class="letter-page">
+                <div class="letter-page" style="font-size: 10.5pt; line-height: 1.35; padding: 0.6in 1in;">
                     <div class="letter-header">
                         <div class="letter-logo">
-                            <img src="${LOGO_DATA_URL}" alt="Mid-State Plumbing & Heating">
+                            <img src="${LOGO_DATA_URL}" alt="Mid-State Plumbing & Heating" style="max-width: 1.2in; width: auto; height: auto;">
                         </div>
                         <div class="letter-from">
                             <strong>Robert Danaher</strong><br>
@@ -817,27 +817,33 @@
             try {
                 const letterPage = document.querySelector('.letter-page');
                 
-                // Create canvas with proper DPI for letter size
+                // Force a reflow to ensure all styles are applied
+                letterPage.offsetHeight;
+                
+                // Create canvas with high quality settings
                 const canvas = await html2canvas(letterPage, {
-                    scale: 2,
+                    scale: 3,
                     useCORS: true,
                     allowTaint: true,
                     backgroundColor: '#ffffff',
                     logging: false,
-                    width: 816,  // 8.5 inches * 96 DPI
-                    height: 1056 // 11 inches * 96 DPI
+                    windowWidth: 816,
+                    windowHeight: 1056,
+                    width: 816,
+                    height: 1056
                 });
                 
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF({
                     orientation: 'portrait',
                     unit: 'in',
-                    format: 'letter'
+                    format: 'letter',
+                    compress: true
                 });
                 
-                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
                 
-                // Add image at full page size with no scaling
+                // Add image at exact letter size
                 pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11, undefined, 'FAST');
                 
                 const customer = customerData[currentIndex];
@@ -857,7 +863,8 @@
                 const pdf = new jsPDF({
                     orientation: 'portrait',
                     unit: 'in',
-                    format: 'letter'
+                    format: 'letter',
+                    compress: true
                 });
                 
                 let firstPage = true;
@@ -876,20 +883,21 @@
                     document.body.appendChild(tempDiv);
                     
                     const letterPage = tempDiv.querySelector('.letter-page');
+                    letterPage.offsetHeight; // Force reflow
                     
                     const canvas = await html2canvas(letterPage, {
-                        scale: 2,
+                        scale: 3,
                         useCORS: true,
                         allowTaint: true,
                         backgroundColor: '#ffffff',
                         logging: false,
-                        width: 816,  // 8.5 inches * 96 DPI
-                        height: 1056 // 11 inches * 96 DPI
+                        windowWidth: 816,
+                        windowHeight: 1056,
+                        width: 816,
+                        height: 1056
                     });
                     
-                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                    
-                    // Add image at full page size with no scaling
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11, undefined, 'FAST');
                     
                     document.body.removeChild(tempDiv);
