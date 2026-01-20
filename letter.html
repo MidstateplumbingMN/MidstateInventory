@@ -464,8 +464,15 @@
         function generateLetter(customer) {
             const yearBuilt = customer.yearBuilt || new Date().getFullYear();
             const builder = customer.builder || "your builder";
-            const firstName = customer.firstName || "Valued";
-            const lastName = customer.lastName || "Homeowner";
+            
+            // Check if we have a real name
+            const hasRealName = customer.firstName && 
+                                customer.firstName.trim() !== '' && 
+                                customer.firstName !== "Current" && 
+                                customer.firstName !== "Valued";
+            
+            const firstName = hasRealName ? customer.firstName : "Current";
+            const lastName = (hasRealName && customer.lastName) ? customer.lastName : "Homeowner";
             const address = customer.address || "your new home";
             const workType = formatWorkType(customer.workType);
             const mailingAddress = customer.mailingAddress || address;
@@ -480,8 +487,7 @@
                 workDescription = "installation";
             }
             
-            const greeting = (firstName === "Current" || firstName === "Valued") ? 
-                `Dear Homeowner` : `Dear ${firstName} ${lastName}`;
+            const greeting = hasRealName ? `Dear ${firstName}` : `Dear Current Homeowner`;
 
             const opening = getRandomItem(letterTemplates.openings);
             const intro = getRandomItem(letterTemplates.introductions)
