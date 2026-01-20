@@ -488,7 +488,11 @@
                 </div>
 
                 <button class="btn btn-secondary" onclick="generateCertificates()" style="margin-top: 30px;" id="generateBtn">
-                    🎁 Generate Numbered Certificates
+                    🎁 Download All Certificates (Single PDF)
+                </button>
+
+                <button class="btn btn-secondary" onclick="generateIndividualCertificates()" style="margin-top: 10px; background: #8b5cf6;" id="generateIndividualBtn">
+                    📦 Download Individual Certificates (Separate PDFs)
                 </button>
 
                 <button class="btn btn-download" onclick="downloadUpdatedSpreadsheet()" style="margin-top: 10px; display: none;" id="downloadSpreadsheetBtn">
@@ -496,6 +500,16 @@
                 </button>
 
                 <div class="success-message" id="successMessage"></div>
+
+                <div id="downloadProgress" style="display: none; margin-top: 20px; padding: 20px; background: #eff6ff; border-radius: 8px;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <div class="spinner" style="width: 20px; height: 20px; border-width: 2px;"></div>
+                        <span id="progressText" style="color: #1e40af; font-weight: 600;">Generating certificates...</span>
+                    </div>
+                    <div style="background: #dbeafe; border-radius: 4px; height: 24px; overflow: hidden;">
+                        <div id="progressBar" style="background: #2563eb; height: 100%; width: 0%; transition: width 0.3s;"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -810,9 +824,9 @@
                     // Get page dimensions to calculate center if needed
                     const { width } = page.getSize();
                     
-                    // If X position is close to 3.5 (center of 8.5" page), center the text
+                    // If X position is close to 4.25 (center of 8.5" page), center the text
                     let xPos = x;
-                    if (Math.abs(parseFloat(document.getElementById('certX').value) - 3.5) < 0.5) {
+                    if (Math.abs(parseFloat(document.getElementById('certX').value) - 4.25) < 0.5) {
                         // Center the text
                         const textWidth = certNumber.length * fontSize * 0.5; // Rough estimate
                         xPos = (width - textWidth) / 2;
@@ -835,7 +849,7 @@
                 a.download = `MidState_Gift_Certificates_${currentYear}.pdf`;
                 a.click();
                 
-                showSuccess(`✓ Successfully generated ${count} numbered certificates (${templatePageCount} pages each)!`, 'successMessage');
+                showSuccess(`✓ Successfully generated ${count} numbered certificates (${templatePageCount} pages each) in one PDF!`, 'successMessage');
                 
             } catch (error) {
                 console.error('Certificate generation error:', error);
@@ -843,6 +857,121 @@
             }
             
             showLoading(false);
+        }
+
+        async function generateIndividualCertificates() {
+            if (!templatePDF) {
+                showError('Please upload a template PDF first.');
+                return;
+            }
+            
+            if (currentMode === 'spreadsheet' && customerData.length === 0) {
+                showError('Please upload a customer spreadsheet first.');
+                return;
+            }
+
+            showError('');
+            document.getElementById('downloadProgress').style.display = 'block';
+            
+            try {
+                const prefix = document.getElementById('certPrefix').value;
+                const startNum = parseInt(document.getElementById('startNumber').value) || 1;
+                const x = parseFloat(document.getElementById('certX').value) * 72;
+                const y = parseFloat(document.getElementById('certY').value) * 72;
+                const fontSize = parseInt(document.getElementById('fontSize').value);
+                const fontColor = document.getElementById('fontColor').value;
+                
+                const colors = {
+                    black: PDFLib.rgb(0, 0, 0),
+                    gray: PDFLib.rgb(0.5, 0.5, 0.5),
+                    blue: PDFLib.rgb(0, 0, 0.8),
+                    red: PDFLib.rgb(0.8, 0, 0)
+                };
+                
+                const textColor = colors[fontColor] || colors.black;
+                
+                const count = currentMode === 'quantity' ? 
+                    parseInt(document.getElementById('certQuantity').value) : 
+                    customerData.length;
+                
+                // Get number of pages in template
+                const templatePageCount = templatePDF.getPageCount();
+                
+                // Generate each certificate individually
+                for (let i = 0; i < count; i++) {
+                    // Update progress
+                    const progress = ((i + 1) / count) * 100;
+                    document.getElementById('progressBar').style.width = progress + '%';
+                    document.getElementById('progressText').textContent = `Generating certificate ${i + 1} of ${count}...`;
+                    
+                    // Create individual PDF
+                    const individualPDF = await PDFLib.PDFDocument.create();
+                    
+                    // Copy ALL pages from template
+                    const pageIndices = Array.from({length: templatePageCount}, (_, idx) => idx);
+                    const copiedPages = await individualPDF.copyPages(templatePDF, pageIndices);
+                    
+                    // Add all pages
+                    copiedPages.forEach(page => individualPDF.addPage(page));
+                    
+                    // Add certificate number to FIRST page only
+                    const certNumber = generateCertNumber(prefix, startNum + i);
+                    const page = individualPDF.getPage(0);
+                    
+                    // Get page dimensions
+                    const { width } = page.getSize();
+                    
+                    // Center the text if X position is close to 4.25
+                    let xPos = x;
+                    if (Math.abs(parseFloat(document.getElementById('certX').value) - 4.25) < 0.5) {
+                        const textWidth = certNumber.length * fontSize * 0.5;
+                        xPos = (width - textWidth) / 2;
+                    }
+                    
+                    page.drawText(certNumber, {
+                        x: xPos,
+                        y: y,
+                        size: fontSize,
+                        color: textColor
+                    });
+                    
+                    // Save individual PDF
+                    const pdfBytes = await individualPDF.save();
+                    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    // Generate filename
+                    let filename;
+                    if (currentMode === 'spreadsheet' && customerData[i]) {
+                        const customer = customerData[i];
+                        const lastName = customer.lastName || 'Customer';
+                        const firstName = customer.firstName || '';
+                        filename = `${certNumber}_${lastName}${firstName ? '_' + firstName : ''}.pdf`;
+                    } else {
+                        filename = `${certNumber}.pdf`;
+                    }
+                    
+                    // Download
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.click();
+                    
+                    // Clean up
+                    URL.revokeObjectURL(url);
+                    
+                    // Small delay to prevent browser from blocking downloads
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+                
+                document.getElementById('downloadProgress').style.display = 'none';
+                showSuccess(`✓ Successfully generated ${count} individual certificates!`, 'successMessage');
+                
+            } catch (error) {
+                console.error('Certificate generation error:', error);
+                showError('Error generating certificates: ' + error.message);
+                document.getElementById('downloadProgress').style.display = 'none';
+            }
         }
 
         function downloadUpdatedSpreadsheet() {
@@ -976,635 +1105,6 @@
                 }, 5000);
             }
         }
-    </script>
-</body>
-</html>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            opacity: 0.9;
-            font-size: 14px;
-        }
-
-        .content {
-            padding: 40px;
-        }
-
-        .step {
-            margin-bottom: 30px;
-            padding: 25px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            border-left: 4px solid #2563eb;
-        }
-
-        .step h2 {
-            color: #1e40af;
-            font-size: 18px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .step-number {
-            background: #2563eb;
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #374151;
-        }
-
-        input[type="file"] {
-            width: 100%;
-            padding: 12px;
-            border: 2px dashed #cbd5e1;
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        input[type="file"]:hover {
-            border-color: #2563eb;
-            background: #eff6ff;
-        }
-
-        input[type="text"], input[type="number"] {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-
-        input[type="text"]:focus, input[type="number"]:focus {
-            outline: none;
-            border-color: #2563eb;
-        }
-
-        .position-controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 10px;
-        }
-
-        .btn {
-            background: #2563eb;
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        .btn:hover {
-            background: #1e40af;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
-        }
-
-        .btn:disabled {
-            background: #cbd5e1;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-secondary {
-            background: #10b981;
-        }
-
-        .btn-secondary:hover {
-            background: #059669;
-        }
-
-        .preview-section {
-            display: none;
-            margin-top: 30px;
-        }
-
-        .preview-box {
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 20px;
-            background: white;
-            max-height: 600px;
-            overflow-y: auto;
-        }
-
-        .certificate-preview {
-            border: 1px solid #e5e7eb;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            background: #f9fafb;
-        }
-
-        .certificate-preview h3 {
-            color: #1e40af;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-
-        .certificate-info {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            font-size: 14px;
-        }
-
-        .info-item {
-            display: flex;
-            gap: 5px;
-        }
-
-        .info-label {
-            font-weight: 600;
-            color: #6b7280;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            color: #2563eb;
-            font-weight: 600;
-        }
-
-        .loading.active {
-            display: block;
-        }
-
-        .spinner {
-            border: 3px solid #f3f4f6;
-            border-top: 3px solid #2563eb;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .success-message {
-            background: #d1fae5;
-            color: #065f46;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-            display: none;
-        }
-
-        .success-message.active {
-            display: block;
-        }
-
-        .error {
-            background: #fee2e2;
-            color: #991b1b;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-            display: none;
-        }
-
-        .error.active {
-            display: block;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-        }
-
-        .stat-card h3 {
-            font-size: 32px;
-            margin-bottom: 5px;
-        }
-
-        .stat-card p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .help-text {
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            border-radius: 8px;
-            padding: 12px;
-            margin-top: 10px;
-            font-size: 13px;
-            color: #1e40af;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🎁 Gift Certificate Numbering Tool</h1>
-            <p>Add unique tracking numbers to your gift certificates</p>
-        </div>
-
-        <div class="content">
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                Processing your certificates...
-            </div>
-
-            <div class="error" id="error"></div>
-
-            <div class="step">
-                <h2><span class="step-number">1</span> Upload Template Certificate (PDF)</h2>
-                <div class="input-group">
-                    <label for="templatePDF">Select your gift certificate template:</label>
-                    <input type="file" id="templatePDF" accept=".pdf" onchange="loadTemplate()">
-                    <div class="help-text">
-                        📄 Upload your designed gift certificate PDF. We'll add a unique number to each one.
-                    </div>
-                </div>
-            </div>
-
-            <div class="step">
-                <h2><span class="step-number">2</span> Upload Customer List</h2>
-                <div class="input-group">
-                    <label for="customerFile">Select your customer spreadsheet (CSV or Excel):</label>
-                    <input type="file" id="customerFile" accept=".csv,.xlsx,.xls" onchange="loadCustomers()">
-                    <div class="help-text">
-                        📊 Same format as your letter spreadsheet. Each row will get a unique certificate number.
-                    </div>
-                </div>
-            </div>
-
-            <div class="step">
-                <h2><span class="step-number">3</span> Certificate Number Settings</h2>
-                <div class="input-group">
-                    <label for="certPrefix">Certificate Number Prefix (optional):</label>
-                    <input type="text" id="certPrefix" placeholder="MSP" value="MSP">
-                    <div class="help-text">
-                        💡 Example: "MSP" creates numbers like MSP-2025-001, MSP-2025-002, etc.
-                    </div>
-                </div>
-                <div class="input-group">
-                    <label for="startNumber">Starting Number:</label>
-                    <input type="number" id="startNumber" value="1" min="1">
-                </div>
-            </div>
-
-            <div class="step">
-                <h2><span class="step-number">4</span> Position Certificate Number on PDF</h2>
-                <div class="position-controls">
-                    <div class="input-group">
-                        <label for="certX">Horizontal Position (inches from left):</label>
-                        <input type="number" id="certX" value="6.5" step="0.1" min="0" max="8.5">
-                    </div>
-                    <div class="input-group">
-                        <label for="certY">Vertical Position (inches from bottom):</label>
-                        <input type="number" id="certY" value="1.5" step="0.1" min="0" max="11">
-                    </div>
-                    <div class="input-group">
-                        <label for="fontSize">Font Size:</label>
-                        <input type="number" id="fontSize" value="10" min="6" max="24">
-                    </div>
-                    <div class="input-group">
-                        <label for="fontColor">Text Color:</label>
-                        <select id="fontColor" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;">
-                            <option value="black">Black</option>
-                            <option value="gray">Gray</option>
-                            <option value="blue">Blue</option>
-                            <option value="red">Red</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="help-text">
-                    📏 Adjust the position where the certificate number appears. Default is bottom-right corner.
-                </div>
-            </div>
-
-            <div class="preview-section" id="previewSection">
-                <div class="stats">
-                    <div class="stat-card">
-                        <h3 id="totalCerts">0</h3>
-                        <p>Certificates Ready</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3 id="firstCert">-</h3>
-                        <p>First Number</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3 id="lastCert">-</h3>
-                        <p>Last Number</p>
-                    </div>
-                </div>
-
-                <button class="btn btn-secondary" onclick="generateCertificates()" style="margin-top: 30px;">
-                    🎁 Generate Numbered Certificates
-                </button>
-
-                <div class="success-message" id="successMessage"></div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let templatePDF = null;
-        let customerData = [];
-        const currentYear = new Date().getFullYear();
-
-        async function loadTemplate() {
-            const file = document.getElementById('templatePDF').files[0];
-            if (!file) return;
-
-            showLoading(true);
-            try {
-                const arrayBuffer = await file.arrayBuffer();
-                templatePDF = await PDFLib.PDFDocument.load(arrayBuffer);
-                showError('');
-                showSuccess('✓ Template loaded successfully!', 'successMessage');
-                updatePreview();
-            } catch (error) {
-                console.error('PDF loading error:', error);
-                showError('Error loading PDF template: ' + error.message);
-            }
-            showLoading(false);
-        }
-
-        async function loadCustomers() {
-            const file = document.getElementById('customerFile').files[0];
-            if (!file) return;
-
-            showLoading(true);
-            const fileName = file.name.toLowerCase();
-
-            if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
-                const reader = new FileReader();
-                reader.onload = async function(e) {
-                    try {
-                        const data = new Uint8Array(e.target.result);
-                        const workbook = XLSX.read(data, {type: 'array'});
-                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                        const rows = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
-                        
-                        customerData = parseCustomerData(rows);
-                        showLoading(false);
-                        
-                        if (customerData.length === 0) {
-                            showError('No valid customer records found in spreadsheet.');
-                        } else {
-                            showError('');
-                            showSuccess(`✓ Loaded ${customerData.length} customers successfully!`, 'successMessage');
-                            updatePreview();
-                        }
-                    } catch (error) {
-                        showLoading(false);
-                        console.error('Excel parsing error:', error);
-                        showError('Error reading Excel file: ' + error.message);
-                    }
-                };
-                reader.readAsArrayBuffer(file);
-            } else {
-                Papa.parse(file, {
-                    complete: function(results) {
-                        customerData = parseCustomerData(results.data);
-                        showLoading(false);
-                        
-                        if (customerData.length === 0) {
-                            showError('No valid customer records found in CSV.');
-                        } else {
-                            showError('');
-                            showSuccess(`✓ Loaded ${customerData.length} customers successfully!`, 'successMessage');
-                            updatePreview();
-                        }
-                    },
-                    error: function(error) {
-                        showLoading(false);
-                        console.error('CSV parsing error:', error);
-                        showError('Error reading CSV file: ' + error.message);
-                    }
-                });
-            }
-        }
-
-        function parseCustomerData(rows) {
-            const customers = [];
-            
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
-                
-                if (!row || row.length === 0) continue;
-                
-                // Skip if column I or J is checked (complete)
-                const columnI = row[8] ? row[8].toString().trim().toLowerCase() : '';
-                const columnJ = row[9] ? row[9].toString().trim().toLowerCase() : '';
-                
-                if (columnI === 'true' || columnI === 'yes' || columnI === 'x' || columnI === '1' || columnI === 'checked') {
-                    continue;
-                }
-                
-                if (columnJ === 'true' || columnJ === 'yes' || columnJ === 'x' || columnJ === '1' || columnJ === 'checked') {
-                    continue;
-                }
-                
-                const hasName = (row[1] && row[1].toString().trim()) || (row[2] && row[2].toString().trim());
-                const hasAddress = row[3] && row[3].toString().trim();
-                
-                if (!hasName && !hasAddress) {
-                    continue;
-                }
-                
-                customers.push({
-                    firstName: row[1] ? row[1].toString().trim() : '',
-                    lastName: row[2] ? row[2].toString().trim() : '',
-                    address: row[3] ? row[3].toString().trim() : '',
-                    mailingAddress: row[12] ? row[12].toString().trim() : (row[3] ? row[3].toString().trim() : '')
-                });
-            }
-            
-            return customers;
-        }
-
-        function updatePreview() {
-            if (!templatePDF || customerData.length === 0) return;
-
-            const prefix = document.getElementById('certPrefix').value;
-            const startNum = parseInt(document.getElementById('startNumber').value) || 1;
-            
-            const firstCertNum = generateCertNumber(prefix, startNum);
-            const lastCertNum = generateCertNumber(prefix, startNum + customerData.length - 1);
-            
-            document.getElementById('totalCerts').textContent = customerData.length;
-            document.getElementById('firstCert').textContent = firstCertNum;
-            document.getElementById('lastCert').textContent = lastCertNum;
-            
-            document.getElementById('previewSection').style.display = 'block';
-        }
-
-        function generateCertNumber(prefix, number) {
-            const paddedNum = number.toString().padStart(3, '0');
-            return prefix ? `${prefix}-${currentYear}-${paddedNum}` : `${currentYear}-${paddedNum}`;
-        }
-
-        async function generateCertificates() {
-            if (!templatePDF || customerData.length === 0) {
-                showError('Please upload both a template PDF and customer list first.');
-                return;
-            }
-
-            showLoading(true);
-            showError('');
-            
-            try {
-                const prefix = document.getElementById('certPrefix').value;
-                const startNum = parseInt(document.getElementById('startNumber').value) || 1;
-                const x = parseFloat(document.getElementById('certX').value) * 72; // Convert inches to points
-                const y = parseFloat(document.getElementById('certY').value) * 72;
-                const fontSize = parseInt(document.getElementById('fontSize').value);
-                const fontColor = document.getElementById('fontColor').value;
-                
-                // Color mapping
-                const colors = {
-                    black: PDFLib.rgb(0, 0, 0),
-                    gray: PDFLib.rgb(0.5, 0.5, 0.5),
-                    blue: PDFLib.rgb(0, 0, 0.8),
-                    red: PDFLib.rgb(0.8, 0, 0)
-                };
-                
-                const textColor = colors[fontColor] || colors.black;
-                
-                // Create merged PDF with all certificates
-                const mergedPDF = await PDFLib.PDFDocument.create();
-                
-                for (let i = 0; i < customerData.length; i++) {
-                    // Copy template page
-                    const [copiedPage] = await mergedPDF.copyPages(templatePDF, [0]);
-                    mergedPDF.addPage(copiedPage);
-                    
-                    // Add certificate number
-                    const certNumber = generateCertNumber(prefix, startNum + i);
-                    const page = mergedPDF.getPage(i);
-                    
-                    page.drawText(certNumber, {
-                        x: x,
-                        y: y,
-                        size: fontSize,
-                        color: textColor
-                    });
-                }
-                
-                // Save the PDF
-                const pdfBytes = await mergedPDF.save();
-                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                const url = URL.createObjectURL(blob);
-                
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `MidState_Gift_Certificates_${currentYear}.pdf`;
-                a.click();
-                
-                showSuccess(`✓ Successfully generated ${customerData.length} numbered certificates!`, 'successMessage');
-                
-            } catch (error) {
-                console.error('Certificate generation error:', error);
-                showError('Error generating certificates: ' + error.message);
-            }
-            
-            showLoading(false);
-        }
-
-        function showLoading(show) {
-            document.getElementById('loading').className = show ? 'loading active' : 'loading';
-        }
-
-        function showError(message) {
-            const errorDiv = document.getElementById('error');
-            errorDiv.textContent = message;
-            errorDiv.className = message ? 'error active' : 'error';
-        }
-
-        function showSuccess(message, elementId) {
-            const successDiv = document.getElementById(elementId || 'successMessage');
-            successDiv.textContent = message;
-            successDiv.className = message ? 'success-message active' : 'success-message';
-            
-            if (message) {
-                setTimeout(() => {
-                    successDiv.className = 'success-message';
-                }, 5000);
-            }
-        }
-
-        // Update preview when settings change
-        document.getElementById('certPrefix').addEventListener('input', updatePreview);
-        document.getElementById('startNumber').addEventListener('input', updatePreview);
     </script>
 </body>
 </html>
