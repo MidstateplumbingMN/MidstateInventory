@@ -351,9 +351,9 @@
                 <div class="input-group">
                     <label for="signerSelect">Default Letter Signer:</label>
                     <select id="signerSelect" onchange="updateSignerFields()" style="width: 100%; padding: 10px; font-size: 14px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 15px;">
-                        <option value="robert">Robert Danaher (robert@midstateplumbing.com)</option>
-                        <option value="victoria">Victoria Ellsworth (victoria@midstateplumbing.com)</option>
-                        <option value="midstate">Mid-State Plumbing & Heating (info@midstateplumbing.com)</option>
+                        <option value="robert">Robert Danaher (<template class="__cf_email__" data-cfemail="fa8895989f888eba97939e898e9b8e9f8a968f979893949dd4999597">[email&#160;protected]</template>)</option>
+                        <option value="victoria">Victoria Ellsworth (<template class="__cf_email__" data-cfemail="dea8b7bdaab1acb7bf9eb3b7baadaabfaabbaeb2abb3bcb7b0b9f0bdb1b3">[email&#160;protected]</template>)</option>
+                        <option value="midstate">Mid-State Plumbing & Heating (<template class="__cf_email__" data-cfemail="7c15121a133c1115180f081d08190c1009111e15121b521f1311">[email&#160;protected]</template>)</option>
                         <option value="custom">+ Add Custom Signer</option>
                     </select>
                     
@@ -419,7 +419,7 @@
         </div>
     </div>
 
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         let customerData = [];
         let currentIndex = 0;
         let sheetSignerMap = {}; // Maps sheet names to signer keys
@@ -999,6 +999,18 @@
                         if (customerData.length === 0) {
                             showError('No valid customer records found. Check that your spreadsheet has data in the expected columns.');
                         } else {
+                            // Show success message
+                            const successDiv = document.createElement('div');
+                            successDiv.style.cssText = 'background: #d1fae5; color: #065f46; padding: 15px; border-radius: 8px; margin: 15px 0; font-weight: 600;';
+                            successDiv.textContent = `✓ Successfully loaded ${customerData.length} customers from ${workbook.SheetNames.length} sheet(s)!`;
+                            
+                            const uploadSection = document.querySelector('.upload-section');
+                            const existingSuccess = uploadSection.querySelector('.success-feedback');
+                            if (existingSuccess) existingSuccess.remove();
+                            
+                            successDiv.className = 'success-feedback';
+                            uploadSection.appendChild(successDiv);
+                            
                             // Show signer confirmation dialog
                             showSignerConfirmation();
                         }
@@ -1030,29 +1042,22 @@
                             if (customerData.length === 0) {
                                 showError('No valid customer records found. Check that your CSV has data in the expected columns.');
                             } else {
+                                // Show success message
+                                const successDiv = document.createElement('div');
+                                successDiv.style.cssText = 'background: #d1fae5; color: #065f46; padding: 15px; border-radius: 8px; margin: 15px 0; font-weight: 600;';
+                                successDiv.textContent = `✓ Successfully loaded ${customerData.length} customers from CSV file!`;
+                                
+                                const uploadSection = document.querySelector('.upload-section');
+                                const existingSuccess = uploadSection.querySelector('.success-feedback');
+                                if (existingSuccess) existingSuccess.remove();
+                                
+                                successDiv.className = 'success-feedback';
+                                uploadSection.appendChild(successDiv);
+                                
                                 showSignerConfirmation();
                             }
                         } else {
                             showError('No data found in the CSV file.');
-                        }
-                    },
-                    error: function(error) {
-                        showLoading(false);
-                        console.error('CSV parsing error:', error);
-                        showError('Error reading CSV file: ' + error.message);
-                    }
-                });
-            }
-        }
-                            customerData = parseCustomerData(results.data);
-                            console.log('Valid customers found:', customerData.length);
-                            if (customerData.length === 0) {
-                                showError('No valid customer records found. Check that your CSV has data in the expected columns.');
-                            } else {
-                                showPreview();
-                            }
-                        } else {
-                            showError('No data found in the file. The CSV appears to be empty.');
                         }
                     },
                     error: function(error) {
@@ -1186,17 +1191,21 @@
                     });
                     
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                    pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11, undefined, 'FAST');
-                    
+                    pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11, '', '', 0, 0, 'FAST');
                     document.body.removeChild(tempDiv);
+                    
+                    if (i < customerData.length - 1) {
+                        pdf.addPage();
+                    }
                 }
                 
-                pdf.save('MidState_Welcome_Letters_All.pdf');
+                pdf.save(`MidState_Letters_${new Date().toISOString().split('T')[0]}.pdf`);
+                showLoading(false);
             } catch (error) {
-                console.error('Bulk PDF error:', error);
-                showError('Error creating PDFs: ' + error.message);
+                console.error('PDF generation error:', error);
+                showError('Error generating PDF: ' + error.message);
+                showLoading(false);
             }
-            showLoading(false);
         }
     </script>
 </body>
