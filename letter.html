@@ -1227,21 +1227,21 @@
                 // Force a reflow to ensure all styles are applied
                 letterPage.offsetHeight;
                 
-                // Get actual content dimensions
-                const actualHeight = letterPage.scrollHeight;
-                const actualWidth = letterPage.offsetWidth;
+                // Use exact letter dimensions (8.5" x 11" at 96 DPI)
+                const letterWidth = 816;  // 8.5 inches * 96 DPI
+                const letterHeight = 1056; // 11 inches * 96 DPI
                 
-                // Create canvas with high quality settings and actual content size
+                // Create canvas with high quality settings at exact letter size
                 const canvas = await html2canvas(letterPage, {
-                    scale: 3,
+                    scale: 2,
                     useCORS: true,
                     allowTaint: true,
                     backgroundColor: '#ffffff',
                     logging: false,
-                    windowWidth: actualWidth,
-                    windowHeight: actualHeight,
-                    width: actualWidth,
-                    height: actualHeight
+                    windowWidth: letterWidth,
+                    windowHeight: letterHeight,
+                    width: letterWidth,
+                    height: letterHeight
                 });
                 
                 const { jsPDF } = window.jspdf;
@@ -1254,22 +1254,8 @@
                 
                 const imgData = canvas.toDataURL('image/jpeg', 0.95);
                 
-                // Calculate proper scaling to fit letter size
-                const pdfWidth = 8.5;
-                const pdfHeight = 11;
-                const imgWidth = canvas.width;
-                const imgHeight = canvas.height;
-                const ratio = Math.min(pdfWidth / (imgWidth / 96), pdfHeight / (imgHeight / 96));
-                
-                const scaledWidth = (imgWidth / 96) * ratio;
-                const scaledHeight = (imgHeight / 96) * ratio;
-                
-                // Center on page
-                const xOffset = (pdfWidth - scaledWidth) / 2;
-                const yOffset = 0;
-                
-                // Add image
-                pdf.addImage(imgData, 'JPEG', xOffset, yOffset, scaledWidth, scaledHeight, undefined, 'FAST');
+                // Add image at full letter size (8.5 x 11)
+                pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11, undefined, 'FAST');
                 
                 const customer = customerData[currentIndex];
                 const filename = `Letter_${customer.firstName}_${customer.lastName}.pdf`;
@@ -1311,7 +1297,7 @@
                     letterPage.offsetHeight; // Force reflow
                     
                     const canvas = await html2canvas(letterPage, {
-                        scale: 3,
+                        scale: 2,
                         useCORS: true,
                         allowTaint: true,
                         backgroundColor: '#ffffff',
@@ -1323,7 +1309,7 @@
                     });
                     
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                    pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11, '', '', 0, 0, 'FAST');
+                    pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11, undefined, 'FAST');
                     document.body.removeChild(tempDiv);
                     
                     if (i < customerData.length - 1) {
