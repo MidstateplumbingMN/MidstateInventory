@@ -180,11 +180,11 @@
         .letter-logo {
             display: block;
             text-align: center;
-            margin: 0 auto 0.15in auto;
+            margin: 0 auto 0.1in auto;
         }
 
         .letter-logo img {
-            max-width: 2.5in;
+            max-width: 2.0in;
             width: auto;
             height: auto;
             display: block;
@@ -201,7 +201,7 @@
 
         .letter-from {
             text-align: center !important;
-            margin-bottom: 0.2in;
+            margin-bottom: 0.15in;
             font-size: 9.5pt;
             line-height: 1.25;
             display: block;
@@ -237,23 +237,22 @@
         }
 
         .letter-body p {
-            margin-bottom: 0.11in;
+            margin-bottom: 0.09in;
             text-indent: 0;
             font-size: 11pt;
             text-wrap: pretty;
             orphans: 2;
             widows: 2;
         }
-        }
 
         .letter-body ul {
-            margin: 0.09in 0 0.11in 0.35in;
+            margin: 0.08in 0 0.09in 0.35in;
             list-style-type: disc;
             font-size: 11pt;
         }
 
         .letter-body li {
-            margin-bottom: 0.05in;
+            margin-bottom: 0.04in;
             font-size: 11pt;
         }
 
@@ -446,7 +445,7 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-        // Version 2.1 - Fixed syntax errors and file upload
+        // Version 3.1 - Reduced logo size and spacing to fit all content
         let customerData = [];
         let currentIndex = 0;
         let sheetSignerMap = {}; // Maps sheet names to signer keys
@@ -642,7 +641,7 @@
             return `
                 <div class="letter-page" style="font-size: 11pt; line-height: 1.4; padding: 1in 1in;">
                     <div class="letter-logo">
-                        <img src="${LOGO_DATA_URL}" alt="Mid-State Plumbing & Heating" style="max-width: 2.5in; width: auto; height: auto;">
+                        <img src="${LOGO_DATA_URL}" alt="Mid-State Plumbing & Heating" style="max-width: 2.0in; width: auto; height: auto;">
                     </div>
                     
                     <div class="letter-from">
@@ -1227,9 +1226,15 @@
                 // Force a reflow to ensure all styles are applied
                 letterPage.offsetHeight;
                 
+                console.log('=== PDF Generation Debug ===');
+                console.log('Letter page dimensions:', letterPage.offsetWidth, 'x', letterPage.offsetHeight);
+                console.log('Letter page padding:', window.getComputedStyle(letterPage).padding);
+                
                 // Use exact letter dimensions (8.5" x 11" at 96 DPI)
                 const letterWidth = 816;  // 8.5 inches * 96 DPI
                 const letterHeight = 1056; // 11 inches * 96 DPI
+                
+                console.log('Canvas dimensions:', letterWidth, 'x', letterHeight);
                 
                 // Create canvas with high quality settings at exact letter size
                 const canvas = await html2canvas(letterPage, {
@@ -1244,6 +1249,8 @@
                     height: letterHeight
                 });
                 
+                console.log('Canvas created:', canvas.width, 'x', canvas.height);
+                
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF({
                     orientation: 'portrait',
@@ -1254,11 +1261,15 @@
                 
                 const imgData = canvas.toDataURL('image/jpeg', 0.95);
                 
+                console.log('Adding image to PDF at: 0, 0, 8.5, 11');
+                
                 // Add image at full letter size (8.5 x 11)
                 pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11, undefined, 'FAST');
                 
                 const customer = customerData[currentIndex];
                 const filename = `Letter_${customer.firstName}_${customer.lastName}.pdf`;
+                
+                console.log('Saving PDF:', filename);
                 pdf.save(filename);
             } catch (error) {
                 console.error('PDF error:', error);
