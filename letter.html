@@ -34,7 +34,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #c41e3a 0%, #a01729 100%);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -57,7 +57,7 @@
 
         .upload-section {
             background: #f8f9fa;
-            border: 3px dashed #c41e3a;
+            border: 3px dashed #1e3c72;
             border-radius: 10px;
             padding: 40px;
             text-align: center;
@@ -66,7 +66,7 @@
         }
 
         .upload-section:hover {
-            border-color: #a01729;
+            border-color: #2a5298;
             background: #fff;
         }
 
@@ -98,11 +98,11 @@
 
         input[type="text"]:focus, input[type="file"]:focus {
             outline: none;
-            border-color: #c41e3a;
+            border-color: #1e3c72;
         }
 
         .btn {
-            background: linear-gradient(135deg, #c41e3a 0%, #a01729 100%);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: white;
             border: none;
             padding: 15px 40px;
@@ -116,7 +116,7 @@
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(196, 30, 58, 0.4);
+            box-shadow: 0 8px 20px rgba(30, 60, 114, 0.4);
         }
 
         .btn:active {
@@ -291,7 +291,7 @@
             display: none;
             text-align: center;
             padding: 20px;
-            color: #c41e3a;
+            color: #1e3c72;
             font-weight: 600;
         }
 
@@ -300,9 +300,9 @@
         }
 
         .error {
-            background: #fee;
-            border: 2px solid #c41e3a;
-            color: #c41e3a;
+            background: #eef;
+            border: 2px solid #1e3c72;
+            color: #1e3c72;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
@@ -933,7 +933,7 @@
                 
                 div.innerHTML = `
                     <div style="margin-bottom: 8px;">
-                        <strong style="color: #c41e3a;">Sheet ${sheetNum}</strong> 
+                        <strong style="color: #1e3c72;">Sheet ${sheetNum}</strong> 
                         <span style="color: #666; font-size: 13px;">(${customerCount} customers)</span>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -1187,7 +1187,7 @@
             const resultsDiv = document.getElementById('searchResults');
             
             if (!searchTerm) {
-                resultsDiv.innerHTML = '<span style="color: #dc2626;">Please enter a search term.</span>';
+                resultsDiv.innerHTML = '<span style="color: #1e3c72;">Please enter a search term.</span>';
                 return;
             }
             
@@ -1205,7 +1205,7 @@
             }));
             
             if (matches.length === 0) {
-                resultsDiv.innerHTML = '<span style="color: #dc2626;">No customers found matching "' + searchTerm + '"</span>';
+                resultsDiv.innerHTML = '<span style="color: #1e3c72;">No customers found matching "' + searchTerm + '"</span>';
             } else if (matches.length === 1) {
                 currentIndex = matches[0].originalIndex;
                 displayLetter(currentIndex);
