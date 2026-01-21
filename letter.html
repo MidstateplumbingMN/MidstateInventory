@@ -229,12 +229,18 @@
             text-align: left;
             margin-bottom: 0.15in;
             font-size: 11pt;
+            text-wrap: pretty;
+            word-spacing: 0.05em;
         }
 
         .letter-body p {
             margin-bottom: 0.11in;
             text-indent: 0;
             font-size: 11pt;
+            text-wrap: pretty;
+            orphans: 2;
+            widows: 2;
+        }
         }
 
         .letter-body ul {
@@ -448,7 +454,7 @@
             robert: {
                 name: "Robert Danaher",
                 title: "Mid-State Plumbing & Heating",
-                address: "3500 Cannon St. #101",
+                address: "3500 Cannon St #101",
                 city: "Hastings, MN 55033",
                 phone: "(651) 480-1195",
                 email: "robert@midstateplumbing.com"
@@ -456,7 +462,7 @@
             victoria: {
                 name: "Victoria Ellsworth",
                 title: "Mid-State Plumbing & Heating",
-                address: "3500 Cannon St. #101",
+                address: "3500 Cannon St #101",
                 city: "Hastings, MN 55033",
                 phone: "(651) 480-1195",
                 email: "victoria@midstateplumbing.com"
@@ -464,7 +470,7 @@
             midstate: {
                 name: "Mid-State Plumbing & Heating",
                 title: "",
-                address: "3500 Cannon St. #101",
+                address: "3500 Cannon St #101",
                 city: "Hastings, MN 55033",
                 phone: "(651) 480-1195",
                 email: "info@midstateplumbing.com"
@@ -540,6 +546,22 @@
             return workType.charAt(0).toUpperCase() + workType.slice(1);
         }
 
+        function cleanAddress(address) {
+            if (!address) return address;
+            // Remove period from street abbreviations to avoid double periods
+            address = address.replace(/\bSt\.\s/g, 'St ')
+                           .replace(/\bAve\.\s/g, 'Ave ')
+                           .replace(/\bRd\.\s/g, 'Rd ')
+                           .replace(/\bDr\.\s/g, 'Dr ')
+                           .replace(/\bLn\.\s/g, 'Ln ')
+                           .replace(/\bBlvd\.\s/g, 'Blvd ')
+                           .replace(/\bCt\.\s/g, 'Ct ')
+                           .replace(/\bPl\.\s/g, 'Pl ')
+                           .replace(/\bPkwy\.\s/g, 'Pkwy ')
+                           .replace(/\bCir\.\s/g, 'Cir ');
+            return address;
+        }
+
         function formatDate() {
             const months = ['January', 'February', 'March', 'April', 'May', 'June', 
                            'July', 'August', 'September', 'October', 'November', 'December'];
@@ -561,11 +583,11 @@
             
             const firstName = hasRealName ? customer.firstName : "Current";
             const lastName = (hasRealName && customer.lastName) ? customer.lastName : "Homeowner";
-            const address = customer.address || "your new home";
+            const address = cleanAddress(customer.address || "your new home");
             const workType = formatWorkType(customer.workType);
             
             // Clean mailing address - remove name if it's at the beginning
-            let mailingAddress = customer.mailingAddress || address;
+            let mailingAddress = cleanAddress(customer.mailingAddress || address);
             const fullName = `${customer.firstName} ${customer.lastName}`.trim();
             if (mailingAddress.startsWith(fullName)) {
                 // Remove the name and any trailing whitespace/commas
