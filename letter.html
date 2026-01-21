@@ -179,7 +179,7 @@
         .letter-logo {
             display: block;
             text-align: center;
-            margin: 0 auto 0.3in auto;
+            margin: 0 auto 0.2in auto;
         }
 
         .letter-logo img {
@@ -200,7 +200,7 @@
 
         .letter-from {
             text-align: center;
-            margin-bottom: 0.4in;
+            margin-bottom: 0.25in;
             font-size: 9.5pt;
             line-height: 1.25;
         }
@@ -231,13 +231,13 @@
         }
 
         .letter-body p {
-            margin-bottom: 0.1in;
+            margin-bottom: 0.08in;
             text-indent: 0;
             font-size: 10.5pt;
         }
 
         .letter-body ul {
-            margin: 0.08in 0 0.1in 0.35in;
+            margin: 0.06in 0 0.08in 0.35in;
             list-style-type: disc;
             font-size: 10.5pt;
         }
@@ -420,6 +420,7 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+        // Version 2.1 - Fixed syntax errors and file upload
         let customerData = [];
         let currentIndex = 0;
         let sheetSignerMap = {}; // Maps sheet names to signer keys
@@ -545,7 +546,18 @@
             const lastName = (hasRealName && customer.lastName) ? customer.lastName : "Homeowner";
             const address = customer.address || "your new home";
             const workType = formatWorkType(customer.workType);
-            const mailingAddress = customer.mailingAddress || address;
+            
+            // Clean mailing address - remove name if it's at the beginning
+            let mailingAddress = customer.mailingAddress || address;
+            const fullName = `${customer.firstName} ${customer.lastName}`.trim();
+            if (mailingAddress.startsWith(fullName)) {
+                // Remove the name and any trailing whitespace/commas
+                mailingAddress = mailingAddress.substring(fullName.length).replace(/^[\s,]+/, '').trim();
+            }
+            // If nothing left after removing name, use address
+            if (!mailingAddress) {
+                mailingAddress = address;
+            }
             
             // Determine work description based on department
             let workDescription;
@@ -622,13 +634,14 @@
                         
                         <p><strong>Special Offer Enclosed</strong></p>
                         
-                        <p>Along with this letter, you'll find:</p>
+                        <p>Along with this letter, you'll find an enclosed gift certificate for:</p>
                         
                         <ul>
-                            <li><strong>$50 credit toward any service or repair</strong> (excludes diagnostics)</li>
+                            <li><strong>$50 off any service or repair</strong> (excludes diagnostics)<br><em>—or—</em></li>
                             <li><strong>$500 off any new equipment installation</strong></li>
-                            <li><strong>Information about our Maintenance Club</strong> and its exclusive benefits</li>
                         </ul>
+                        
+                        <p>Plus, information about our <strong>Maintenance Club</strong> and its exclusive benefits.</p>
                         
                         <p><strong>Maintenance Club Benefits</strong></p>
                         
@@ -644,9 +657,9 @@
                         
                         <p>Your home built in ${yearBuilt} represents a significant investment, and our maintenance program is designed to protect that investment while giving you peace of mind year-round.</p>
                         
-                        <p><strong>Protect Your Systems & Plan for the Future</strong></p>
+                        <p><strong>Protect Your Investment</strong></p>
                         
-                        <p>As you settle into your home, consider protecting your heating and cooling equipment with surge protection—power surges are one of the leading causes of HVAC system failures. And when you're ready for your next project, whether that's finishing your basement, adding a wet bar, or upgrading any of your systems, we're here to help make it happen.</p>
+                        <p>Consider surge protection for your HVAC equipment—power surges are a leading cause of system failures. When you're ready for projects like finishing your basement or adding a wet bar, we're here to help.</p>
                         
                         <p>${community}</p>
                         
