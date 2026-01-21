@@ -177,11 +177,18 @@
             page-break-after: always;
         }
 
+        .letter-header {
+            margin-bottom: 0.2in;
+            display: table;
+            width: 100%;
+        }
+
         .letter-logo {
-            display: inline-block;
-            vertical-align: top;
+            display: table-cell;
+            vertical-align: middle;
             width: 2.5in;
             text-align: left;
+            padding-right: 0.3in;
         }
 
         .letter-logo img {
@@ -201,25 +208,15 @@
         }
 
         .letter-from {
-            display: inline-block;
-            vertical-align: top;
+            display: table-cell;
+            vertical-align: middle;
             text-align: left;
-            margin-left: 0.3in;
-            margin-bottom: 0.2in;
             font-size: 9.5pt;
             line-height: 1.25;
-            width: calc(100% - 2.8in);
         }
 
         .letter-from strong {
             font-size: 11pt;
-        }
-
-        .letter-header {
-            margin-bottom: 0.2in;
-            display: block;
-            width: 100%;
-            overflow: hidden;
         }
 
         .letter-date {
@@ -454,7 +451,7 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-        // Version 3.3 - Logo restored to 2.5in and positioned left of contact info
+        // Version 3.4 - Fixed horizontal logo and contact layout
         let customerData = [];
         let currentIndex = 0;
         let sheetSignerMap = {}; // Maps sheet names to signer keys
