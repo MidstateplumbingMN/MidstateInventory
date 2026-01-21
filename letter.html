@@ -555,17 +555,50 @@
 
         function cleanAddress(address) {
             if (!address) return address;
-            // Remove period from street abbreviations to avoid double periods
-            address = address.replace(/\bSt\.\s/g, 'St ')
-                           .replace(/\bAve\.\s/g, 'Ave ')
-                           .replace(/\bRd\.\s/g, 'Rd ')
-                           .replace(/\bDr\.\s/g, 'Dr ')
-                           .replace(/\bLn\.\s/g, 'Ln ')
-                           .replace(/\bBlvd\.\s/g, 'Blvd ')
-                           .replace(/\bCt\.\s/g, 'Ct ')
-                           .replace(/\bPl\.\s/g, 'Pl ')
-                           .replace(/\bPkwy\.\s/g, 'Pkwy ')
-                           .replace(/\bCir\.\s/g, 'Cir ');
+            
+            // Title case function for street names
+            function titleCase(str) {
+                return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+            }
+            
+            // First apply title case to the whole address
+            address = titleCase(address);
+            
+            // Fix state abbreviations that got lowercased (2 letter caps)
+            address = address.replace(/\b(Mn|Wi|Ia|Nd|Sd|Il|In|Oh|Mi)\b/g, m => m.toUpperCase());
+            
+            // Standardize street abbreviations with proper periods
+            const abbreviations = {
+                'Street': 'St.', 'St': 'St.',
+                'Avenue': 'Ave.', 'Ave': 'Ave.',
+                'Road': 'Rd.', 'Rd': 'Rd.',
+                'Drive': 'Dr.', 'Dr': 'Dr.',
+                'Lane': 'Ln.', 'Ln': 'Ln.',
+                'Boulevard': 'Blvd.', 'Blvd': 'Blvd.',
+                'Court': 'Ct.', 'Ct': 'Ct.',
+                'Place': 'Pl.', 'Pl': 'Pl.',
+                'Parkway': 'Pkwy.', 'Pkwy': 'Pkwy.',
+                'Circle': 'Cir.', 'Cir': 'Cir.',
+                'Trail': 'Trl.', 'Trl': 'Trl.',
+                'Terrace': 'Ter.', 'Ter': 'Ter.',
+                'Highway': 'Hwy.', 'Hwy': 'Hwy.',
+                'North': 'N.', 'South': 'S.', 'East': 'E.', 'West': 'W.',
+                'Apartment': 'Apt.', 'Apt': 'Apt.',
+                'Suite': 'Ste.', 'Ste': 'Ste.'
+            };
+            
+            // Apply abbreviations (match word boundary, optional existing period)
+            for (const [full, abbr] of Object.entries(abbreviations)) {
+                const regex = new RegExp('\\b' + full + '\\.?(?=\\s|,|$)', 'gi');
+                address = address.replace(regex, abbr);
+            }
+            
+            // Way doesn't get a period (it's a complete word)
+            address = address.replace(/\bWay\./gi, 'Way');
+            
+            // Clean up any double periods
+            address = address.replace(/\.{2,}/g, '.');
+            
             return address;
         }
 
