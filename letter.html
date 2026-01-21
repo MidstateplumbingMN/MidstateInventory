@@ -168,7 +168,7 @@
             min-height: 11in;
             max-height: 11in;
             margin: 20px auto;
-            padding: 0.5in 1.25in;
+            padding: 1in 1in;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             font-family: 'Times New Roman', Times, serif;
             font-size: 11pt;
@@ -200,14 +200,17 @@
         }
 
         .letter-from {
-            text-align: center;
+            text-align: center !important;
             margin-bottom: 0.2in;
             font-size: 9.5pt;
             line-height: 1.25;
+            display: block;
+            width: 100%;
         }
 
         .letter-from strong {
             font-size: 11pt;
+            display: block;
         }
 
         .letter-date {
@@ -319,7 +322,7 @@
             }
             .letter-page {
                 margin: 0;
-                padding: 0.5in 1.25in !important;
+                padding: 1in 1in !important;
                 box-shadow: none;
                 page-break-after: always;
                 max-height: 11in;
@@ -637,7 +640,7 @@
             }
 
             return `
-                <div class="letter-page" style="font-size: 11pt; line-height: 1.4; padding: 0.5in 1.25in;">
+                <div class="letter-page" style="font-size: 11pt; line-height: 1.4; padding: 1in 1in;">
                     <div class="letter-logo">
                         <img src="${LOGO_DATA_URL}" alt="Mid-State Plumbing & Heating" style="max-width: 2.5in; width: auto; height: auto;">
                     </div>
