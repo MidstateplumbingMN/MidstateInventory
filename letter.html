@@ -166,12 +166,13 @@
             background: white;
             width: 8.5in;
             min-height: 11in;
+            max-height: 11in;
             margin: 20px auto;
-            padding: 0.6in 1in;
+            padding: 0.7in 1in;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             font-family: 'Times New Roman', Times, serif;
-            font-size: 10.5pt;
-            line-height: 1.35;
+            font-size: 11pt;
+            line-height: 1.4;
             color: #000;
             page-break-after: always;
         }
@@ -179,7 +180,7 @@
         .letter-logo {
             display: block;
             text-align: center;
-            margin: 0 auto 0.2in auto;
+            margin: 0 auto 0.25in auto;
         }
 
         .letter-logo img {
@@ -200,68 +201,68 @@
 
         .letter-from {
             text-align: center;
-            margin-bottom: 0.25in;
+            margin-bottom: 0.3in;
             font-size: 9.5pt;
             line-height: 1.25;
         }
 
         .letter-from strong {
-            font-size: 10.5pt;
+            font-size: 11pt;
         }
 
         .letter-date {
             margin-bottom: 0.25in;
-            font-size: 10.5pt;
+            font-size: 11pt;
         }
 
         .letter-to {
             margin-bottom: 0.25in;
-            font-size: 10.5pt;
+            font-size: 11pt;
         }
 
         .letter-salutation {
             margin-bottom: 0.15in;
-            font-size: 10.5pt;
+            font-size: 11pt;
         }
 
         .letter-body {
             text-align: left;
             margin-bottom: 0.15in;
-            font-size: 10.5pt;
+            font-size: 11pt;
         }
 
         .letter-body p {
-            margin-bottom: 0.08in;
+            margin-bottom: 0.11in;
             text-indent: 0;
-            font-size: 10.5pt;
+            font-size: 11pt;
         }
 
         .letter-body ul {
-            margin: 0.06in 0 0.08in 0.35in;
+            margin: 0.09in 0 0.11in 0.35in;
             list-style-type: disc;
-            font-size: 10.5pt;
+            font-size: 11pt;
         }
 
         .letter-body li {
-            margin-bottom: 0.04in;
-            font-size: 10.5pt;
+            margin-bottom: 0.05in;
+            font-size: 11pt;
         }
 
         .letter-closing {
             margin-top: 0.15in;
             margin-bottom: 0.2in;
-            font-size: 10.5pt;
+            font-size: 11pt;
         }
 
         .letter-signature {
             margin-bottom: 0.6in;
-            font-size: 10.5pt;
+            font-size: 11pt;
         }
 
         .letter-ps {
             margin-top: 0.15in;
             font-style: italic;
-            font-size: 9.5pt;
+            font-size: 10pt;
         }
 
         .navigation {
@@ -312,9 +313,11 @@
             }
             .letter-page {
                 margin: 0;
-                padding: 0.6in 1in !important;
+                padding: 0.7in 1in !important;
                 box-shadow: none;
                 page-break-after: always;
+                max-height: 11in;
+                overflow: hidden;
             }
             .letter-logo {
                 display: block !important;
@@ -613,7 +616,7 @@
             }
 
             return `
-                <div class="letter-page" style="font-size: 10.5pt; line-height: 1.35; padding: 0.6in 1in;">
+                <div class="letter-page" style="font-size: 11pt; line-height: 1.4; padding: 0.7in 1in;">
                     <div class="letter-logo">
                         <img src="${LOGO_DATA_URL}" alt="Mid-State Plumbing & Heating" style="max-width: 2.5in; width: auto; height: auto;">
                     </div>
