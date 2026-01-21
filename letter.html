@@ -177,16 +177,17 @@
         }
 
         .letter-logo {
-            display: inline-block;
-            vertical-align: top;
-            margin-right: 0.25in;
+            display: block;
+            text-align: center;
+            margin: 0 auto 0.3in auto;
         }
 
         .letter-logo img {
-            max-width: 1.2in;
+            max-width: 2.5in;
             width: auto;
             height: auto;
             display: block;
+            margin: 0 auto;
             object-fit: contain;
         }
 
@@ -197,17 +198,11 @@
             object-fit: contain;
         }
 
-        .letter-header {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 0.3in;
-        }
-
         .letter-from {
-            text-align: left;
+            text-align: center;
+            margin-bottom: 0.4in;
             font-size: 9.5pt;
             line-height: 1.25;
-            flex: 1;
         }
 
         .letter-from strong {
@@ -322,11 +317,13 @@
                 page-break-after: always;
             }
             .letter-logo {
-                display: inline-block !important;
+                display: block !important;
+                text-align: center !important;
             }
             .letter-logo img {
                 display: block !important;
                 visibility: visible !important;
+                margin: 0 auto !important;
             }
         }
 
@@ -334,7 +331,6 @@
             size: letter;
             margin: 0;
         }
-            margin: 0;
         }
     </style>
 </head>
@@ -353,12 +349,31 @@
                 <h2>📊 Load Customer Data</h2>
 
                 <div class="input-group">
-                    <label for="signerSelect">Letter Signed By:</label>
-                    <select id="signerSelect" style="width: 100%; padding: 10px; font-size: 14px; border: 2px solid #ddd; border-radius: 8px;">
-                        <option value="robert">Robert Danaher</option>
-                        <option value="tim">Tim Danaher</option>
-                        <option value="midstate">Mid-State Plumbing & Heating</option>
+                    <label for="signerSelect">Default Letter Signer:</label>
+                    <select id="signerSelect" onchange="updateSignerFields()" style="width: 100%; padding: 10px; font-size: 14px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 15px;">
+                        <option value="robert">Robert Danaher (robert@midstateplumbing.com)</option>
+                        <option value="victoria">Victoria Ellsworth (victoria@midstateplumbing.com)</option>
+                        <option value="midstate">Mid-State Plumbing & Heating (info@midstateplumbing.com)</option>
+                        <option value="custom">+ Add Custom Signer</option>
                     </select>
+                    
+                    <div id="signerFields" style="display: none; margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <div style="margin-bottom: 10px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Name:</label>
+                            <input type="text" id="signerName" placeholder="Full Name" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Email:</label>
+                            <input type="email" id="signerEmail" placeholder="email@midstateplumbing.com" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                        <button onclick="saveCustomSigner()" style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 5px;">Save Custom Signer</button>
+                    </div>
+                    
+                    <div id="sheetSignerMapping" style="display: none; margin-top: 15px; padding: 15px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px;">
+                        <h4 style="margin-bottom: 10px; color: #856404;">📋 Multiple Sheets Detected - Assign Signers</h4>
+                        <p style="font-size: 13px; color: #856404; margin-bottom: 15px;">Your spreadsheet has multiple sheets. Please confirm who should sign letters for each sheet:</p>
+                        <div id="sheetSignerList"></div>
+                    </div>
                 </div>
 
                 <div class="input-group">
@@ -407,6 +422,9 @@
     <script>
         let customerData = [];
         let currentIndex = 0;
+        let sheetSignerMap = {}; // Maps sheet names to signer keys
+        let spreadsheetSheets = []; // Array of sheet names
+        let sheetSigners = {}; // Maps sheet numbers to signer info {name, email, etc.}
 
         const signerInfo = {
             robert: {
@@ -417,17 +435,25 @@
                 phone: "(651) 480-1195",
                 email: "robert@midstateplumbing.com"
             },
-            tim: {
-                name: "Tim Danaher",
+            victoria: {
+                name: "Victoria Ellsworth",
                 title: "Mid-State Plumbing & Heating",
                 address: "3500 Cannon St. #101",
                 city: "Hastings, MN 55033",
                 phone: "(651) 480-1195",
-                email: "tim@midstateplumbing.com"
+                email: "victoria@midstateplumbing.com"
             },
             midstate: {
                 name: "Mid-State Plumbing & Heating",
                 title: "",
+                address: "3500 Cannon St. #101",
+                city: "Hastings, MN 55033",
+                phone: "(651) 480-1195",
+                email: "info@midstateplumbing.com"
+            },
+            custom: {
+                name: "Custom Signer",
+                title: "Mid-State Plumbing & Heating",
                 address: "3500 Cannon St. #101",
                 city: "Hastings, MN 55033",
                 phone: "(651) 480-1195",
@@ -439,23 +465,29 @@
 
         const letterTemplates = {
             openings: [
-                "We hope you're settling into your beautiful new home!",
-                "Congratulations on your new home!",
-                "Welcome to your new home!",
-                "We're delighted to welcome you to your new residence!",
-                "It's wonderful to know you've moved into your new home!"
+                "We hope you're enjoying your home!",
+                "We wanted to reach out and reintroduce ourselves.",
+                "As you continue to settle into your home, we wanted to reconnect with you.",
+                "We're reaching out to remind you that we're here to support you and your home.",
+                "We hope your home has been treating you well!"
             ],
             introductions: [
-                "Mid-State Plumbing & Heating had the privilege of working with {builder} on the {workType} {workDescription} for your home at {address}. We wanted to reach out personally to introduce ourselves and let you know we're here for you.",
-                "We had the pleasure of partnering with {builder} to complete the {workType} {workDescription} in your new home at {address}. Now that you're settled in, we wanted to connect with you directly.",
-                "Our team worked alongside {builder} to handle the {workType} {workDescription} at {address}, and we're proud to have been part of bringing your new home to life.",
-                "Working with {builder}, we completed the {workType} {workDescription} for your home at {address}. As you begin this exciting new chapter, we want you to know we're your local partner for all things plumbing and heating."
+                "As a reminder, Mid-State Plumbing & Heating worked with {builder} on the {workType} {workDescription} for your home at {address}. We wanted to reintroduce ourselves and remind you that we're here whenever you need us.",
+                "You may recall that we partnered with {builder} to complete the {workType} {workDescription} in your home at {address}. We're reaching out to let you know we remain your trusted local resource for all your Plumbing and HVAC needs.",
+                "Our team worked alongside {builder} to handle the {workType} {workDescription} at {address}. We wanted to reconnect and remind you that we're always here to help keep your home's systems running smoothly.",
+                "Working with {builder}, we completed the {workType} {workDescription} for your home at {address}. As your home's original service provider, we want to ensure you know we're here as your ongoing partner for all things Plumbing and HVAC."
+            ],
+            introductionsNoBuilder: [
+                "As a reminder, Mid-State Plumbing & Heating completed the {workType} {workDescription} for your home at {address} during construction. We wanted to reintroduce ourselves and remind you that we're here whenever you need us.",
+                "You may recall that we handled the {workType} {workDescription} in your home at {address} during construction. We're reaching out to let you know we remain your trusted local resource for all your Plumbing and HVAC needs.",
+                "Our team completed the {workType} {workDescription} at {address}. We wanted to reconnect and remind you that we're always here to help keep your home's systems running smoothly.",
+                "We completed the {workType} {workDescription} for your home at {address} during construction. As your home's original service provider, we want to ensure you know we're here as your ongoing partner for all things Plumbing and HVAC."
             ],
             services: [
-                "Whether you need help with heating, air conditioning, plumbing, or drain services, our experienced team is just a phone call away.",
-                "From routine maintenance to emergency repairs, we're equipped to handle all your heating, cooling, plumbing, and drain needs.",
-                "Our comprehensive services cover everything from furnace tune-ups to plumbing repairs, water heaters to drain cleaning.",
-                "No matter the season or the issue—heating, cooling, plumbing, or drains—we're here to keep your home comfortable and running smoothly."
+                "Whether you're planning to finish your basement, add a wet bar, or upgrade your home's comfort systems, our experienced team is just a phone call away. We also offer surge protection to safeguard your heating and cooling equipment from power surges.",
+                "From basement finishing and wet bar installations to routine maintenance and surge protection for your systems, we're equipped to handle all your Heating, Cooling, Plumbing, and Drain needs as your home evolves.",
+                "Planning home improvements like a finished basement or wet bar? Need to protect your HVAC investment with surge protection? Our comprehensive services cover everything from new installations to system protection and maintenance.",
+                "As your home grows with you—whether that's finishing a basement, adding a bathroom, or protecting your systems with surge protection—we're here to handle all your Heating, Cooling, Plumbing, and Drain needs."
             ],
             community: [
                 "As a locally-owned business based in Hastings, MN, we're deeply committed to our community. We were proud to be the presenting sponsor for the 2025 Birdies for Abilities Golf Tournament in June 2025, supporting education, therapy, and employment for individuals with special needs. We also supported Hockey Day MN in January 2025, celebrating local players and our Hastings community.",
@@ -463,10 +495,10 @@
                 "Being part of this community means giving back. We were the presenting sponsor for the Birdies for Abilities Golf Tournament in June 2025, supporting the Ability 2 Believe mission. We also proudly supported Hockey Day MN celebrations right here in Hastings in January 2025."
             ],
             closings: [
-                "Thank you for allowing us to be part of your home-building journey. We look forward to serving you for years to come.",
-                "We're honored to have contributed to your new home and excited to be your trusted partner for all your home comfort needs.",
-                "It's been our pleasure to work on your home, and we're committed to being here whenever you need us.",
-                "We appreciate the opportunity to have served your new home and look forward to a long relationship with you."
+                "Thank you for allowing us to be part of your home-building journey. Whether you're planning future projects or need to protect your systems, we look forward to serving you for years to come.",
+                "We're honored to have contributed to your home and excited to be your trusted partner—from basement finishes to surge protection to regular maintenance.",
+                "It's been our pleasure to work on your home, and we're committed to being here for your future projects and ongoing system care.",
+                "We appreciate the opportunity to have served your home and look forward to helping with your next project, whether it's expanding your space or protecting your investment."
             ]
         };
 
@@ -475,19 +507,19 @@
         }
 
         function formatWorkType(workType) {
-            if (!workType) return "plumbing and heating";
+            if (!workType) return "Plumbing and HVAC";
             workType = workType.toLowerCase().trim();
             
             if (workType === 'both') {
-                return "plumbing and HVAC";
+                return "Plumbing and HVAC";
             }
             if (workType.includes('hvac') || workType.includes('heating') || workType.includes('ventilation')) {
                 return "HVAC";
             }
             if (workType.includes('plumb')) {
-                return "plumbing";
+                return "Plumbing";
             }
-            return workType;
+            return workType.charAt(0).toUpperCase() + workType.slice(1);
         }
 
         function formatDate() {
@@ -499,7 +531,9 @@
 
         function generateLetter(customer) {
             const yearBuilt = customer.yearBuilt || new Date().getFullYear();
-            const builder = customer.builder || "your builder";
+            // Check if we have a real builder name
+            const hasBuilder = customer.builder && customer.builder.trim() !== '';
+            const builder = hasBuilder ? customer.builder : "";
             
             // Check if we have a real name
             const hasRealName = customer.firstName && 
@@ -526,7 +560,13 @@
             const greeting = hasRealName ? `Dear ${firstName}` : `Dear Current Homeowner`;
 
             const opening = getRandomItem(letterTemplates.openings);
-            const intro = getRandomItem(letterTemplates.introductions)
+            
+            // Select intro template based on whether we have a builder
+            const introTemplate = hasBuilder ? 
+                getRandomItem(letterTemplates.introductions) : 
+                getRandomItem(letterTemplates.introductionsNoBuilder);
+            
+            const intro = introTemplate
                 .replace('{builder}', builder)
                 .replace('{workType}', workType)
                 .replace('{workDescription}', workDescription)
@@ -535,23 +575,29 @@
             const community = getRandomItem(letterTemplates.community);
             const closing = getRandomItem(letterTemplates.closings);
 
-            // Get selected signer
-            const selectedSigner = document.getElementById('signerSelect')?.value || 'robert';
-            const signer = signerInfo[selectedSigner];
+            // Get signer based on sheet number
+            let signer;
+            if (customer.sheetNumber && sheetSigners[customer.sheetNumber]) {
+                // Use sheet-specific signer
+                signer = sheetSigners[customer.sheetNumber];
+            } else {
+                // Fallback to selected signer from dropdown
+                const selectedSigner = document.getElementById('signerSelect')?.value || 'robert';
+                signer = signerInfo[selectedSigner];
+            }
 
             return `
                 <div class="letter-page" style="font-size: 10.5pt; line-height: 1.35; padding: 0.6in 1in;">
-                    <div class="letter-header">
-                        <div class="letter-logo">
-                            <img src="${LOGO_DATA_URL}" alt="Mid-State Plumbing & Heating" style="max-width: 1.2in; width: auto; height: auto;">
-                        </div>
-                        <div class="letter-from">
-                            <strong>${signer.name}</strong><br>
-                            ${signer.title ? signer.title + '<br>' : ''}${signer.address}<br>
-                            ${signer.city}<br>
-                            ${signer.phone}<br>
-                            ${signer.email}
-                        </div>
+                    <div class="letter-logo">
+                        <img src="${LOGO_DATA_URL}" alt="Mid-State Plumbing & Heating" style="max-width: 2.5in; width: auto; height: auto;">
+                    </div>
+                    
+                    <div class="letter-from">
+                        <strong>${signer.name}</strong><br>
+                        ${signer.title ? signer.title + '<br>' : ''}${signer.address}<br>
+                        ${signer.city}<br>
+                        ${signer.phone}<br>
+                        ${signer.email}
                     </div>
 
                     <div class="letter-date">
@@ -574,9 +620,19 @@
                         
                         <p>${services}</p>
                         
-                        <p><strong>Exclusive Maintenance Program for New Homeowners</strong></p>
+                        <p><strong>Special Offer Enclosed</strong></p>
                         
-                        <p>We're excited to offer you our comprehensive Maintenance Program, designed specifically for homeowners like you. This program:</p>
+                        <p>Along with this letter, you'll find:</p>
+                        
+                        <ul>
+                            <li><strong>$50 credit toward any service or repair</strong> (excludes diagnostics)</li>
+                            <li><strong>$500 off any new equipment installation</strong></li>
+                            <li><strong>Information about our Maintenance Club</strong> and its exclusive benefits</li>
+                        </ul>
+                        
+                        <p><strong>Maintenance Club Benefits</strong></p>
+                        
+                        <p>Our comprehensive Maintenance Club is designed specifically for homeowners like you. Members enjoy:</p>
                         
                         <ul>
                             <li><strong>Satisfies manufacturer warranty requirements</strong>, ensuring your equipment stays covered</li>
@@ -587,6 +643,10 @@
                         </ul>
                         
                         <p>Your home built in ${yearBuilt} represents a significant investment, and our maintenance program is designed to protect that investment while giving you peace of mind year-round.</p>
+                        
+                        <p><strong>Protect Your Systems & Plan for the Future</strong></p>
+                        
+                        <p>As you settle into your home, consider protecting your heating and cooling equipment with surge protection—power surges are one of the leading causes of HVAC system failures. And when you're ready for your next project, whether that's finishing your basement, adding a wet bar, or upgrading any of your systems, we're here to help make it happen.</p>
                         
                         <p>${community}</p>
                         
@@ -605,6 +665,53 @@
                     </div>
                 </div>
             `;
+        }
+
+        function updateSignerFields() {
+            const select = document.getElementById('signerSelect');
+            const fields = document.getElementById('signerFields');
+            
+            if (select.value === 'custom') {
+                fields.style.display = 'block';
+                // Pre-fill with current custom values if they exist
+                document.getElementById('signerName').value = signerInfo.custom.name !== 'Custom Signer' ? signerInfo.custom.name : '';
+                document.getElementById('signerEmail').value = signerInfo.custom.email !== 'info@midstateplumbing.com' ? signerInfo.custom.email : '';
+            } else {
+                fields.style.display = 'none';
+            }
+        }
+
+        function saveCustomSigner() {
+            const name = document.getElementById('signerName').value.trim();
+            const email = document.getElementById('signerEmail').value.trim();
+            
+            if (!name || !email) {
+                alert('Please enter both name and email address.');
+                return;
+            }
+            
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('Please enter a valid email address.');
+                return;
+            }
+            
+            // Update custom signer info
+            signerInfo.custom.name = name;
+            signerInfo.custom.email = email;
+            
+            // Update the dropdown text
+            const select = document.getElementById('signerSelect');
+            const customOption = select.querySelector('option[value="custom"]');
+            customOption.textContent = `${name} (${email})`;
+            
+            alert('Custom signer saved! Your letters will now use this information.');
+            
+            // Refresh current letter if one is displayed
+            if (customerData.length > 0) {
+                displayLetter(currentIndex);
+            }
         }
 
         function displayLetter(index) {
@@ -635,6 +742,10 @@
         }
 
         function parseCustomerData(rows) {
+            return parseCustomerDataWithSheet(rows, 1);
+        }
+
+        function parseCustomerDataWithSheet(rows, sheetNumber) {
             const customers = [];
             
             for (let i = 1; i < rows.length; i++) {
@@ -683,12 +794,117 @@
                     address: row[3] ? row[3].toString().trim() : '',
                     yearBuilt: row[7] ? row[7].toString().trim() : new Date().getFullYear().toString(),
                     workType: row[11] ? row[11].toString().trim() : '',
-                    mailingAddress: row[12] ? row[12].toString().trim() : (row[3] ? row[3].toString().trim() : '')
+                    mailingAddress: row[12] ? row[12].toString().trim() : (row[3] ? row[3].toString().trim() : ''),
+                    sheetNumber: sheetNumber  // Track which sheet this customer is from
                 });
             }
             
-            console.log(`Parsed ${customers.length} valid customer records`);
+            console.log(`Parsed ${customers.length} valid customer records from sheet ${sheetNumber}`);
             return customers;
+        }
+
+        function showSignerConfirmation() {
+            // Get unique sheet numbers from customer data
+            const sheetNumbers = [...new Set(customerData.map(c => c.sheetNumber))].sort((a, b) => a - b);
+            
+            console.log('Unique sheets with customers:', sheetNumbers);
+            
+            if (sheetNumbers.length === 1) {
+                // Only one sheet - show regular preview
+                showPreview();
+                return;
+            }
+            
+            // Multiple sheets - show confirmation dialog
+            const sheetSignerList = document.getElementById('sheetSignerList');
+            sheetSignerList.innerHTML = '';
+            
+            sheetNumbers.forEach(sheetNum => {
+                const customerCount = customerData.filter(c => c.sheetNumber === sheetNum).length;
+                
+                const div = document.createElement('div');
+                div.style.cssText = 'margin-bottom: 15px; padding: 12px; background: white; border: 1px solid #ddd; border-radius: 6px;';
+                
+                div.innerHTML = `
+                    <div style="margin-bottom: 8px;">
+                        <strong style="color: #c41e3a;">Sheet ${sheetNum}</strong> 
+                        <span style="color: #666; font-size: 13px;">(${customerCount} customers)</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 4px; font-size: 13px; font-weight: 600;">Signer Name:</label>
+                            <input type="text" id="sheet${sheetNum}Name" 
+                                   placeholder="e.g., Robert Danaher" 
+                                   value="${sheetNum === 1 ? 'Robert Danaher' : sheetNum === 2 ? 'Victoria Ellsworth' : ''}"
+                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 4px; font-size: 13px; font-weight: 600;">Email:</label>
+                            <input type="email" id="sheet${sheetNum}Email" 
+                                   placeholder="e.g., robert@midstateplumbing.com"
+                                   value="${sheetNum === 1 ? 'robert@midstateplumbing.com' : sheetNum === 2 ? 'victoria@midstateplumbing.com' : ''}"
+                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                        </div>
+                    </div>
+                `;
+                
+                sheetSignerList.appendChild(div);
+            });
+            
+            // Add confirm button
+            const confirmButton = document.createElement('button');
+            confirmButton.textContent = '✓ Confirm Signers & Generate Letters';
+            confirmButton.className = 'btn';
+            confirmButton.style.cssText = 'width: 100%; margin-top: 15px;';
+            confirmButton.onclick = confirmSheetSigners;
+            sheetSignerList.appendChild(confirmButton);
+            
+            // Show the mapping section
+            document.getElementById('sheetSignerMapping').style.display = 'block';
+            
+            // Scroll to it
+            document.getElementById('sheetSignerMapping').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function confirmSheetSigners() {
+            // Get unique sheet numbers
+            const sheetNumbers = [...new Set(customerData.map(c => c.sheetNumber))].sort((a, b) => a - b);
+            
+            // Build sheetSigners mapping
+            sheetSigners = {};
+            let hasError = false;
+            
+            sheetNumbers.forEach(sheetNum => {
+                const name = document.getElementById(`sheet${sheetNum}Name`).value.trim();
+                const email = document.getElementById(`sheet${sheetNum}Email`).value.trim();
+                
+                if (!name || !email) {
+                    showError(`Please enter both name and email for Sheet ${sheetNum}`);
+                    hasError = true;
+                    return;
+                }
+                
+                if (!email.includes('@')) {
+                    showError(`Please enter a valid email for Sheet ${sheetNum}`);
+                    hasError = true;
+                    return;
+                }
+                
+                sheetSigners[sheetNum] = {
+                    name: name,
+                    title: "Mid-State Plumbing & Heating",
+                    address: "3500 Cannon St. #101",
+                    city: "Hastings, MN 55033",
+                    phone: "(651) 480-1195",
+                    email: email
+                };
+            });
+            
+            if (!hasError) {
+                console.log('Sheet signers confirmed:', sheetSigners);
+                document.getElementById('sheetSignerMapping').style.display = 'none';
+                showPreview();
+            }
         }
 
         function loadFromSheets() {
@@ -756,26 +972,35 @@
                         console.log('Excel file loaded, parsing...');
                         const data = new Uint8Array(e.target.result);
                         const workbook = XLSX.read(data, { type: 'array' });
-                        const firstSheetName = workbook.SheetNames[0];
-                        console.log('First sheet name:', firstSheetName);
-                        const worksheet = workbook.Sheets[firstSheetName];
-                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
                         
-                        console.log('Parsed rows:', jsonData.length);
-                        console.log('First few rows:', jsonData.slice(0, 3));
+                        console.log('Found sheets:', workbook.SheetNames);
+                        
+                        // Parse all sheets and track which sheet each customer is from
+                        customerData = [];
+                        
+                        for (let sheetIndex = 0; sheetIndex < workbook.SheetNames.length; sheetIndex++) {
+                            const sheetName = workbook.SheetNames[sheetIndex];
+                            console.log(`Processing sheet ${sheetIndex + 1}: ${sheetName}`);
+                            
+                            const worksheet = workbook.Sheets[sheetName];
+                            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+                            
+                            console.log(`Sheet ${sheetIndex + 1} has ${jsonData.length} rows`);
+                            
+                            // Parse customers from this sheet and mark which sheet they're from
+                            const sheetCustomers = parseCustomerDataWithSheet(jsonData, sheetIndex + 1);
+                            customerData.push(...sheetCustomers);
+                        }
                         
                         showLoading(false);
                         
-                        if (jsonData && jsonData.length > 1) {
-                            customerData = parseCustomerData(jsonData);
-                            console.log('Valid customers found:', customerData.length);
-                            if (customerData.length === 0) {
-                                showError('No valid customer records found. Check that your spreadsheet has data in the expected columns.');
-                            } else {
-                                showPreview();
-                            }
+                        console.log('Total valid customers found across all sheets:', customerData.length);
+                        
+                        if (customerData.length === 0) {
+                            showError('No valid customer records found. Check that your spreadsheet has data in the expected columns.');
                         } else {
-                            showError('No data found in the file. The spreadsheet appears to be empty.');
+                            // Show signer confirmation dialog
+                            showSignerConfirmation();
                         }
                     } catch (error) {
                         showLoading(false);
@@ -799,6 +1024,26 @@
                         console.log('First few rows:', results.data.slice(0, 3));
                         showLoading(false);
                         if (results.data && results.data.length > 1) {
+                            // CSV files don't have sheets, so all customers are from "sheet 1"
+                            customerData = parseCustomerDataWithSheet(results.data, 1);
+                            console.log('Valid customers found:', customerData.length);
+                            if (customerData.length === 0) {
+                                showError('No valid customer records found. Check that your CSV has data in the expected columns.');
+                            } else {
+                                showSignerConfirmation();
+                            }
+                        } else {
+                            showError('No data found in the CSV file.');
+                        }
+                    },
+                    error: function(error) {
+                        showLoading(false);
+                        console.error('CSV parsing error:', error);
+                        showError('Error reading CSV file: ' + error.message);
+                    }
+                });
+            }
+        }
                             customerData = parseCustomerData(results.data);
                             console.log('Valid customers found:', customerData.length);
                             if (customerData.length === 0) {
