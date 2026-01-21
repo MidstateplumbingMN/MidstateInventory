@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v2.5 - Updated 2026-01-21 -->
+<!-- Mid-State Letter Generator v2.7 - Updated 2026-01-21 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v2.5</title>
+    <title>Mid-State Plumbing - Letter Generator v2.7</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -356,7 +356,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 2.5</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 2.7</div>
         </div>
 
         <div class="content">
@@ -498,52 +498,50 @@
 
         const letterTemplates = {
             openings: [
-                "We hope you're enjoying your home!",
+                "We hope you've been enjoying your home.",
+                "We hope this note finds you well.",
+                "We hope you're settling in nicely.",
+                "We hope your home has been treating you well.",
                 "We wanted to reach out and say hello.",
-                "As you settle into your home, we wanted to check in.",
-                "We're reaching out to let you know we're still here whenever you need us.",
-                "Hope all is well with you and your home.",
-                "We've been thinking about the homeowners we've worked with and wanted to reconnect.",
-                "Just a quick note to say hello and let you know we're around."
+                "After working together during construction, we wanted to reconnect.",
+                "It's been a little while, and we wanted to check in."
             ],
             introductions: [
-                "Mid-State Plumbing & Heating worked with {builder} on the {workType} {workDescription} for your home. We wanted you to know we're here whenever you need us.",
-                "We had the pleasure of working with {builder} on your home's {workType} {workDescription}. We're local and happy to help with any questions that come up.",
-                "Our team partnered with {builder} to handle the {workType} {workDescription} for your home. We're just a phone call away if you ever need anything.",
-                "We worked with {builder} on the {workType} {workDescription} during construction. As a local company, we're here whenever you need a hand.",
-                "During construction, we teamed up with {builder} to complete the {workType} {workDescription}. We'd love to continue being a resource for you.",
-                "We were glad to work alongside {builder} on the {workType} {workDescription} for your home. Feel free to reach out anytime."
+                "In ${yearBuilt}, we partnered with {builder} to complete the {workType} systems in your home, and it was a pleasure to be part of that process. As your needs change over time—whether it's finishing a basement, adding a wet bar, or taking care of routine system care—we'd be happy to help.",
+                "We had the opportunity to work with {builder} on your home's {workType} systems in ${yearBuilt}, and we're glad we could be part of it. As time goes on, we'd be honored to continue serving as a resource—whether for future projects, system upgrades, or ongoing care.",
+                "During construction, we collaborated with {builder} to install the {workType} systems designed to keep your home comfortable. Now that you're settled in, we remain available whenever you need support.",
+                "In ${yearBuilt}, we worked alongside {builder} on the {workType} systems for your home. It was a pleasure to be involved, and we're here if anything comes up down the road.",
+                "We partnered with {builder} to complete the {workType} work during construction, and it was great to be part of bringing your home together. We'd love to continue being a resource as your needs evolve."
             ],
             introductionsNoBuilder: [
-                "Mid-State Plumbing & Heating completed the {workType} {workDescription} for your home during construction. We wanted you to know we're here whenever you need us.",
-                "We had the pleasure of handling the {workType} {workDescription} in your home. We're local and happy to help with any questions that come up.",
-                "Our team completed the {workType} {workDescription} for your home. We're just a phone call away if you ever need anything.",
-                "We handled the {workType} {workDescription} during your home's construction. As a local company, we're here whenever you need a hand.",
-                "During construction, we completed the {workType} {workDescription} for your home. We'd love to continue being a resource for you.",
-                "We were glad to take care of the {workType} {workDescription} for your home. Feel free to reach out anytime."
+                "In ${yearBuilt}, we completed the {workType} systems in your home, and it was a pleasure to be part of that process. As your needs change over time—whether it's finishing a basement, adding a wet bar, or taking care of routine system care—we'd be happy to help.",
+                "We had the opportunity to work on your home's {workType} systems in ${yearBuilt}, and we're glad we could be part of it. As time goes on, we'd be honored to continue serving as a resource—whether for future projects, system upgrades, or ongoing care.",
+                "During construction, we installed the {workType} systems designed to keep your home comfortable. Now that you're settled in, we remain available whenever you need support.",
+                "In ${yearBuilt}, we handled the {workType} systems for your home. It was a pleasure to be involved, and we're here if anything comes up down the road.",
+                "We completed the {workType} work during construction, and it was great to be part of bringing your home together. We'd love to continue being a resource as your needs evolve."
             ],
-            services: [
-                "Whether you're thinking about finishing your basement, adding a wet bar, or just need routine maintenance, we'd be glad to help.",
-                "From basement projects to tune-ups, our team handles plumbing and HVAC work of all kinds. Give us a call when something comes up.",
-                "If you're planning home improvements—a finished basement, an extra bathroom, or system upgrades—we're happy to help.",
-                "As your home grows with you, we're here for whatever you need: basement work, wet bar installations, maintenance, and more.",
-                "Need a hand with a project or just have a question about your systems? We're always happy to talk it through.",
-                "Whether it's a small repair or a bigger project down the road, we're here to help when the time comes."
+            giftCertificate: [
+                "As a thank-you for trusting us with your home, we've included a gift certificate for $50 off any service or repair (excluding diagnostics), or $500 off a new equipment installation.",
+                "Enclosed, you'll find a gift certificate as our way of saying thank you: $50 off any service or repair (excluding diagnostics), or $500 off a new equipment installation.",
+                "We've included a gift certificate to say thanks: $50 off any service or repair (excluding diagnostics), or $500 off a new equipment installation."
+            ],
+            maintenanceClub: [
+                "We also offer a Maintenance Club designed to help keep your systems running reliably year after year. Members enjoy benefits such as maintenance that helps preserve manufacturer warranties, longer equipment life, savings on repairs and projects, priority scheduling, and early issue detection before small concerns become costly.",
+                "For homeowners who value long-term performance, our Maintenance Club provides proactive care that supports manufacturer warranty requirements, extends system lifespan, offers preferred scheduling, and includes savings on repairs and improvements.",
+                "Our Maintenance Club is designed to help protect your home's systems over time. Members receive professional care that supports warranty compliance, extends equipment life, and catches small issues before they become bigger problems—plus savings and priority scheduling."
             ],
             community: [
-                "Being locally owned and based in Hastings, community matters to us. This year, we supported the Birdies for Abilities Golf Tournament and Hockey Day MN.",
-                "We're a Hastings-based company, and giving back is important to us. We recently supported the Birdies for Abilities tournament and Hockey Day MN.",
-                "As a local business, we love being part of this community. We were proud to sponsor the Birdies for Abilities Golf Tournament and support Hockey Day MN.",
-                "Community involvement is part of who we are. This year we supported Birdies for Abilities and Hockey Day MN right here in Hastings.",
-                "We're proud to be based in Hastings and involved locally. This year that included supporting Birdies for Abilities and Hockey Day MN."
+                "We're proud to be a Hastings-based company and believe in supporting the community we serve. Recently, we were honored to support events like Birdies for Abilities and Hockey Day MN.",
+                "As a locally owned Hastings company, we're proud to give back to the community, including recent support for Birdies for Abilities and Hockey Day MN.",
+                "Being part of this community matters to us. We were glad to support Birdies for Abilities and Hockey Day MN this year.",
+                "We're proud to be based in Hastings and to support the community we serve—including events like Birdies for Abilities and Hockey Day MN."
             ],
             closings: [
-                "Thank you for letting us be part of your home. We're here if you ever need anything.",
-                "It's been our pleasure to work on your home. Don't hesitate to reach out anytime.",
-                "We're thankful to have been part of your home, and we're here whenever you need us.",
-                "Thank you for the opportunity. We look forward to being a resource for you.",
-                "We appreciate you, and we're always just a phone call away.",
-                "Thanks again for letting us be part of your home. Take care, and reach out anytime."
+                "It's been a pleasure working on your home. If you ever have a question or need assistance, we're just a call away.",
+                "Thank you again for the opportunity to work on your home. We look forward to assisting you whenever the need arises.",
+                "We appreciate the opportunity to have been part of your home, and we're here whenever you need us.",
+                "Thank you for trusting us with your home. If anything ever comes up, please don't hesitate to reach out.",
+                "It was our pleasure to work on your home. We're always happy to help if you need anything."
             ]
         };
 
@@ -685,10 +683,12 @@
                 getRandomItem(letterTemplates.introductionsNoBuilder);
             
             const intro = introTemplate
+                .replace(/\$\{yearBuilt\}/g, yearBuilt)
                 .replace('{builder}', builder)
                 .replace('{workType}', workType)
                 .replace('{workDescription}', workDescription);
-            const services = getRandomItem(letterTemplates.services);
+            const giftCertificate = getRandomItem(letterTemplates.giftCertificate);
+            const maintenanceClub = getRandomItem(letterTemplates.maintenanceClub);
             const community = getRandomItem(letterTemplates.community);
             const closing = getRandomItem(letterTemplates.closings);
 
@@ -737,13 +737,9 @@
                         
                         <p>${preventOrphans(intro)}</p>
                         
-                        <p>${preventOrphans(services)}</p>
+                        <p>${preventOrphans(giftCertificate)}</p>
                         
-                        <p><strong>Special Offer Enclosed:</strong> Along with this letter, you'll find a gift certificate for <strong>$50 off any service or repair</strong> (excludes diagnostics) <em>or</em> <strong>$500 off any new equipment installation</strong>.</p>
-                        
-                        <p><strong>Our Maintenance Club</strong> is designed for homeowners like you. Members receive: manufacturer warranty compliance keeping your equipment covered • extended system life through regular professional maintenance • 10% discount on all repairs and projects • priority scheduling when you need service • early problem detection before issues become costly.</p>
-                        
-                        <p>Your home built in ${yearBuilt} represents a significant investment. Our&nbsp;maintenance program helps protect that investment year-round.</p>
+                        <p>${preventOrphans(maintenanceClub)}</p>
                         
                         <p>${preventOrphans(community)}</p>
                         
@@ -755,10 +751,6 @@
                         <div>
                             <strong>${signer.name}</strong>
                         </div>
-                    </div>
-
-                    <div class="letter-ps">
-                        <em>P.S. Please don't hesitate to reach out if you have any questions or need assistance with your home's systems!</em>
                     </div>
                 </div>
             `;
