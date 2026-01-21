@@ -496,16 +496,16 @@
                 "We hope your home has been treating you well!"
             ],
             introductions: [
-                "Mid-State Plumbing & Heating worked with {builder} on the {workType} {workDescription} for your home at {address}. We wanted to reach out and let you know we're here whenever you need us.",
-                "You may recall that we partnered with {builder} to complete the {workType} {workDescription} in your home at {address}. We remain your trusted local resource for all your Plumbing and HVAC needs.",
-                "Our team worked alongside {builder} to handle the {workType} {workDescription} at {address}. We're always here to help keep your home's systems running smoothly.",
-                "Working with {builder}, we completed the {workType} {workDescription} for your home at {address}. As your home's original service provider, we're here as your ongoing partner for all things Plumbing and HVAC."
+                "Mid-State Plumbing & Heating worked with {builder} on the {workType} {workDescription} for your home. We wanted to reach out and let you know we're here whenever you need us.",
+                "You may recall that we partnered with {builder} to complete the {workType} {workDescription} in your home. We remain your trusted local resource for all your Plumbing and HVAC needs.",
+                "Our team worked alongside {builder} to handle the {workType} {workDescription}. We're always here to help keep your home's systems running smoothly.",
+                "Working with {builder}, we completed the {workType} {workDescription} for your home. As your home's original service provider, we're here as your ongoing partner for all things Plumbing and HVAC."
             ],
             introductionsNoBuilder: [
-                "Mid-State Plumbing & Heating completed the {workType} {workDescription} for your home at {address} during construction. We wanted to reach out and let you know we're here whenever you need us.",
-                "You may recall that we handled the {workType} {workDescription} in your home at {address} during construction. We remain your trusted local resource for all your Plumbing and HVAC needs.",
-                "Our team completed the {workType} {workDescription} at {address}. We're always here to help keep your home's systems running smoothly.",
-                "We completed the {workType} {workDescription} for your home at {address} during construction. As your home's original service provider, we're here as your ongoing partner for all things Plumbing and HVAC."
+                "Mid-State Plumbing & Heating completed the {workType} {workDescription} for your home during construction. We wanted to reach out and let you know we're here whenever you need us.",
+                "You may recall that we handled the {workType} {workDescription} in your home during construction. We remain your trusted local resource for all your Plumbing and HVAC needs.",
+                "Our team completed the {workType} {workDescription}. We're always here to help keep your home's systems running smoothly.",
+                "We completed the {workType} {workDescription} for your home during construction. As your home's original service provider, we're here as your ongoing partner for all things Plumbing and HVAC."
             ],
             services: [
                 "Whether you're planning to finish your basement, add a wet bar, or upgrade your home's comfort systems, our experienced team is just a phone call away.",
@@ -620,8 +620,7 @@
             const intro = introTemplate
                 .replace('{builder}', builder)
                 .replace('{workType}', workType)
-                .replace('{workDescription}', workDescription)
-                .replace('{address}', address);
+                .replace('{workDescription}', workDescription);
             const services = getRandomItem(letterTemplates.services);
             const community = getRandomItem(letterTemplates.community);
             const closing = getRandomItem(letterTemplates.closings);
