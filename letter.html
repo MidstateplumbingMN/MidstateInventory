@@ -239,7 +239,7 @@
             margin-bottom: 0.15in;
             font-size: 11pt;
             text-wrap: pretty;
-            word-spacing: 0.05em;
+            word-spacing: 0.01em;
         }
 
         .letter-body p {
@@ -247,7 +247,6 @@
             text-indent: 0;
             font-size: 11pt;
             text-wrap: pretty;
-            text-wrap: balance;
             orphans: 3;
             widows: 3;
         }
@@ -551,24 +550,15 @@
             return array[Math.floor(Math.random() * array.length)];
         }
 
-        // Prevent orphaned words at end of lines before new sentences
-        // Binds last 2-3 short words before a period together with non-breaking spaces
+        // Prevent single-word sentence starts from being orphaned at end of line
+        // Only binds very short starting words (We, We're, Our, As, It, If) to the next word
         function preventOrphans(text) {
             if (!text) return text;
             
-            // Replace space before last short word (1-4 chars) before period with non-breaking space
-            // This keeps short words like "you." or "us." on the same line as preceding word
-            text = text.replace(/\s(\w{1,4})\.\s/g, '\u00A0$1. ');
-            
-            // Also bind 2-word endings like "year-round." or "phone call."
-            text = text.replace(/\s(\w{1,5})\s(\w{1,6})\.\s/g, '\u00A0$1\u00A0$2. ');
-            
-            // Bind first 2-3 words of a new sentence together so they don't get split
-            // Match: period + space + short word + space -> period + space + short word + nbsp
-            text = text.replace(/\.\s([A-Z]\w{0,3})\s/g, '. $1\u00A0');
-            
-            // Bind "We're", "We", "Our", "As", "It" at start of sentences to next word
-            text = text.replace(/\.\s(We're?|Our|As|It|In)\s(\w+)\s/g, '. $1\u00A0$2 ');
+            // Bind short sentence starters to the next word with non-breaking space
+            // This prevents: "...year-round. We\n are here..." 
+            // Instead gets: "...year-round.\n We are here..."
+            text = text.replace(/\.\s+(We're?|Our|As a|It's?|If|In|A)\s+/g, '. $1\u00A0');
             
             return text;
         }
@@ -748,11 +738,11 @@
                         
                         <p>${preventOrphans(services)}</p>
                         
-                        <p><strong>Special Offer Enclosed:</strong>&nbsp;Along with this letter, you'll find a&nbsp;gift certificate for <strong>$50 off any service or&nbsp;repair</strong> (excludes diagnostics) <em>or</em> <strong>$500 off any new equipment&nbsp;installation</strong>.</p>
+                        <p><strong>Special Offer Enclosed:</strong> Along with this letter, you'll find a gift certificate for <strong>$50 off any service or repair</strong> (excludes diagnostics) <em>or</em> <strong>$500 off any new equipment installation</strong>.</p>
                         
-                        <p><strong>Our Maintenance Club</strong> is designed for homeowners like&nbsp;you. Members receive: manufacturer warranty compliance keeping your equipment covered&nbsp;• extended system life through regular professional maintenance&nbsp;• 10% discount on all repairs and projects&nbsp;• priority scheduling when you need service&nbsp;• early problem detection before issues become&nbsp;costly.</p>
+                        <p><strong>Our Maintenance Club</strong> is designed for homeowners like you. Members receive: manufacturer warranty compliance keeping your equipment covered • extended system life through regular professional maintenance • 10% discount on all repairs and projects • priority scheduling when you need service • early problem detection before issues become costly.</p>
                         
-                        <p>Your home built in ${yearBuilt} represents a significant&nbsp;investment. Our maintenance program helps protect that investment&nbsp;year-round.</p>
+                        <p>Your home built in ${yearBuilt} represents a significant investment. Our&nbsp;maintenance program helps protect that investment year-round.</p>
                         
                         <p>${preventOrphans(community)}</p>
                         
@@ -767,7 +757,7 @@
                     </div>
 
                     <div class="letter-ps">
-                        <em>P.S. Please don't hesitate to reach out if you have any questions or need assistance with your home's&nbsp;systems!</em>
+                        <em>P.S. Please don't hesitate to reach out if you have any questions or need assistance with your home's systems!</em>
                     </div>
                 </div>
             `;
