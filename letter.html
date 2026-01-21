@@ -399,6 +399,20 @@
                     </div>
                 </div>
 
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 10px; color: #374151;">
+                        🔍 Search for a Customer:
+                    </label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="customerSearch" placeholder="Enter name or address..." 
+                               style="flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px;"
+                               onkeyup="if(event.key === 'Enter') searchCustomer()">
+                        <button class="btn" onclick="searchCustomer()" style="margin: 0;">Search</button>
+                        <button class="btn" onclick="clearSearch()" style="margin: 0; background: #6b7280;">Clear</button>
+                    </div>
+                    <div id="searchResults" style="margin-top: 10px; font-size: 13px; color: #6b7280;"></div>
+                </div>
+
                 <div class="navigation">
                     <button class="btn" onclick="previousLetter()" id="prevBtn">← Previous</button>
                     <span id="navInfo">Letter 1 of 1</span>
@@ -491,9 +505,9 @@
                 "As your home grows with you—whether that's finishing a basement, adding a bathroom, or protecting your systems with surge protection—we're here to handle all your Heating, Cooling, Plumbing, and Drain needs."
             ],
             community: [
-                "As a locally-owned business based in Hastings, MN, we're deeply committed to our community. We were proud to be the presenting sponsor for the 2025 Birdies for Abilities Golf Tournament in June 2025, supporting education, therapy, and employment for individuals with special needs. We also supported Hockey Day MN in January 2025, celebrating local players and our Hastings community.",
-                "Community matters to us. Based right here in Hastings, MN, we actively support local causes like the Birdies for Abilities Golf Tournament in June 2025, which helped provide vital services for individuals with special needs. We were also honored to support our local hockey players during Hockey Day MN in January 2025.",
-                "Being part of this community means giving back. We were the presenting sponsor for the Birdies for Abilities Golf Tournament in June 2025, supporting the Ability 2 Believe mission. We also proudly supported Hockey Day MN celebrations right here in Hastings in January 2025."
+                "As a locally-owned business based in Hastings, MN, we're committed to our community. In 2025, we were proud to be the presenting sponsor for the Birdies for Abilities Golf Tournament and support Hockey Day MN celebrations.",
+                "Community matters to us. Based in Hastings, we support local causes like the Birdies for Abilities Golf Tournament, which helps provide vital services for individuals with special needs, and we proudly supported our local hockey players during Hockey Day MN.",
+                "Being part of this community means giving back. We were the presenting sponsor for the Birdies for Abilities Golf Tournament, supporting the Ability 2 Believe mission, and we also supported Hockey Day MN celebrations right here in Hastings."
             ],
             closings: [
                 "Thank you for allowing us to be part of your home-building journey. Whether you're planning future projects or need to protect your systems, we look forward to serving you for years to come.",
@@ -645,21 +659,21 @@
                         
                         <p><strong>Maintenance Club Benefits</strong></p>
                         
-                        <p>Our comprehensive Maintenance Club is designed specifically for homeowners like you. Members enjoy:</p>
+                        <p>Our Maintenance Club is designed for homeowners like you. Members receive:</p>
                         
                         <ul>
-                            <li><strong>Satisfies manufacturer warranty requirements</strong>, ensuring your equipment stays covered</li>
-                            <li><strong>Extends the life of your heating and cooling systems</strong> through regular professional maintenance</li>
-                            <li><strong>Saves you money</strong> with a 10% discount on all repairs and projects as long as you're a member</li>
-                            <li><strong>Provides priority scheduling</strong> when you need service</li>
-                            <li><strong>Catches small issues before they become expensive problems</strong></li>
+                            <li><strong>Manufacturer warranty compliance</strong>, keeping your equipment covered</li>
+                            <li><strong>Extended system life</strong> through regular professional maintenance</li>
+                            <li><strong>10% discount</strong> on all repairs and projects</li>
+                            <li><strong>Priority scheduling</strong> when you need service</li>
+                            <li><strong>Early problem detection</strong> before issues become costly</li>
                         </ul>
                         
-                        <p>Your home built in ${yearBuilt} represents a significant investment, and our maintenance program is designed to protect that investment while giving you peace of mind year-round.</p>
+                        <p>Your home built in ${yearBuilt} represents a significant investment. Our maintenance program helps protect that investment year-round.</p>
                         
                         <p><strong>Protect Your Investment</strong></p>
                         
-                        <p>Consider surge protection for your HVAC equipment—power surges are a leading cause of system failures. When you're ready for projects like finishing your basement or adding a wet bar, we're here to help.</p>
+                        <p>Surge protection can safeguard your HVAC equipment from power-related failures. When you're ready for projects like basement finishing or wet bar additions, we're here to help.</p>
                         
                         <p>${community}</p>
                         
@@ -1089,6 +1103,66 @@
             displayLetter(0);
         }
 
+        function searchCustomer() {
+            const searchTerm = document.getElementById('customerSearch').value.trim().toLowerCase();
+            const resultsDiv = document.getElementById('searchResults');
+            
+            if (!searchTerm) {
+                resultsDiv.innerHTML = '<span style="color: #dc2626;">Please enter a search term.</span>';
+                return;
+            }
+            
+            const matches = customerData.filter((customer, index) => {
+                const fullName = `${customer.firstName} ${customer.lastName}`.toLowerCase();
+                const address = (customer.address || '').toLowerCase();
+                const mailingAddress = (customer.mailingAddress || '').toLowerCase();
+                
+                return fullName.includes(searchTerm) || 
+                       address.includes(searchTerm) || 
+                       mailingAddress.includes(searchTerm);
+            }).map((customer, index) => ({
+                customer,
+                originalIndex: customerData.indexOf(customer)
+            }));
+            
+            if (matches.length === 0) {
+                resultsDiv.innerHTML = '<span style="color: #dc2626;">No customers found matching "' + searchTerm + '"</span>';
+            } else if (matches.length === 1) {
+                currentIndex = matches[0].originalIndex;
+                displayLetter(currentIndex);
+                resultsDiv.innerHTML = '<span style="color: #059669;">✓ Found: ' + matches[0].customer.firstName + ' ' + matches[0].customer.lastName + '</span>';
+            } else {
+                let html = '<strong>Found ' + matches.length + ' matches:</strong><br>';
+                html += '<div style="margin-top: 8px;">';
+                matches.slice(0, 5).forEach(match => {
+                    html += '<button onclick="jumpToCustomer(' + match.originalIndex + ')" ' +
+                            'style="display: block; width: 100%; text-align: left; padding: 8px; margin: 4px 0; ' +
+                            'background: white; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">' +
+                            match.customer.firstName + ' ' + match.customer.lastName + ' - ' + 
+                            (match.customer.address || match.customer.mailingAddress) + '</button>';
+                });
+                if (matches.length > 5) {
+                    html += '<div style="color: #6b7280; font-style: italic; margin-top: 4px;">... and ' + 
+                            (matches.length - 5) + ' more. Refine your search.</div>';
+                }
+                html += '</div>';
+                resultsDiv.innerHTML = html;
+            }
+        }
+        
+        function jumpToCustomer(index) {
+            currentIndex = index;
+            displayLetter(currentIndex);
+            document.getElementById('searchResults').innerHTML = 
+                '<span style="color: #059669;">✓ Viewing: ' + customerData[index].firstName + ' ' + 
+                customerData[index].lastName + '</span>';
+        }
+        
+        function clearSearch() {
+            document.getElementById('customerSearch').value = '';
+            document.getElementById('searchResults').innerHTML = '';
+        }
+
         function resetApp() {
             document.getElementById('uploadSection').style.display = 'block';
             document.getElementById('previewSection').style.display = 'none';
@@ -1126,17 +1200,21 @@
                 // Force a reflow to ensure all styles are applied
                 letterPage.offsetHeight;
                 
-                // Create canvas with high quality settings
+                // Get actual content dimensions
+                const actualHeight = letterPage.scrollHeight;
+                const actualWidth = letterPage.offsetWidth;
+                
+                // Create canvas with high quality settings and actual content size
                 const canvas = await html2canvas(letterPage, {
                     scale: 3,
                     useCORS: true,
                     allowTaint: true,
                     backgroundColor: '#ffffff',
                     logging: false,
-                    windowWidth: 816,
-                    windowHeight: 1056,
-                    width: 816,
-                    height: 1056
+                    windowWidth: actualWidth,
+                    windowHeight: actualHeight,
+                    width: actualWidth,
+                    height: actualHeight
                 });
                 
                 const { jsPDF } = window.jspdf;
@@ -1149,8 +1227,22 @@
                 
                 const imgData = canvas.toDataURL('image/jpeg', 0.95);
                 
-                // Add image at exact letter size
-                pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11, undefined, 'FAST');
+                // Calculate proper scaling to fit letter size
+                const pdfWidth = 8.5;
+                const pdfHeight = 11;
+                const imgWidth = canvas.width;
+                const imgHeight = canvas.height;
+                const ratio = Math.min(pdfWidth / (imgWidth / 96), pdfHeight / (imgHeight / 96));
+                
+                const scaledWidth = (imgWidth / 96) * ratio;
+                const scaledHeight = (imgHeight / 96) * ratio;
+                
+                // Center on page
+                const xOffset = (pdfWidth - scaledWidth) / 2;
+                const yOffset = 0;
+                
+                // Add image
+                pdf.addImage(imgData, 'JPEG', xOffset, yOffset, scaledWidth, scaledHeight, undefined, 'FAST');
                 
                 const customer = customerData[currentIndex];
                 const filename = `Letter_${customer.firstName}_${customer.lastName}.pdf`;
