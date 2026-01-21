@@ -178,17 +178,18 @@
         }
 
         .letter-logo {
-            display: block;
-            text-align: center;
-            margin: 0 auto 0.05in auto;
+            display: inline-block;
+            vertical-align: top;
+            width: 2.5in;
+            text-align: left;
         }
 
         .letter-logo img {
-            max-width: 1.5in;
+            max-width: 2.5in;
             width: auto;
             height: auto;
             display: block;
-            margin: 0 auto;
+            margin: 0;
             object-fit: contain;
         }
 
@@ -200,17 +201,25 @@
         }
 
         .letter-from {
-            text-align: center !important;
-            margin-bottom: 0.1in;
+            display: inline-block;
+            vertical-align: top;
+            text-align: left;
+            margin-left: 0.3in;
+            margin-bottom: 0.2in;
             font-size: 9.5pt;
             line-height: 1.25;
-            display: block;
-            width: 100%;
+            width: calc(100% - 2.8in);
         }
 
         .letter-from strong {
             font-size: 11pt;
+        }
+
+        .letter-header {
+            margin-bottom: 0.2in;
             display: block;
+            width: 100%;
+            overflow: hidden;
         }
 
         .letter-date {
@@ -445,7 +454,7 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-        // Version 3.2 - Moved content up 1.5 inches
+        // Version 3.3 - Logo restored to 2.5in and positioned left of contact info
         let customerData = [];
         let currentIndex = 0;
         let sheetSignerMap = {}; // Maps sheet names to signer keys
@@ -640,16 +649,18 @@
 
             return `
                 <div class="letter-page" style="font-size: 11pt; line-height: 1.4; padding: 0.4in 1in 1in 1in;">
-                    <div class="letter-logo">
-                        <img src="${LOGO_DATA_URL}" alt="Mid-State Plumbing & Heating" style="max-width: 1.5in; width: auto; height: auto;">
-                    </div>
-                    
-                    <div class="letter-from">
-                        <strong>${signer.name}</strong><br>
-                        ${signer.title ? signer.title + '<br>' : ''}${signer.address}<br>
-                        ${signer.city}<br>
-                        ${signer.phone}<br>
-                        ${signer.email}
+                    <div class="letter-header">
+                        <div class="letter-logo">
+                            <img src="${LOGO_DATA_URL}" alt="Mid-State Plumbing & Heating" style="max-width: 2.5in; width: auto; height: auto;">
+                        </div>
+                        
+                        <div class="letter-from">
+                            <strong>${signer.name}</strong><br>
+                            ${signer.title ? signer.title + '<br>' : ''}${signer.address}<br>
+                            ${signer.city}<br>
+                            ${signer.phone}<br>
+                            ${signer.email}
+                        </div>
                     </div>
 
                     <div class="letter-date">
