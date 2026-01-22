@@ -19,7 +19,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            background: linear-gradient(135deg, #0d7377 0%, #14a3a8 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -34,7 +34,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            background: linear-gradient(135deg, #0d7377 0%, #14a3a8 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -57,7 +57,7 @@
 
         .upload-section {
             background: #f8f9fa;
-            border: 3px dashed #1e3c72;
+            border: 3px dashed #0d7377;
             border-radius: 10px;
             padding: 40px;
             text-align: center;
@@ -66,12 +66,12 @@
         }
 
         .upload-section:hover {
-            border-color: #2a5298;
+            border-color: #14a3a8;
             background: #fff;
         }
 
         .upload-section h2 {
-            color: #1e3c72;
+            color: #0d7377;
             margin-bottom: 20px;
         }
 
@@ -98,11 +98,11 @@
 
         input[type="text"]:focus, input[type="file"]:focus {
             outline: none;
-            border-color: #1e3c72;
+            border-color: #0d7377;
         }
 
         .btn {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            background: linear-gradient(135deg, #0d7377 0%, #14a3a8 100%);
             color: white;
             border: none;
             padding: 15px 40px;
@@ -116,7 +116,7 @@
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(30, 60, 114, 0.4);
+            box-shadow: 0 8px 20px rgba(13, 115, 119, 0.4);
         }
 
         .btn:active {
@@ -124,7 +124,7 @@
         }
 
         .btn-secondary {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            background: linear-gradient(135deg, #0d7377 0%, #14a3a8 100%);
         }
 
         .btn:disabled {
@@ -145,7 +145,7 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            background: linear-gradient(135deg, #0d7377 0%, #14a3a8 100%);
             color: white;
             padding: 20px;
             border-radius: 10px;
@@ -285,7 +285,7 @@
             display: none;
             text-align: center;
             padding: 20px;
-            color: #1e3c72;
+            color: #0d7377;
             font-weight: 600;
         }
 
@@ -294,9 +294,9 @@
         }
 
         .error {
-            background: #eef;
-            border: 2px solid #1e3c72;
-            color: #1e3c72;
+            background: #e6f7f7;
+            border: 2px solid #0d7377;
+            color: #0d7377;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
@@ -911,7 +911,7 @@
                 
                 div.innerHTML = `
                     <div style="margin-bottom: 8px;">
-                        <strong style="color: #1e3c72;">Sheet ${sheetNum}</strong> 
+                        <strong style="color: #0d7377;">Sheet ${sheetNum}</strong> 
                         <span style="color: #666; font-size: 13px;">(${customerCount} customers)</span>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -1165,7 +1165,7 @@
             const resultsDiv = document.getElementById('searchResults');
             
             if (!searchTerm) {
-                resultsDiv.innerHTML = '<span style="color: #1e3c72;">Please enter a search term.</span>';
+                resultsDiv.innerHTML = '<span style="color: #0d7377;">Please enter a search term.</span>';
                 return;
             }
             
@@ -1183,7 +1183,7 @@
             }));
             
             if (matches.length === 0) {
-                resultsDiv.innerHTML = '<span style="color: #1e3c72;">No customers found matching "' + searchTerm + '"</span>';
+                resultsDiv.innerHTML = '<span style="color: #0d7377;">No customers found matching "' + searchTerm + '"</span>';
             } else if (matches.length === 1) {
                 currentIndex = matches[0].originalIndex;
                 displayLetter(currentIndex);
