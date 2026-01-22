@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v2.8 - Updated 2026-01-21 -->
+<!-- Mid-State Letter Generator v3.0 - Updated 2026-01-21 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v2.8</title>
+    <title>Mid-State Plumbing - Letter Generator v3.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -19,7 +19,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0d7377 0%, #14a3a8 100%);
+            background: linear-gradient(135deg, #d35400 0%, #e67e22 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -34,7 +34,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #0d7377 0%, #14a3a8 100%);
+            background: linear-gradient(135deg, #d35400 0%, #e67e22 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -57,7 +57,7 @@
 
         .upload-section {
             background: #f8f9fa;
-            border: 3px dashed #0d7377;
+            border: 3px dashed #d35400;
             border-radius: 10px;
             padding: 40px;
             text-align: center;
@@ -66,12 +66,12 @@
         }
 
         .upload-section:hover {
-            border-color: #14a3a8;
+            border-color: #e67e22;
             background: #fff;
         }
 
         .upload-section h2 {
-            color: #0d7377;
+            color: #d35400;
             margin-bottom: 20px;
         }
 
@@ -98,11 +98,11 @@
 
         input[type="text"]:focus, input[type="file"]:focus {
             outline: none;
-            border-color: #0d7377;
+            border-color: #d35400;
         }
 
         .btn {
-            background: linear-gradient(135deg, #0d7377 0%, #14a3a8 100%);
+            background: linear-gradient(135deg, #d35400 0%, #e67e22 100%);
             color: white;
             border: none;
             padding: 15px 40px;
@@ -116,7 +116,7 @@
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(13, 115, 119, 0.4);
+            box-shadow: 0 8px 20px rgba(211, 84, 0, 0.4);
         }
 
         .btn:active {
@@ -124,7 +124,7 @@
         }
 
         .btn-secondary {
-            background: linear-gradient(135deg, #0d7377 0%, #14a3a8 100%);
+            background: linear-gradient(135deg, #d35400 0%, #e67e22 100%);
         }
 
         .btn:disabled {
@@ -145,7 +145,7 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #0d7377 0%, #14a3a8 100%);
+            background: linear-gradient(135deg, #d35400 0%, #e67e22 100%);
             color: white;
             padding: 20px;
             border-radius: 10px;
@@ -238,7 +238,7 @@
         }
 
         .letter-body p {
-            margin-bottom: 0.09in;
+            margin-bottom: 0.14in;
             text-indent: 0;
             font-size: 11pt;
             text-wrap: pretty;
@@ -258,7 +258,7 @@
         }
 
         .letter-closing {
-            margin-top: 0.15in;
+            margin-top: 0.2in;
             margin-bottom: 0.2in;
             font-size: 11pt;
         }
@@ -285,7 +285,7 @@
             display: none;
             text-align: center;
             padding: 20px;
-            color: #0d7377;
+            color: #d35400;
             font-weight: 600;
         }
 
@@ -294,9 +294,9 @@
         }
 
         .error {
-            background: #e6f7f7;
-            border: 2px solid #0d7377;
-            color: #0d7377;
+            background: #fef5e7;
+            border: 2px solid #d35400;
+            color: #d35400;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
@@ -351,7 +351,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 2.8</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.0</div>
         </div>
 
         <div class="content">
@@ -495,11 +495,16 @@
             openings: [
                 "We hope you've been enjoying your home.",
                 "We hope this note finds you well.",
-                "We hope you're settling in nicely.",
-                "We hope your home has been treating you well.",
                 "We wanted to reach out and say hello.",
                 "After working together during construction, we wanted to reconnect.",
-                "It's been a little while, and we wanted to check in."
+                "It's been a little while, and we wanted to check in.",
+                "We've been thinking about the homes we helped build and wanted to drop you a line.",
+                "Now that you've had some time to settle in, we wanted to say hi.",
+                "We hope the new home is everything you hoped for.",
+                "We wanted to send a quick note and see how things are going.",
+                "Hope everything is going smoothly with your home.",
+                "As the seasons change, we wanted to check in with you.",
+                "We wanted to introduce ourselves and share a little about what we do."
             ],
             introductions: [
                 "In ${yearBuilt}, we partnered with {builder} to complete the {workType} systems in your home, and we're glad we could be part of that process. As your needs change over time—whether it's finishing a basement, adding a wet bar, or taking care of routine system care—we'd be happy to help.",
@@ -911,7 +916,7 @@
                 
                 div.innerHTML = `
                     <div style="margin-bottom: 8px;">
-                        <strong style="color: #0d7377;">Sheet ${sheetNum}</strong> 
+                        <strong style="color: #d35400;">Sheet ${sheetNum}</strong> 
                         <span style="color: #666; font-size: 13px;">(${customerCount} customers)</span>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -1165,7 +1170,7 @@
             const resultsDiv = document.getElementById('searchResults');
             
             if (!searchTerm) {
-                resultsDiv.innerHTML = '<span style="color: #0d7377;">Please enter a search term.</span>';
+                resultsDiv.innerHTML = '<span style="color: #d35400;">Please enter a search term.</span>';
                 return;
             }
             
@@ -1183,7 +1188,7 @@
             }));
             
             if (matches.length === 0) {
-                resultsDiv.innerHTML = '<span style="color: #0d7377;">No customers found matching "' + searchTerm + '"</span>';
+                resultsDiv.innerHTML = '<span style="color: #d35400;">No customers found matching "' + searchTerm + '"</span>';
             } else if (matches.length === 1) {
                 currentIndex = matches[0].originalIndex;
                 displayLetter(currentIndex);
