@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.1 - Updated 2026-01-21 -->
+<!-- Mid-State Letter Generator v3.3 - Updated 2026-01-21 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.1</title>
+    <title>Mid-State Plumbing - Letter Generator v3.3</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -19,7 +19,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e8449 0%, #27ae60 100%);
+            background: linear-gradient(135deg, #922b21 0%, #c0392b 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -34,7 +34,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #1e8449 0%, #27ae60 100%);
+            background: linear-gradient(135deg, #922b21 0%, #c0392b 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -57,7 +57,7 @@
 
         .upload-section {
             background: #f8f9fa;
-            border: 3px dashed #1e8449;
+            border: 3px dashed #922b21;
             border-radius: 10px;
             padding: 40px;
             text-align: center;
@@ -66,12 +66,12 @@
         }
 
         .upload-section:hover {
-            border-color: #27ae60;
+            border-color: #c0392b;
             background: #fff;
         }
 
         .upload-section h2 {
-            color: #1e8449;
+            color: #922b21;
             margin-bottom: 20px;
         }
 
@@ -98,11 +98,11 @@
 
         input[type="text"]:focus, input[type="file"]:focus {
             outline: none;
-            border-color: #1e8449;
+            border-color: #922b21;
         }
 
         .btn {
-            background: linear-gradient(135deg, #1e8449 0%, #27ae60 100%);
+            background: linear-gradient(135deg, #922b21 0%, #c0392b 100%);
             color: white;
             border: none;
             padding: 15px 40px;
@@ -116,7 +116,7 @@
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(30, 132, 73, 0.4);
+            box-shadow: 0 8px 20px rgba(146, 43, 33, 0.4);
         }
 
         .btn:active {
@@ -124,7 +124,7 @@
         }
 
         .btn-secondary {
-            background: linear-gradient(135deg, #1e8449 0%, #27ae60 100%);
+            background: linear-gradient(135deg, #922b21 0%, #c0392b 100%);
         }
 
         .btn:disabled {
@@ -145,7 +145,7 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #1e8449 0%, #27ae60 100%);
+            background: linear-gradient(135deg, #922b21 0%, #c0392b 100%);
             color: white;
             padding: 20px;
             border-radius: 10px;
@@ -264,7 +264,7 @@
         }
 
         .letter-signature {
-            margin-bottom: 0.5in;
+            margin-bottom: 0.75in;
             font-size: 11pt;
         }
 
@@ -285,7 +285,7 @@
             display: none;
             text-align: center;
             padding: 20px;
-            color: #1e8449;
+            color: #922b21;
             font-weight: 600;
         }
 
@@ -294,9 +294,9 @@
         }
 
         .error {
-            background: #e8f8f0;
-            border: 2px solid #1e8449;
-            color: #1e8449;
+            background: #fadbd8;
+            border: 2px solid #922b21;
+            color: #922b21;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
@@ -351,7 +351,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.1</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.3</div>
         </div>
 
         <div class="content">
@@ -521,9 +521,9 @@
                 "We completed the {workType} work during construction, and it was great to be part of bringing your home together. We'd love to continue being a resource as your needs evolve."
             ],
             giftCertificate: [
-                "As a thank-you for trusting us with your home, we've included a gift certificate for $50 off any service or repair (excluding diagnostics), or $500 off a new equipment installation.",
-                "Enclosed, you'll find a gift certificate as our way of saying thank you: $50 off any service or repair (excluding diagnostics), or $500 off a new equipment installation.",
-                "We've included a gift certificate to say thanks: $50 off any service or repair (excluding diagnostics), or $500 off a new equipment installation."
+                "As a thank-you for trusting us with your home, we've included a gift certificate for $50 off any service or repair, or $500 off a new equipment installation. See the certificate for details.",
+                "Enclosed, you'll find a gift certificate as our way of saying thank you: $50 off any service or repair, or $500 off a new equipment installation. Details are on the certificate.",
+                "We've included a gift certificate to say thanks: $50 off any service or repair, or $500 off a new equipment installation. Please see the certificate for details."
             ],
             maintenanceClub: [
                 "We also offer a Maintenance Club designed to help keep your systems running reliably year after year. Members enjoy benefits such as maintenance that helps preserve manufacturer warranties, longer equipment life, savings on repairs and projects, priority scheduling, and early issue detection before small concerns become costly.",
@@ -916,7 +916,7 @@
                 
                 div.innerHTML = `
                     <div style="margin-bottom: 8px;">
-                        <strong style="color: #1e8449;">Sheet ${sheetNum}</strong> 
+                        <strong style="color: #922b21;">Sheet ${sheetNum}</strong> 
                         <span style="color: #666; font-size: 13px;">(${customerCount} customers)</span>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -1170,7 +1170,7 @@
             const resultsDiv = document.getElementById('searchResults');
             
             if (!searchTerm) {
-                resultsDiv.innerHTML = '<span style="color: #1e8449;">Please enter a search term.</span>';
+                resultsDiv.innerHTML = '<span style="color: #922b21;">Please enter a search term.</span>';
                 return;
             }
             
@@ -1188,7 +1188,7 @@
             }));
             
             if (matches.length === 0) {
-                resultsDiv.innerHTML = '<span style="color: #1e8449;">No customers found matching "' + searchTerm + '"</span>';
+                resultsDiv.innerHTML = '<span style="color: #922b21;">No customers found matching "' + searchTerm + '"</span>';
             } else if (matches.length === 1) {
                 currentIndex = matches[0].originalIndex;
                 displayLetter(currentIndex);
