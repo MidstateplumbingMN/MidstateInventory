@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.6 - Updated 2026-01-26 -->
+<!-- Mid-State Letter Generator v3.7 - Updated 2026-01-26 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.6</title>
+    <title>Mid-State Plumbing - Letter Generator v3.7</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -264,7 +264,7 @@
         }
 
         .letter-signature {
-            margin-bottom: 0.75in;
+            margin-bottom: 0.1in;
             font-size: 11pt;
         }
 
@@ -351,7 +351,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.6</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.7</div>
         </div>
 
         <div class="content">
@@ -447,7 +447,7 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-        // Version 3.6 - Fixed signature display for sheet-specific signers
+        // Version 3.7 - Adjusted signature image size (45px height)
         let customerData = [];
         let currentIndex = 0;
         let sheetSignerMap = {}; // Maps sheet names to signer keys
@@ -752,7 +752,7 @@
 
                     <div class="letter-closing">
                         <div class="letter-signature">Warm regards,</div>
-                        ${signer.signature ? `<img src="${signer.signature}" alt="Signature" style="height: 60px; margin: 10px 0;">` : '<div style="height: 40px;"></div>'}
+                        ${signer.signature ? `<img src="${signer.signature}" alt="Signature" style="height: 45px; width: auto; display: block; margin: 5px 0;">` : '<div style="height: 30px;"></div>'}
                         <div>
                             <strong>${signer.name}</strong>
                         </div>
