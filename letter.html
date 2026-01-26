@@ -364,9 +364,9 @@
                 <div class="input-group">
                     <label for="signerSelect">Default Letter Signer:</label>
                     <select id="signerSelect" onchange="updateSignerFields()" style="width: 100%; padding: 10px; font-size: 14px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 15px;">
-                        <option value="robert">Robert Danaher (robert@midstateplumbing.com)</option>
-                        <option value="victoria">Victoria Ellsworth (victoria@midstateplumbing.com)</option>
-                        <option value="midstate">Mid-State Plumbing & Heating (info@midstateplumbing.com)</option>
+                        <option value="robert">Robert Danaher (<template class="__cf_email__" data-cfemail="fa8895989f888eba97939e898e9b8e9f8a968f979893949dd4999597">[email&#160;protected]</template>)</option>
+                        <option value="victoria">Victoria Ellsworth (<template class="__cf_email__" data-cfemail="7d0b141e09120f141c3d1014190e091c09180d1108101f14131a531e1210">[email&#160;protected]</template>)</option>
+                        <option value="midstate">Mid-State Plumbing & Heating (<template class="__cf_email__" data-cfemail="365f585059765b5f524542574253465a435b545f58511855595b">[email&#160;protected]</template>)</option>
                         <option value="custom">+ Add Custom Signer</option>
                     </select>
                     
@@ -446,7 +446,7 @@
         </div>
     </div>
 
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         // Version 3.4 - Fixed horizontal logo and contact layout
         let customerData = [];
         let currentIndex = 0;
@@ -462,7 +462,7 @@
                 city: "Hastings, MN 55033",
                 phone: "(651) 480-1195",
                 email: "robert@midstateplumbing.com",
-                signature: SIGNATURE_DATA_URL
+                signature: "https://midstateplumbingmn.github.io/MidstateInventory/robertsignature.svg"
             },
             victoria: {
                 name: "Victoria Ellsworth",
@@ -471,7 +471,7 @@
                 city: "Hastings, MN 55033",
                 phone: "(651) 480-1195",
                 email: "victoria@midstateplumbing.com",
-                signature: null  // To be added when Victoria's signature is uploaded
+                signature: null  // To be added: https://midstateplumbingmn.github.io/MidstateInventory/victoriasignature.svg
             },
             midstate: {
                 name: "Mid-State Plumbing & Heating",
@@ -1362,7 +1362,17 @@
                     
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11, undefined, 'FAST');
-                    document.body.removeChild(tempDiv);
                     
-                    if (i < customerData.length - 1) {
-                        pdf.addPage();
+                    document.body.removeChild(tempDiv);
+                }
+                
+                pdf.save('All_Letters.pdf');
+            } catch (error) {
+                console.error('PDF error:', error);
+                showError('Error creating PDF: ' + error.message);
+            }
+            showLoading(false);
+        }
+    </script>
+</body>
+</html>
