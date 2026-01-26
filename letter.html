@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.3 - Updated 2026-01-21 -->
+<!-- Mid-State Letter Generator v3.4 - Updated 2026-01-26 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.3</title>
+    <title>Mid-State Plumbing - Letter Generator v3.4</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -19,7 +19,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #922b21 0%, #c0392b 100%);
+            background: linear-gradient(135deg, #1a7a6c 0%, #20a894 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -34,7 +34,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #922b21 0%, #c0392b 100%);
+            background: linear-gradient(135deg, #1a7a6c 0%, #20a894 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -57,7 +57,7 @@
 
         .upload-section {
             background: #f8f9fa;
-            border: 3px dashed #922b21;
+            border: 3px dashed #1a7a6c;
             border-radius: 10px;
             padding: 40px;
             text-align: center;
@@ -66,12 +66,12 @@
         }
 
         .upload-section:hover {
-            border-color: #c0392b;
+            border-color: #20a894;
             background: #fff;
         }
 
         .upload-section h2 {
-            color: #922b21;
+            color: #1a7a6c;
             margin-bottom: 20px;
         }
 
@@ -98,11 +98,11 @@
 
         input[type="text"]:focus, input[type="file"]:focus {
             outline: none;
-            border-color: #922b21;
+            border-color: #1a7a6c;
         }
 
         .btn {
-            background: linear-gradient(135deg, #922b21 0%, #c0392b 100%);
+            background: linear-gradient(135deg, #1a7a6c 0%, #20a894 100%);
             color: white;
             border: none;
             padding: 15px 40px;
@@ -124,7 +124,7 @@
         }
 
         .btn-secondary {
-            background: linear-gradient(135deg, #922b21 0%, #c0392b 100%);
+            background: linear-gradient(135deg, #1a7a6c 0%, #20a894 100%);
         }
 
         .btn:disabled {
@@ -145,7 +145,7 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #922b21 0%, #c0392b 100%);
+            background: linear-gradient(135deg, #1a7a6c 0%, #20a894 100%);
             color: white;
             padding: 20px;
             border-radius: 10px;
@@ -285,7 +285,7 @@
             display: none;
             text-align: center;
             padding: 20px;
-            color: #922b21;
+            color: #1a7a6c;
             font-weight: 600;
         }
 
@@ -295,8 +295,8 @@
 
         .error {
             background: #fadbd8;
-            border: 2px solid #922b21;
-            color: #922b21;
+            border: 2px solid #1a7a6c;
+            color: #1a7a6c;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
@@ -921,7 +921,7 @@
                 
                 div.innerHTML = `
                     <div style="margin-bottom: 8px;">
-                        <strong style="color: #922b21;">Sheet ${sheetNum}</strong> 
+                        <strong style="color: #1a7a6c;">Sheet ${sheetNum}</strong> 
                         <span style="color: #666; font-size: 13px;">(${customerCount} customers)</span>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -1175,7 +1175,7 @@
             const resultsDiv = document.getElementById('searchResults');
             
             if (!searchTerm) {
-                resultsDiv.innerHTML = '<span style="color: #922b21;">Please enter a search term.</span>';
+                resultsDiv.innerHTML = '<span style="color: #1a7a6c;">Please enter a search term.</span>';
                 return;
             }
             
@@ -1193,7 +1193,7 @@
             }));
             
             if (matches.length === 0) {
-                resultsDiv.innerHTML = '<span style="color: #922b21;">No customers found matching "' + searchTerm + '"</span>';
+                resultsDiv.innerHTML = '<span style="color: #1a7a6c;">No customers found matching "' + searchTerm + '"</span>';
             } else if (matches.length === 1) {
                 currentIndex = matches[0].originalIndex;
                 displayLetter(currentIndex);
@@ -1366,17 +1366,3 @@
                     
                     if (i < customerData.length - 1) {
                         pdf.addPage();
-                    }
-                }
-                
-                pdf.save(`MidState_Letters_${new Date().toISOString().split('T')[0]}.pdf`);
-                showLoading(false);
-            } catch (error) {
-                console.error('PDF generation error:', error);
-                showError('Error generating PDF: ' + error.message);
-                showLoading(false);
-            }
-        }
-    </script>
-</body>
-</html>
