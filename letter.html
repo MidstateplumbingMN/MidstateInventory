@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.8 - Updated 2026-01-27 -->
+<!-- Mid-State Letter Generator v3.9 - Updated 2026-01-27 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.8</title>
+    <title>Mid-State Plumbing - Letter Generator v3.9</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -316,17 +316,20 @@
             .container {
                 box-shadow: none;
                 max-width: none;
+                padding: 0;
             }
-            .header, .upload-section, .navigation, .btn, .stats {
+            .header, .upload-section, .navigation, .btn, .stats, .search-section, .action-buttons {
                 display: none !important;
+            }
+            #letterContainer {
+                padding: 0;
+                margin: 0;
             }
             .letter-page {
                 margin: 0;
-                padding: 0.4in 1in 1in 1in !important;
+                padding: 0.5in 1in 0.5in 1in !important;
                 box-shadow: none;
                 page-break-after: always;
-                max-height: 11in;
-                overflow: hidden;
             }
             .letter-logo {
                 display: block !important;
@@ -337,12 +340,15 @@
                 visibility: visible !important;
                 margin: 0 auto !important;
             }
+            .letter-signature img {
+                display: block !important;
+                visibility: visible !important;
+            }
         }
 
         @page {
             size: letter;
             margin: 0;
-        }
         }
     </style>
 </head>
@@ -351,7 +357,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.8</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.9</div>
         </div>
 
         <div class="content">
@@ -412,7 +418,7 @@
                     </div>
                 </div>
 
-                <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <div class="search-section" style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
                     <label style="display: block; font-weight: 600; margin-bottom: 10px; color: #374151;">
                         🔍 Search for a Customer:
                     </label>
@@ -436,7 +442,7 @@
                     <!-- Letter will be generated here -->
                 </div>
 
-                <div style="text-align: center; margin-top: 30px;">
+                <div class="action-buttons" style="text-align: center; margin-top: 30px;">
                     <button class="btn" onclick="window.print()">🖨️ Print Current Letter</button>
                     <button class="btn btn-secondary" onclick="downloadCurrentPDF()">📄 Download as PDF</button>
                     <button class="btn" onclick="downloadAllPDFs()">📥 Download All Letters (PDF)</button>
@@ -447,10 +453,54 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-        // Version 3.8 - Embedded base64 signature for PDF compatibility
+        // Version 3.9 - Fixed print layout and PDF signature rendering
         let customerData = [];
         let currentIndex = 0;
         let sheetSignerMap = {}; // Maps sheet names to signer keys
+        let signaturePngCache = {}; // Cache for PNG versions of signatures
+        
+        // Convert SVG data URI to PNG data URI for better PDF compatibility
+        async function svgToPng(svgDataUri, width = 300, height = 65) {
+            if (!svgDataUri || !svgDataUri.startsWith('data:image/svg')) {
+                return svgDataUri;
+            }
+            
+            // Check cache first
+            if (signaturePngCache[svgDataUri]) {
+                return signaturePngCache[svgDataUri];
+            }
+            
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = 'transparent';
+                    ctx.fillRect(0, 0, width, height);
+                    
+                    // Calculate aspect ratio to fit signature
+                    const aspectRatio = img.width / img.height;
+                    let drawWidth = width;
+                    let drawHeight = width / aspectRatio;
+                    if (drawHeight > height) {
+                        drawHeight = height;
+                        drawWidth = height * aspectRatio;
+                    }
+                    
+                    ctx.drawImage(img, 0, (height - drawHeight) / 2, drawWidth, drawHeight);
+                    const pngDataUri = canvas.toDataURL('image/png');
+                    signaturePngCache[svgDataUri] = pngDataUri;
+                    resolve(pngDataUri);
+                };
+                img.onerror = function() {
+                    console.error('Error converting SVG to PNG');
+                    resolve(svgDataUri); // Fall back to original
+                };
+                img.src = svgDataUri;
+            });
+        }
         let spreadsheetSheets = []; // Array of sheet names
         let sheetSigners = {}; // Maps sheet numbers to signer info {name, email, etc.}
 
@@ -1284,11 +1334,47 @@
                     useCORS: true,
                     allowTaint: true,
                     backgroundColor: '#ffffff',
-                    logging: false,
+                    logging: true,
                     windowWidth: letterWidth,
                     windowHeight: letterHeight,
                     width: letterWidth,
-                    height: letterHeight
+                    height: letterHeight,
+                    onclone: async function(clonedDoc) {
+                        // Convert SVG signature images to canvas/PNG for html2canvas compatibility
+                        const sigs = clonedDoc.querySelectorAll('.letter-closing img[src^="data:image/svg"]');
+                        for (const img of sigs) {
+                            try {
+                                // Create a canvas to render the SVG
+                                const canvas = document.createElement('canvas');
+                                const ctx = canvas.getContext('2d');
+                                
+                                // Set canvas size (scale up for quality)
+                                canvas.width = 400;
+                                canvas.height = 90;
+                                
+                                // Create a new image and wait for it to load
+                                const tempImg = new Image();
+                                tempImg.src = img.src;
+                                
+                                await new Promise((resolve, reject) => {
+                                    tempImg.onload = resolve;
+                                    tempImg.onerror = reject;
+                                    // Timeout fallback
+                                    setTimeout(resolve, 1000);
+                                });
+                                
+                                // Draw to canvas
+                                ctx.drawImage(tempImg, 0, 0, 400, 90);
+                                
+                                // Replace src with PNG data URL
+                                img.src = canvas.toDataURL('image/png');
+                                img.style.display = 'block';
+                                img.style.visibility = 'visible';
+                            } catch (e) {
+                                console.log('Signature conversion error:', e);
+                            }
+                        }
+                    }
                 });
                 
                 console.log('Canvas created:', canvas.width, 'x', canvas.height);
@@ -1358,7 +1444,35 @@
                         windowWidth: 816,
                         windowHeight: 1056,
                         width: 816,
-                        height: 1056
+                        height: 1056,
+                        onclone: async function(clonedDoc) {
+                            // Convert SVG signature images to canvas/PNG for html2canvas compatibility
+                            const sigs = clonedDoc.querySelectorAll('.letter-closing img[src^="data:image/svg"]');
+                            for (const img of sigs) {
+                                try {
+                                    const canvas = document.createElement('canvas');
+                                    const ctx = canvas.getContext('2d');
+                                    canvas.width = 400;
+                                    canvas.height = 90;
+                                    
+                                    const tempImg = new Image();
+                                    tempImg.src = img.src;
+                                    
+                                    await new Promise((resolve, reject) => {
+                                        tempImg.onload = resolve;
+                                        tempImg.onerror = reject;
+                                        setTimeout(resolve, 1000);
+                                    });
+                                    
+                                    ctx.drawImage(tempImg, 0, 0, 400, 90);
+                                    img.src = canvas.toDataURL('image/png');
+                                    img.style.display = 'block';
+                                    img.style.visibility = 'visible';
+                                } catch (e) {
+                                    console.log('Signature conversion error:', e);
+                                }
+                            }
+                        }
                     });
                     
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
