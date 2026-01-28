@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.31 - Updated 2026-01-27 -->
+<!-- Mid-State Letter Generator v3.32 - Updated 2026-01-27 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.31</title>
+    <title>Mid-State Plumbing - Letter Generator v3.32</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -376,7 +376,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.31</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.32</div>
         </div>
 
         <div class="content">
@@ -473,7 +473,7 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-        // Version 3.31 - Fixed address parsing for duplicate cities and name extraction
+        // Version 3.32 - Fixed regex for no-space between Residence and street number
         
         // Track greeting overrides per customer (key = customer index, value = greeting index)
         let greetingOverrides = {};
@@ -493,7 +493,7 @@
         ];
         
         // Version number determines the color theme
-        const VERSION = '3.31';
+        const VERSION = '3.32';
         const versionNum = parseFloat(VERSION.replace(/^(\d+\.\d+).*/, '$1')) * 100;
         const themeIndex = Math.floor(versionNum) % colorThemes.length;
         const currentTheme = colorThemes[themeIndex];
@@ -831,11 +831,13 @@
             let extractedName = '';
             let extractedStreet = mailingAddress || addressForLetter;
             
-            // Pattern 1: "The Lastname Residence" or "The Lastname/Lastname Residence" (with space or no space before address)
-            const residenceMatch = mailingAddress.match(/^(The\s+[\w\/\-]+\s+Residence)\s*(.*)$/i);
+            // Pattern 1: "The Lastname Residence" followed by address (with or without space)
+            // Matches: "The Chime Residence12579..." or "The Chime Residence 12579..."
+            const residenceMatch = mailingAddress.match(/^(The\s+[\w\/\-]+\s+Residence)\s*(\d.*)$/i);
             if (residenceMatch) {
                 extractedName = residenceMatch[1];
                 extractedStreet = residenceMatch[2].trim();
+                console.log('Residence match - Name:', extractedName, 'Street:', extractedStreet);
             }
             
             // Pattern 2: "Lastname Family" at start
@@ -856,6 +858,10 @@
             if (!extractedStreet && addressForLetter) {
                 extractedStreet = addressForLetter;
             }
+            
+            console.log('Mailing address:', mailingAddress);
+            console.log('Extracted name:', extractedName);
+            console.log('Extracted street:', extractedStreet);
             
             // Determine the display name
             let displayName = '';
