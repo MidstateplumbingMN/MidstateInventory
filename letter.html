@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.12 - Updated 2026-01-27 -->
+<!-- Mid-State Letter Generator v3.13 - Updated 2026-01-27 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.12</title>
+    <title>Mid-State Plumbing - Letter Generator v3.13</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -357,7 +357,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.12</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.13</div>
         </div>
 
         <div class="content">
@@ -453,7 +453,61 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-        // Version 3.12 - USPS standard address abbreviations with periods
+        // Version 3.13 - Version-based color theme
+        
+        // Color theme based on version number - changes only when version updates
+        const colorThemes = [
+            { primary: '#1a7a6c', secondary: '#20a894', name: 'Teal' },
+            { primary: '#2563eb', secondary: '#3b82f6', name: 'Blue' },
+            { primary: '#7c3aed', secondary: '#8b5cf6', name: 'Purple' },
+            { primary: '#dc2626', secondary: '#ef4444', name: 'Red' },
+            { primary: '#ea580c', secondary: '#f97316', name: 'Orange' },
+            { primary: '#16a34a', secondary: '#22c55e', name: 'Green' },
+            { primary: '#0891b2', secondary: '#06b6d4', name: 'Cyan' },
+            { primary: '#be185d', secondary: '#ec4899', name: 'Pink' },
+            { primary: '#4f46e5', secondary: '#6366f1', name: 'Indigo' },
+            { primary: '#854d0e', secondary: '#ca8a04', name: 'Gold' }
+        ];
+        
+        // Version number determines the color theme
+        const VERSION = '3.13';
+        const versionNum = parseFloat(VERSION.replace(/^(\d+\.\d+).*/, '$1')) * 100;
+        const themeIndex = Math.floor(versionNum) % colorThemes.length;
+        const currentTheme = colorThemes[themeIndex];
+        
+        // Apply theme to CSS variables
+        document.documentElement.style.setProperty('--theme-primary', currentTheme.primary);
+        document.documentElement.style.setProperty('--theme-secondary', currentTheme.secondary);
+        
+        // Apply theme to existing elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update gradient backgrounds
+            const gradientElements = document.querySelectorAll('.header, .btn:not(.btn-secondary), .file-input-label, .loading');
+            gradientElements.forEach(el => {
+                el.style.background = `linear-gradient(135deg, ${currentTheme.primary} 0%, ${currentTheme.secondary} 100%)`;
+            });
+            
+            // Update border colors
+            const borderElements = document.querySelectorAll('.upload-box, .error');
+            borderElements.forEach(el => {
+                el.style.borderColor = currentTheme.primary;
+            });
+            
+            // Update text colors
+            const textElements = document.querySelectorAll('.upload-box p, .error');
+            textElements.forEach(el => {
+                el.style.color = currentTheme.primary;
+            });
+            
+            // Update accent links
+            const accentElements = document.querySelectorAll('.letter-body a');
+            accentElements.forEach(el => {
+                el.style.color = currentTheme.primary;
+            });
+            
+            console.log('Color theme applied:', currentTheme.name);
+        });
+        
         let customerData = [];
         let currentIndex = 0;
         let sheetSignerMap = {}; // Maps sheet names to signer keys
