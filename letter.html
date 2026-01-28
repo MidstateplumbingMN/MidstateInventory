@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.9 - Updated 2026-01-27 -->
+<!-- Mid-State Letter Generator v3.12 - Updated 2026-01-27 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.9</title>
+    <title>Mid-State Plumbing - Letter Generator v3.12</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -220,7 +220,7 @@
         }
 
         .letter-to {
-            margin-bottom: 0.25in;
+            margin-bottom: 0.4in;
             font-size: 11pt;
         }
 
@@ -357,7 +357,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.9</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.12</div>
         </div>
 
         <div class="content">
@@ -402,7 +402,7 @@
                 
                 <p style="margin-top: 20px; color: #666; font-size: 0.9em;">
                     <strong>Note:</strong> File will load automatically when selected. Expected columns: 
-                    A=Builder, B=First Name, C=Last Name, D=Address, H=Year Built, L=Department, M=Mailing Address
+                    A=Builder, B=First Name, C=Last Name, D=Address, E=City, F=State, G=ZIP, H=Year Built, L=Department, M=Mailing Address
                 </p>
             </div>
 
@@ -453,7 +453,7 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-        // Version 3.9 - Fixed print layout and PDF signature rendering
+        // Version 3.12 - USPS standard address abbreviations with periods
         let customerData = [];
         let currentIndex = 0;
         let sheetSignerMap = {}; // Maps sheet names to signer keys
@@ -644,39 +644,84 @@
             address = titleCase(address);
             
             // Fix state abbreviations that got lowercased (2 letter caps)
-            address = address.replace(/\b(Mn|Wi|Ia|Nd|Sd|Il|In|Oh|Mi)\b/g, m => m.toUpperCase());
+            address = address.replace(/\b(Mn|Wi|Ia|Nd|Sd|Il|In|Oh|Mi|Tx|Ca|Fl|Ny|Pa|Az|Co|Nv|Wa|Or|Ut|Nm|Mt|Wy|Id|Ne|Ks|Ok|Mo|Ar|La|Ms|Al|Ga|Sc|Nc|Va|Wv|Ky|Tn|Md|De|Nj|Ct|Ri|Ma|Vt|Nh|Me|Ak|Hi)\b/gi, m => m.toUpperCase());
             
-            // Standardize street abbreviations with proper periods
+            // USPS standard street suffix abbreviations with periods
             const abbreviations = {
-                'Street': 'St.', 'St': 'St.',
-                'Avenue': 'Ave.', 'Ave': 'Ave.',
-                'Road': 'Rd.', 'Rd': 'Rd.',
-                'Drive': 'Dr.', 'Dr': 'Dr.',
-                'Lane': 'Ln.', 'Ln': 'Ln.',
-                'Boulevard': 'Blvd.', 'Blvd': 'Blvd.',
-                'Court': 'Ct.', 'Ct': 'Ct.',
-                'Place': 'Pl.', 'Pl': 'Pl.',
-                'Parkway': 'Pkwy.', 'Pkwy': 'Pkwy.',
-                'Circle': 'Cir.', 'Cir': 'Cir.',
-                'Trail': 'Trl.', 'Trl': 'Trl.',
-                'Terrace': 'Ter.', 'Ter': 'Ter.',
-                'Highway': 'Hwy.', 'Hwy': 'Hwy.',
+                // Street types
+                'Street': 'St.', 'Str': 'St.',
+                'Avenue': 'Ave.', 'Aven': 'Ave.',
+                'Road': 'Rd.',
+                'Drive': 'Dr.', 'Driv': 'Dr.',
+                'Lane': 'Ln.',
+                'Boulevard': 'Blvd.', 'Boul': 'Blvd.',
+                'Court': 'Ct.',
+                'Place': 'Pl.',
+                'Parkway': 'Pkwy.', 'Parkwy': 'Pkwy.',
+                'Circle': 'Cir.', 'Circl': 'Cir.',
+                'Trail': 'Trl.',
+                'Terrace': 'Ter.', 'Terr': 'Ter.',
+                'Highway': 'Hwy.', 'Highwy': 'Hwy.',
+                'Expressway': 'Expy.',
+                'Freeway': 'Fwy.',
+                'Square': 'Sq.',
+                'Center': 'Ctr.',
+                'Crossing': 'Xing.',
+                'Junction': 'Jct.',
+                'Point': 'Pt.',
+                'Ridge': 'Rdg.',
+                'Valley': 'Vly.',
+                'View': 'Vw.',
+                'Heights': 'Hts.',
+                'Manor': 'Mnr.',
+                'Meadow': 'Mdw.', 'Meadows': 'Mdws.',
+                'Grove': 'Grv.',
+                'Glen': 'Gln.',
+                'Creek': 'Crk.',
+                'Cove': 'Cv.',
+                'Pass': 'Pass',
+                'Path': 'Path',
+                'Run': 'Run',
+                // Directionals
                 'North': 'N.', 'South': 'S.', 'East': 'E.', 'West': 'W.',
+                'Northeast': 'NE.', 'Northwest': 'NW.', 'Southeast': 'SE.', 'Southwest': 'SW.',
+                // Unit types
                 'Apartment': 'Apt.', 'Apt': 'Apt.',
-                'Suite': 'Ste.', 'Ste': 'Ste.'
+                'Suite': 'Ste.', 'Ste': 'Ste.',
+                'Building': 'Bldg.', 'Bldg': 'Bldg.',
+                'Floor': 'Fl.', 'Fl': 'Fl.',
+                'Unit': 'Unit',
+                'Room': 'Rm.', 'Rm': 'Rm.',
+                'Department': 'Dept.', 'Dept': 'Dept.',
+                // Common words
+                'Mount': 'Mt.', 'Mountain': 'Mtn.',
+                'Fort': 'Ft.',
+                'Saint': 'St.',
+                'Post Office Box': 'PO Box', 'P.O. Box': 'PO Box', 'Po Box': 'PO Box'
             };
             
             // Apply abbreviations (match word boundary, optional existing period)
             for (const [full, abbr] of Object.entries(abbreviations)) {
-                const regex = new RegExp('\\b' + full + '\\.?(?=\\s|,|$)', 'gi');
+                const regex = new RegExp('\\b' + full + '\\.?(?=\\s|,|$|#)', 'gi');
                 address = address.replace(regex, abbr);
             }
             
-            // Way doesn't get a period (it's a complete word)
+            // These don't get periods (complete words)
             address = address.replace(/\bWay\./gi, 'Way');
+            address = address.replace(/\bPass\./gi, 'Pass');
+            address = address.replace(/\bPath\./gi, 'Path');
+            address = address.replace(/\bRun\./gi, 'Run');
+            address = address.replace(/\bUnit\./gi, 'Unit');
+            
+            // Ensure single-letter directionals at start have periods: "N Main" -> "N. Main"
+            address = address.replace(/^([NSEW])(?:\.)?\s/i, (m, dir) => dir.toUpperCase() + '. ');
+            address = address.replace(/\s([NSEW])(?:\.)?\s/gi, (m, dir) => ' ' + dir.toUpperCase() + '. ');
             
             // Clean up any double periods
             address = address.replace(/\.{2,}/g, '.');
+            
+            // Clean up period-space-period
+            address = address.replace(/\.\s*\./g, '.');
             
             return address;
         }
@@ -715,6 +760,34 @@
             // If nothing left after removing name, use address
             if (!mailingAddress) {
                 mailingAddress = address;
+            }
+            
+            // Build city/state/zip line if we have the components
+            let cityStateZip = '';
+            if (customer.city || customer.state || customer.zip) {
+                const parts = [];
+                if (customer.city) parts.push(cleanAddress(customer.city));
+                if (customer.state) parts.push(customer.state.toUpperCase());
+                cityStateZip = parts.join(', ');
+                if (customer.zip) cityStateZip += ' ' + customer.zip;
+            }
+            
+            // Format full mailing address with line break for city/state
+            let formattedMailingAddress = mailingAddress;
+            if (cityStateZip && !mailingAddress.toLowerCase().includes(customer.city?.toLowerCase() || '___NOMATCH___')) {
+                // City not already in mailing address, add it on new line
+                formattedMailingAddress = mailingAddress + '<br>' + cityStateZip;
+            } else if (mailingAddress.includes(',')) {
+                // Mailing address likely has city/state - try to split at the city
+                // Look for pattern: "123 Street, City, ST 12345" or "123 Street City, ST 12345"
+                const cityStateMatch = mailingAddress.match(/^(.+?)[\s,]+([A-Za-z\s]+),?\s*([A-Z]{2})\s*(\d{5}(?:-\d{4})?)?$/);
+                if (cityStateMatch) {
+                    const streetPart = cityStateMatch[1].trim().replace(/,\s*$/, '');
+                    const cityPart = cityStateMatch[2].trim();
+                    const statePart = cityStateMatch[3];
+                    const zipPart = cityStateMatch[4] || '';
+                    formattedMailingAddress = streetPart + '<br>' + cityPart + ', ' + statePart + (zipPart ? ' ' + zipPart : '');
+                }
             }
             
             // Determine work description based on department
@@ -779,7 +852,7 @@
 
                     <div class="letter-to">
                         ${firstName} ${lastName}<br>
-                        ${mailingAddress}
+                        ${formattedMailingAddress}
                     </div>
 
                     <div class="letter-salutation">
@@ -936,6 +1009,9 @@
                     firstName: row[1] ? row[1].toString().trim() : 'Current',
                     lastName: row[2] ? row[2].toString().trim() : 'Resident',
                     address: row[3] ? row[3].toString().trim() : '',
+                    city: row[4] ? row[4].toString().trim() : '',
+                    state: row[5] ? row[5].toString().trim() : '',
+                    zip: row[6] ? row[6].toString().trim() : '',
                     yearBuilt: row[7] ? row[7].toString().trim() : new Date().getFullYear().toString(),
                     workType: row[11] ? row[11].toString().trim() : '',
                     mailingAddress: row[12] ? row[12].toString().trim() : (row[3] ? row[3].toString().trim() : ''),
@@ -1315,18 +1391,26 @@
             try {
                 const letterPage = document.querySelector('.letter-page');
                 
+                // Convert SVG signatures to PNG BEFORE html2canvas (onclone can't be async)
+                const sigImages = letterPage.querySelectorAll('.letter-closing img[src^="data:image/svg"]');
+                const originalSrcs = [];
+                
+                for (const img of sigImages) {
+                    originalSrcs.push(img.src);
+                    try {
+                        const pngSrc = await svgToPng(img.src, 400, 90);
+                        img.src = pngSrc;
+                    } catch (e) {
+                        console.log('Signature conversion error:', e);
+                    }
+                }
+                
                 // Force a reflow to ensure all styles are applied
                 letterPage.offsetHeight;
-                
-                console.log('=== PDF Generation Debug ===');
-                console.log('Letter page dimensions:', letterPage.offsetWidth, 'x', letterPage.offsetHeight);
-                console.log('Letter page padding:', window.getComputedStyle(letterPage).padding);
                 
                 // Use exact letter dimensions (8.5" x 11" at 96 DPI)
                 const letterWidth = 816;  // 8.5 inches * 96 DPI
                 const letterHeight = 1056; // 11 inches * 96 DPI
-                
-                console.log('Canvas dimensions:', letterWidth, 'x', letterHeight);
                 
                 // Create canvas with high quality settings at exact letter size
                 const canvas = await html2canvas(letterPage, {
@@ -1334,50 +1418,17 @@
                     useCORS: true,
                     allowTaint: true,
                     backgroundColor: '#ffffff',
-                    logging: true,
+                    logging: false,
                     windowWidth: letterWidth,
                     windowHeight: letterHeight,
                     width: letterWidth,
-                    height: letterHeight,
-                    onclone: async function(clonedDoc) {
-                        // Convert SVG signature images to canvas/PNG for html2canvas compatibility
-                        const sigs = clonedDoc.querySelectorAll('.letter-closing img[src^="data:image/svg"]');
-                        for (const img of sigs) {
-                            try {
-                                // Create a canvas to render the SVG
-                                const canvas = document.createElement('canvas');
-                                const ctx = canvas.getContext('2d');
-                                
-                                // Set canvas size (scale up for quality)
-                                canvas.width = 400;
-                                canvas.height = 90;
-                                
-                                // Create a new image and wait for it to load
-                                const tempImg = new Image();
-                                tempImg.src = img.src;
-                                
-                                await new Promise((resolve, reject) => {
-                                    tempImg.onload = resolve;
-                                    tempImg.onerror = reject;
-                                    // Timeout fallback
-                                    setTimeout(resolve, 1000);
-                                });
-                                
-                                // Draw to canvas
-                                ctx.drawImage(tempImg, 0, 0, 400, 90);
-                                
-                                // Replace src with PNG data URL
-                                img.src = canvas.toDataURL('image/png');
-                                img.style.display = 'block';
-                                img.style.visibility = 'visible';
-                            } catch (e) {
-                                console.log('Signature conversion error:', e);
-                            }
-                        }
-                    }
+                    height: letterHeight
                 });
                 
-                console.log('Canvas created:', canvas.width, 'x', canvas.height);
+                // Restore original SVG sources for display
+                sigImages.forEach((img, i) => {
+                    if (originalSrcs[i]) img.src = originalSrcs[i];
+                });
                 
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF({
@@ -1389,15 +1440,12 @@
                 
                 const imgData = canvas.toDataURL('image/jpeg', 0.95);
                 
-                console.log('Adding image to PDF at: 0, 0, 8.5, 11');
-                
                 // Add image at full letter size (8.5 x 11)
                 pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11, undefined, 'FAST');
                 
                 const customer = customerData[currentIndex];
                 const filename = `Letter_${customer.firstName}_${customer.lastName}.pdf`;
                 
-                console.log('Saving PDF:', filename);
                 pdf.save(filename);
             } catch (error) {
                 console.error('PDF error:', error);
@@ -1433,6 +1481,18 @@
                     document.body.appendChild(tempDiv);
                     
                     const letterPage = tempDiv.querySelector('.letter-page');
+                    
+                    // Convert SVG signatures to PNG BEFORE html2canvas
+                    const sigImages = letterPage.querySelectorAll('.letter-closing img[src^="data:image/svg"]');
+                    for (const img of sigImages) {
+                        try {
+                            const pngSrc = await svgToPng(img.src, 400, 90);
+                            img.src = pngSrc;
+                        } catch (e) {
+                            console.log('Signature conversion error:', e);
+                        }
+                    }
+                    
                     letterPage.offsetHeight; // Force reflow
                     
                     const canvas = await html2canvas(letterPage, {
@@ -1444,35 +1504,7 @@
                         windowWidth: 816,
                         windowHeight: 1056,
                         width: 816,
-                        height: 1056,
-                        onclone: async function(clonedDoc) {
-                            // Convert SVG signature images to canvas/PNG for html2canvas compatibility
-                            const sigs = clonedDoc.querySelectorAll('.letter-closing img[src^="data:image/svg"]');
-                            for (const img of sigs) {
-                                try {
-                                    const canvas = document.createElement('canvas');
-                                    const ctx = canvas.getContext('2d');
-                                    canvas.width = 400;
-                                    canvas.height = 90;
-                                    
-                                    const tempImg = new Image();
-                                    tempImg.src = img.src;
-                                    
-                                    await new Promise((resolve, reject) => {
-                                        tempImg.onload = resolve;
-                                        tempImg.onerror = reject;
-                                        setTimeout(resolve, 1000);
-                                    });
-                                    
-                                    ctx.drawImage(tempImg, 0, 0, 400, 90);
-                                    img.src = canvas.toDataURL('image/png');
-                                    img.style.display = 'block';
-                                    img.style.visibility = 'visible';
-                                } catch (e) {
-                                    console.log('Signature conversion error:', e);
-                                }
-                            }
-                        }
+                        height: 1056
                     });
                     
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
