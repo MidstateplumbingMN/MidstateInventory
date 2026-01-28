@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.16 - Updated 2026-01-27 -->
+<!-- Mid-State Letter Generator v3.18 - Updated 2026-01-27 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.16</title>
+    <title>Mid-State Plumbing - Letter Generator v3.18</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -365,7 +365,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.16</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.18</div>
         </div>
 
         <div class="content">
@@ -461,7 +461,7 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-        // Version 3.16 - USPS standard address format (city/state/zip on separate line)
+        // Version 3.18 - Rotating greetings for multi-name households
         
         // Color theme based on version number - changes only when version updates
         const colorThemes = [
@@ -478,7 +478,7 @@
         ];
         
         // Version number determines the color theme
-        const VERSION = '3.16';
+        const VERSION = '3.18';
         const versionNum = parseFloat(VERSION.replace(/^(\d+\.\d+).*/, '$1')) * 100;
         const themeIndex = Math.floor(versionNum) % colorThemes.length;
         const currentTheme = colorThemes[themeIndex];
@@ -807,34 +807,83 @@
             // Check if we have a real name (not empty, not "Current", not "Valued")
             const rawFirstName = customer.firstName ? customer.firstName.trim() : '';
             const rawLastName = customer.lastName ? customer.lastName.trim() : '';
-            const hasRealName = rawFirstName !== '' && 
-                                rawFirstName.toLowerCase() !== "current" && 
-                                rawFirstName.toLowerCase() !== "valued" &&
-                                rawFirstName.toLowerCase() !== "homeowner";
             
-            // Format names properly (handles Mc/Mac/O' names)
-            const firstName = hasRealName ? formatName(rawFirstName) : "Current";
-            const lastName = hasRealName ? formatName(rawLastName) : "Homeowner";
-            const address = cleanAddress(customer.address || "your new home");
+            // Get the mailing address for parsing
+            let mailingAddress = customer.mailingAddress ? customer.mailingAddress.trim() : '';
+            let addressForLetter = customer.address ? customer.address.trim() : '';
+            
+            // Check for name patterns in mailing address: "The X Residence", "X Family", "Name Name Address..."
+            let extractedName = '';
+            let extractedStreet = mailingAddress || addressForLetter;
+            
+            // Pattern 1: "The Lastname Residence" or "The Lastname/Lastname Residence"
+            const residenceMatch = mailingAddress.match(/^(The\s+[\w\/\-]+\s+Residence)\s+(.+)$/i);
+            if (residenceMatch) {
+                extractedName = residenceMatch[1];
+                extractedStreet = residenceMatch[2];
+            }
+            
+            // Pattern 2: "Lastname Family" at start
+            const familyMatch = mailingAddress.match(/^([\w\/\-]+\s+Family)\s+(.+)$/i);
+            if (!extractedName && familyMatch) {
+                extractedName = familyMatch[1];
+                extractedStreet = familyMatch[2];
+            }
+            
+            // Pattern 3: "FirstName LastName" followed by street number
+            const nameAddrMatch = mailingAddress.match(/^([A-Za-z]+\s+[A-Za-z\/\-]+)\s+(\d+.+)$/);
+            if (!extractedName && nameAddrMatch && !rawFirstName) {
+                extractedName = nameAddrMatch[1];
+                extractedStreet = nameAddrMatch[2];
+            }
+            
+            // Determine the display name
+            let displayName = '';
+            let hasRealName = false;
+            let firstName = '';
+            let lastName = '';
+            
+            if (rawFirstName && rawFirstName.toLowerCase() !== 'current' && rawFirstName.toLowerCase() !== 'valued' && rawFirstName.toLowerCase() !== 'homeowner') {
+                // We have a real name from columns B/C
+                hasRealName = true;
+                firstName = formatName(rawFirstName);
+                lastName = formatName(rawLastName);
+                displayName = `${firstName} ${lastName}`.trim();
+            } else if (extractedName) {
+                // We extracted a name from the mailing address
+                hasRealName = true;
+                displayName = formatName(extractedName);
+                // Try to get first name for greeting
+                const nameParts = extractedName.replace(/^The\s+/i, '').replace(/\s+(Residence|Family)$/i, '').split(/[\s\/]+/);
+                firstName = formatName(nameParts[0]);
+                lastName = nameParts.length > 1 ? formatName(nameParts[nameParts.length - 1]) : '';
+            } else {
+                // No real name found
+                hasRealName = false;
+                displayName = 'Current Homeowner';
+                firstName = 'Current';
+                lastName = 'Homeowner';
+            }
+            
+            const address = cleanAddress(addressForLetter || "your new home");
             const workType = formatWorkType(customer.workType);
             
-            // Clean mailing address - remove name if it's at the beginning
-            let mailingAddress = cleanAddress(customer.mailingAddress || address);
-            const fullName = `${rawFirstName} ${rawLastName}`.trim();
-            if (fullName && mailingAddress.toLowerCase().startsWith(fullName.toLowerCase())) {
-                // Remove the name and any trailing whitespace/commas
-                mailingAddress = mailingAddress.substring(fullName.length).replace(/^[\s,]+/, '').trim();
-            }
-            // If nothing left after removing name, use address
-            if (!mailingAddress) {
-                mailingAddress = address;
+            // Clean the street address
+            let streetLine = cleanAddress(extractedStreet);
+            
+            // Remove any name that might still be at the start
+            if (displayName && displayName !== 'Current Homeowner') {
+                const nameLower = displayName.toLowerCase();
+                if (streetLine.toLowerCase().startsWith(nameLower)) {
+                    streetLine = streetLine.substring(displayName.length).replace(/^[\s,]+/, '').trim();
+                }
             }
             
-            // USPS Standard Format: Always put city, state, zip on separate line
-            // Format: STREET ADDRESS
-            //         CITY, ST ZIP
+            // USPS Standard Format: 
+            // NAME
+            // STREET ADDRESS
+            // CITY, ST ZIP
             
-            let streetLine = mailingAddress;
             let cityStateZipLine = '';
             
             // If we have separate city/state/zip fields, use them
@@ -843,49 +892,39 @@
             const zipCode = customer.zip ? customer.zip.trim() : '';
             
             if (cityName || stateName || zipCode) {
-                // We have separate fields - check if they're already in the mailing address
-                const cityInMailingAddr = cityName && mailingAddress.toLowerCase().includes(cityName.toLowerCase());
+                // We have separate fields - check if city is in the street line
+                const cityInStreet = cityName && streetLine.toLowerCase().includes(cityName.toLowerCase());
                 
-                if (cityInMailingAddr) {
-                    // City is in the mailing address - need to split it out
-                    // Try to find where city starts and split there
-                    const cityIndex = mailingAddress.toLowerCase().indexOf(cityName.toLowerCase());
+                if (cityInStreet) {
+                    // Split at city
+                    const cityIndex = streetLine.toLowerCase().indexOf(cityName.toLowerCase());
                     if (cityIndex > 0) {
-                        streetLine = mailingAddress.substring(0, cityIndex).trim().replace(/[,\s]+$/, '');
-                        // Take the rest as city/state/zip but rebuild it cleanly
-                        cityStateZipLine = formatName(cityName);
-                        if (stateName) cityStateZipLine += ', ' + stateName;
-                        if (zipCode) cityStateZipLine += ' ' + zipCode;
+                        streetLine = streetLine.substring(0, cityIndex).trim().replace(/[,\s]+$/, '');
                     }
-                } else {
-                    // City not in mailing address - just add the city/state/zip line
-                    streetLine = mailingAddress;
-                    const parts = [];
-                    if (cityName) parts.push(formatName(cityName));
-                    if (stateName) parts.push(stateName);
-                    cityStateZipLine = parts.join(', ');
-                    if (zipCode) cityStateZipLine += ' ' + zipCode;
                 }
+                
+                // Build city/state/zip line
+                const parts = [];
+                if (cityName) parts.push(formatName(cityName));
+                if (stateName) parts.push(stateName);
+                cityStateZipLine = parts.join(', ');
+                if (zipCode) cityStateZipLine += ' ' + zipCode;
             } else {
-                // No separate fields - try to parse from mailing address
-                // Look for pattern: "Street Address, City, ST 12345" or "Street Address, City ST 12345"
-                const uspsPattern = /^(.+?),\s*([A-Za-z\s]+?),?\s*([A-Z]{2})\s*(\d{5}(?:-\d{4})?)?\s*$/;
-                const match = mailingAddress.match(uspsPattern);
+                // Try to parse city/state/zip from street line
+                // Pattern: "Street Address, City, ST 12345" or "Street Address City, ST 12345"
+                const uspsPattern = /^(.+?),?\s+([A-Za-z\s]+),\s*([A-Z]{2})\s*(\d{5}(?:-\d{4})?)?$/;
+                const match = streetLine.match(uspsPattern);
                 
                 if (match) {
-                    streetLine = match[1].trim();
+                    streetLine = match[1].trim().replace(/,\s*$/, '');
                     const parsedCity = match[2].trim();
                     const parsedState = match[3];
                     const parsedZip = match[4] || '';
                     cityStateZipLine = formatName(parsedCity) + ', ' + parsedState + (parsedZip ? ' ' + parsedZip : '');
-                } else {
-                    // Can't parse - just use as-is on one line
-                    streetLine = mailingAddress;
-                    cityStateZipLine = '';
                 }
             }
             
-            // Build final formatted address
+            // Build formatted address block (Name on first line, street on second, city/state/zip on third)
             let formattedMailingAddress = streetLine;
             if (cityStateZipLine) {
                 formattedMailingAddress = streetLine + '<br>' + cityStateZipLine;
@@ -901,7 +940,28 @@
                 workDescription = "installation";
             }
             
-            const greeting = hasRealName ? `Dear ${firstName}` : `Dear Current Homeowner`;
+            // Determine greeting - check for multi-name households (contains / or &)
+            let greeting;
+            const isMultiName = displayName.includes('/') || displayName.includes('&') || displayName.includes(' and ');
+            
+            if (!hasRealName) {
+                greeting = 'Dear Current Homeowner';
+            } else if (isMultiName) {
+                // Rotating greetings for multi-name households
+                const multiNameGreetings = [
+                    'Dear Friends',
+                    'Dear Neighbors', 
+                    'Dear Homeowners',
+                    'Dear Valued Customers',
+                    `Dear ${firstName.replace('/', ' & ')} Families`,
+                    'Dear Homeowner'
+                ];
+                // Use customer index to rotate through greetings
+                const greetingIndex = currentIndex % multiNameGreetings.length;
+                greeting = multiNameGreetings[greetingIndex];
+            } else {
+                greeting = `Dear ${firstName}`;
+            }
 
             const opening = getRandomItem(letterTemplates.openings);
             
@@ -952,7 +1012,7 @@
                     </div>
 
                     <div class="letter-to">
-                        ${firstName} ${lastName}<br>
+                        ${displayName}<br>
                         ${formattedMailingAddress}
                     </div>
 
