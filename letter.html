@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.27 - Updated 2026-01-27 -->
+<!-- Mid-State Letter Generator v3.28 - Updated 2026-01-27 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.27</title>
+    <title>Mid-State Plumbing - Letter Generator v3.28</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -376,7 +376,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.27</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.28</div>
         </div>
 
         <div class="content">
@@ -473,7 +473,7 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-        // Version 3.27 - ZIP download for all letters, fixed signature selector for PDF
+        // Version 3.28 - Rewrote PDF signature rendering with canvas conversion
         
         // Track greeting overrides per customer (key = customer index, value = greeting index)
         let greetingOverrides = {};
@@ -493,7 +493,7 @@
         ];
         
         // Version number determines the color theme
-        const VERSION = '3.27';
+        const VERSION = '3.28';
         const versionNum = parseFloat(VERSION.replace(/^(\d+\.\d+).*/, '$1')) * 100;
         const themeIndex = Math.floor(versionNum) % colorThemes.length;
         const currentTheme = colorThemes[themeIndex];
@@ -1617,44 +1617,38 @@
             try {
                 const letterPage = document.querySelector('.letter-page');
                 
-                // Convert SVG signatures to PNG BEFORE html2canvas (onclone can't be async)
-                const sigImages = letterPage.querySelectorAll('img[src^="data:image/svg"]');
-                const originalSrcs = [];
+                // Clone the letter page for PDF generation
+                const clone = letterPage.cloneNode(true);
+                clone.style.position = 'absolute';
+                clone.style.left = '-9999px';
+                clone.style.top = '0';
+                document.body.appendChild(clone);
                 
-                for (const img of sigImages) {
-                    originalSrcs.push(img.src);
-                    try {
-                        const pngSrc = await svgToPng(img.src, 400, 90);
-                        img.src = pngSrc;
-                    } catch (e) {
-                        console.log('Signature conversion error:', e);
-                    }
-                }
+                // Convert SVG signatures to canvas elements
+                await convertSvgSignaturesToCanvas(clone);
                 
                 // Force a reflow to ensure all styles are applied
-                letterPage.offsetHeight;
+                clone.offsetHeight;
                 
                 // Use exact letter dimensions (8.5" x 11" at 96 DPI)
                 const letterWidth = 816;  // 8.5 inches * 96 DPI
                 const letterHeight = 1056; // 11 inches * 96 DPI
                 
                 // Create canvas with high quality settings at exact letter size
-                const canvas = await html2canvas(letterPage, {
+                const canvas = await html2canvas(clone, {
                     scale: 2,
                     useCORS: true,
                     allowTaint: true,
                     backgroundColor: '#ffffff',
-                    logging: false,
+                    logging: true,
                     windowWidth: letterWidth,
                     windowHeight: letterHeight,
                     width: letterWidth,
                     height: letterHeight
                 });
                 
-                // Restore original SVG sources for display
-                sigImages.forEach((img, i) => {
-                    if (originalSrcs[i]) img.src = originalSrcs[i];
-                });
+                // Remove clone
+                document.body.removeChild(clone);
                 
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF({
@@ -1679,6 +1673,39 @@
             }
             showLoading(false);
         }
+        
+        // Convert SVG signature images to canvas elements for reliable PDF rendering
+        async function convertSvgSignaturesToCanvas(container) {
+            const sigImages = container.querySelectorAll('img[src^="data:image/svg"]');
+            
+            for (const img of sigImages) {
+                try {
+                    // Create a canvas to render the SVG
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 400;
+                    canvas.height = 90;
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Create a new image and wait for it to load
+                    const tempImg = new Image();
+                    await new Promise((resolve, reject) => {
+                        tempImg.onload = resolve;
+                        tempImg.onerror = reject;
+                        tempImg.src = img.src;
+                    });
+                    
+                    // Draw the SVG to canvas
+                    ctx.drawImage(tempImg, 0, 0, 400, 90);
+                    
+                    // Replace the img src with the canvas data URL
+                    img.src = canvas.toDataURL('image/png');
+                    
+                    console.log('Converted signature to PNG');
+                } catch (e) {
+                    console.error('Signature conversion error:', e);
+                }
+            }
+        }
 
         async function downloadAllPDFsAsZip() {
             showLoading(true);
@@ -1702,16 +1729,8 @@
                     
                     const letterPage = tempDiv.querySelector('.letter-page');
                     
-                    // Convert SVG signatures to PNG BEFORE html2canvas
-                    const sigImages = letterPage.querySelectorAll('img[src^="data:image/svg"]');
-                    for (const img of sigImages) {
-                        try {
-                            const pngSrc = await svgToPng(img.src, 400, 90);
-                            img.src = pngSrc;
-                        } catch (e) {
-                            console.log('Signature conversion error:', e);
-                        }
-                    }
+                    // Convert SVG signatures to canvas/PNG
+                    await convertSvgSignaturesToCanvas(letterPage);
                     
                     letterPage.offsetHeight; // Force reflow
                     
