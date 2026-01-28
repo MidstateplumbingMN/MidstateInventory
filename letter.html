@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.24 - Updated 2026-01-27 -->
+<!-- Mid-State Letter Generator v3.25 - Updated 2026-01-27 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.24</title>
+    <title>Mid-State Plumbing - Letter Generator v3.25</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -174,7 +174,7 @@
             font-size: 11pt;
             line-height: 1.4;
             color: #000;
-            page-break-after: always;
+            overflow: hidden;
         }
 
         .letter-header {
@@ -308,18 +308,27 @@
         }
 
         @media print {
-            body {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            html, body {
                 background: white;
                 padding: 0;
                 margin: 0;
+                height: auto;
+                overflow: visible;
             }
             .container {
                 box-shadow: none;
                 max-width: none;
                 padding: 0;
+                margin: 0;
             }
             .header, .upload-section, .navigation, .btn, .stats, .search-section, .action-buttons, .preview-section > *:not(#letterContainer) {
                 display: none !important;
+                height: 0 !important;
+                overflow: hidden !important;
             }
             .preview-section {
                 padding: 0 !important;
@@ -333,11 +342,12 @@
                 margin: 0;
                 padding: 0.5in 1in 0.5in 1in !important;
                 box-shadow: none;
-                page-break-after: avoid;
-                page-break-inside: avoid;
-            }
-            .letter-page:last-child {
                 page-break-after: auto;
+                page-break-inside: avoid;
+                min-height: auto;
+                max-height: none;
+                height: auto;
+                overflow: visible;
             }
             .letter-logo {
                 display: block !important;
@@ -365,7 +375,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.24</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.25</div>
         </div>
 
         <div class="content">
@@ -462,7 +472,7 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-        // Version 3.24 - Fixed syntax error from duplicate code
+        // Version 3.25 - Fixed blank second page when printing
         
         // Track greeting overrides per customer (key = customer index, value = greeting index)
         let greetingOverrides = {};
@@ -482,7 +492,7 @@
         ];
         
         // Version number determines the color theme
-        const VERSION = '3.24';
+        const VERSION = '3.25';
         const versionNum = parseFloat(VERSION.replace(/^(\d+\.\d+).*/, '$1')) * 100;
         const themeIndex = Math.floor(versionNum) % colorThemes.length;
         const currentTheme = colorThemes[themeIndex];
