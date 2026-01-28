@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.22 - Updated 2026-01-27 -->
+<!-- Mid-State Letter Generator v3.23 - Updated 2026-01-27 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.22</title>
+    <title>Mid-State Plumbing - Letter Generator v3.23</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -365,7 +365,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.22</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.23</div>
         </div>
 
         <div class="content">
@@ -462,7 +462,7 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-        // Version 3.22 - Fixed name display to use extracted name, not Current Resident when name exists
+        // Version 3.23 - Fixed name display logic, last-name-only uses "The X Residence" format
         
         // Track greeting overrides per customer (key = customer index, value = greeting index)
         let greetingOverrides = {};
@@ -482,7 +482,7 @@
         ];
         
         // Version number determines the color theme
-        const VERSION = '3.22';
+        const VERSION = '3.23';
         const versionNum = parseFloat(VERSION.replace(/^(\d+\.\d+).*/, '$1')) * 100;
         const themeIndex = Math.floor(versionNum) % colorThemes.length;
         const currentTheme = colorThemes[themeIndex];
@@ -836,7 +836,7 @@
             
             // Pattern 3: "FirstName LastName" followed by street number
             const nameAddrMatch = mailingAddress.match(/^([A-Za-z]+\s+[A-Za-z\/\-]+)\s+(\d+.+)$/);
-            if (!extractedName && nameAddrMatch && !rawFirstName) {
+            if (!extractedName && nameAddrMatch) {
                 extractedName = nameAddrMatch[1];
                 extractedStreet = nameAddrMatch[2];
             }
@@ -846,33 +846,53 @@
             let hasRealName = false;
             let firstName = '';
             let lastName = '';
+            let useUniversalGreeting = false; // Flag for last-name-only or multi-name situations
             
             // Check if rawFirstName is a real name (not empty, not generic placeholders, not "The")
-            const isRealFirstName = rawFirstName && 
-                rawFirstName.toLowerCase() !== 'current' && 
-                rawFirstName.toLowerCase() !== 'valued' && 
-                rawFirstName.toLowerCase() !== 'homeowner' &&
-                rawFirstName.toLowerCase() !== 'resident' &&
-                rawFirstName.toLowerCase() !== 'the' &&
-                rawFirstName.trim() !== '';
+            const invalidFirstNames = ['current', 'valued', 'homeowner', 'resident', 'the', ''];
+            const isRealFirstName = rawFirstName && !invalidFirstNames.includes(rawFirstName.toLowerCase().trim());
             
-            if (isRealFirstName) {
-                // We have a real name from columns B/C
+            // Check if rawLastName is a real name
+            const invalidLastNames = ['homeowner', 'resident', ''];
+            const isRealLastName = rawLastName && !invalidLastNames.includes(rawLastName.toLowerCase().trim());
+            
+            if (isRealFirstName && isRealLastName) {
+                // We have both first and last name from columns B/C
                 hasRealName = true;
                 firstName = formatName(rawFirstName);
                 lastName = formatName(rawLastName);
                 displayName = `${firstName} ${lastName}`.trim();
+            } else if (isRealFirstName) {
+                // Only first name
+                hasRealName = true;
+                firstName = formatName(rawFirstName);
+                displayName = firstName;
+            } else if (isRealLastName) {
+                // Only last name - use "The Smith Residence" format
+                hasRealName = true;
+                lastName = formatName(rawLastName);
+                displayName = `The ${lastName} Residence`;
+                useUniversalGreeting = true; // Use rotating greeting since we don't have first name
             } else if (extractedName) {
                 // We extracted a name from the mailing address
                 hasRealName = true;
                 displayName = formatName(extractedName);
-                // Try to get first name for greeting - remove "The" and "Residence/Family"
+                // Try to get name parts for greeting - remove "The" and "Residence/Family"
                 const nameParts = extractedName.replace(/^The\s+/i, '').replace(/\s+(Residence|Family)$/i, '').split(/[\s\/]+/);
                 firstName = formatName(nameParts[0]);
-                lastName = nameParts.length > 1 ? formatName(nameParts[nameParts.length - 1]) : '';
+                lastName = nameParts.length > 1 ? formatName(nameParts[nameParts.length - 1]) : firstName;
+                // Check if multi-name (contains / or &)
+                if (extractedName.includes('/') || extractedName.includes('&')) {
+                    useUniversalGreeting = true;
+                }
             } else {
                 // No real name found
                 hasRealName = false;
+                displayName = 'Current Resident';
+                firstName = '';
+                lastName = '';
+                useUniversalGreeting = true;
+            }
                 displayName = 'Current Resident';
                 firstName = '';
                 lastName = '';
@@ -953,11 +973,10 @@
                 workDescription = "installation";
             }
             
-            // Determine greeting - check for multi-name households (contains / or &)
+            // Determine greeting
             let greeting;
-            const isMultiName = displayName.includes('/') || displayName.includes('&') || displayName.includes(' and ');
             
-            // Universal greetings for multi-name households or no-name situations
+            // Universal greetings for multi-name households, last-name-only, or no-name situations
             const universalGreetings = [
                 'Dear Friends',
                 'Dear Neighbors', 
@@ -976,21 +995,11 @@
                 ? greetingOverrides[actualIndex] 
                 : actualIndex % universalGreetings.length;
             
-            if (!hasRealName) {
-                // No real name - use "Current Resident" for address, rotate greeting
-                displayName = 'Current Resident';
+            if (useUniversalGreeting || !hasRealName) {
+                // Use rotating universal greeting
                 greeting = universalGreetings[greetingIndex];
-            } else if (isMultiName) {
-                // Multi-name household - rotate through universal greetings
-                // Keep displayName as-is (already set from extraction)
-                const multiNameGreetings = [
-                    ...universalGreetings.slice(0, 4),
-                    `Dear ${firstName.replace('/', ' & ')} Families`,
-                    universalGreetings[4]
-                ];
-                greeting = multiNameGreetings[greetingIndex % multiNameGreetings.length];
             } else {
-                // Single name - use their first name
+                // Single name with first name - use their first name
                 greeting = `Dear ${firstName}`;
             }
 
