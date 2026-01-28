@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.25 - Updated 2026-01-27 -->
+<!-- Mid-State Letter Generator v3.27 - Updated 2026-01-27 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.25</title>
+    <title>Mid-State Plumbing - Letter Generator v3.27</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -168,27 +169,27 @@
             min-height: 11in;
             max-height: 11in;
             margin: 20px auto;
-            padding: 0.4in 1in 1in 1in;
+            padding: 0.35in 1in 0.35in 1in;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             font-family: 'Times New Roman', Times, serif;
             font-size: 11pt;
-            line-height: 1.4;
+            line-height: 1.35;
             color: #000;
             overflow: hidden;
         }
 
         .letter-header {
-            margin-bottom: 0.2in;
+            margin-bottom: 0.15in;
             text-align: center;
         }
 
         .letter-logo {
             text-align: center;
-            margin-bottom: 0.1in;
+            margin-bottom: 0.05in;
         }
 
         .letter-logo img {
-            max-width: 2.5in;
+            max-width: 2in;
             width: auto;
             height: auto;
             display: inline-block;
@@ -205,40 +206,40 @@
 
         .letter-from {
             text-align: center;
-            font-size: 9.5pt;
-            line-height: 1.3;
+            font-size: 9pt;
+            line-height: 1.2;
         }
 
         .letter-from strong {
-            font-size: 11pt;
+            font-size: 10pt;
         }
 
         .letter-date {
-            margin-bottom: 0.25in;
+            margin-bottom: 0.2in;
             font-size: 11pt;
             text-align: left;
         }
 
         .letter-to {
-            margin-bottom: 0.4in;
+            margin-bottom: 0.25in;
             font-size: 11pt;
         }
 
         .letter-salutation {
-            margin-bottom: 0.15in;
+            margin-bottom: 0.1in;
             font-size: 11pt;
         }
 
         .letter-body {
             text-align: left;
-            margin-bottom: 0.15in;
+            margin-bottom: 0.1in;
             font-size: 11pt;
             text-wrap: pretty;
             word-spacing: 0.01em;
         }
 
         .letter-body p {
-            margin-bottom: 0.14in;
+            margin-bottom: 0.1in;
             text-indent: 0;
             font-size: 11pt;
             text-wrap: pretty;
@@ -247,29 +248,29 @@
         }
 
         .letter-body ul {
-            margin: 0.08in 0 0.09in 0.35in;
+            margin: 0.05in 0 0.05in 0.35in;
             list-style-type: disc;
             font-size: 11pt;
         }
 
         .letter-body li {
-            margin-bottom: 0.04in;
+            margin-bottom: 0.03in;
             font-size: 11pt;
         }
 
         .letter-closing {
-            margin-top: 0.35in;
-            margin-bottom: 0.15in;
-            font-size: 11pt;
-        }
-
-        .letter-signature {
+            margin-top: 0.2in;
             margin-bottom: 0.1in;
             font-size: 11pt;
         }
 
+        .letter-signature {
+            margin-bottom: 0.05in;
+            font-size: 11pt;
+        }
+
         .letter-ps {
-            margin-top: 0.15in;
+            margin-top: 0.1in;
             font-style: italic;
             font-size: 10pt;
         }
@@ -340,7 +341,7 @@
             }
             .letter-page {
                 margin: 0;
-                padding: 0.5in 1in 0.5in 1in !important;
+                padding: 0.35in 1in 0.35in 1in !important;
                 box-shadow: none;
                 page-break-after: auto;
                 page-break-inside: avoid;
@@ -375,7 +376,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.25</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.27</div>
         </div>
 
         <div class="content">
@@ -464,7 +465,7 @@
                     <button class="btn" onclick="randomizeGreeting()" style="background: #6b7280;">🔄 New Greeting</button>
                     <button class="btn" onclick="window.print()">🖨️ Print Current Letter</button>
                     <button class="btn btn-secondary" onclick="downloadCurrentPDF()">📄 Download as PDF</button>
-                    <button class="btn" onclick="downloadAllPDFs()">📥 Download All Letters (PDF)</button>
+                    <button class="btn" onclick="downloadAllPDFsAsZip()">📥 Download All Letters (ZIP)</button>
                     <button class="btn" onclick="resetApp()">🔄 Load New Data</button>
                 </div>
             </div>
@@ -472,7 +473,7 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-        // Version 3.25 - Fixed blank second page when printing
+        // Version 3.27 - ZIP download for all letters, fixed signature selector for PDF
         
         // Track greeting overrides per customer (key = customer index, value = greeting index)
         let greetingOverrides = {};
@@ -492,7 +493,7 @@
         ];
         
         // Version number determines the color theme
-        const VERSION = '3.25';
+        const VERSION = '3.27';
         const versionNum = parseFloat(VERSION.replace(/^(\d+\.\d+).*/, '$1')) * 100;
         const themeIndex = Math.floor(versionNum) % colorThemes.length;
         const currentTheme = colorThemes[themeIndex];
@@ -1617,7 +1618,7 @@
                 const letterPage = document.querySelector('.letter-page');
                 
                 // Convert SVG signatures to PNG BEFORE html2canvas (onclone can't be async)
-                const sigImages = letterPage.querySelectorAll('.letter-closing img[src^="data:image/svg"]');
+                const sigImages = letterPage.querySelectorAll('img[src^="data:image/svg"]');
                 const originalSrcs = [];
                 
                 for (const img of sigImages) {
@@ -1679,24 +1680,18 @@
             showLoading(false);
         }
 
-        async function downloadAllPDFs() {
+        async function downloadAllPDFsAsZip() {
             showLoading(true);
             try {
+                const zip = new JSZip();
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'in',
-                    format: 'letter',
-                    compress: true
-                });
-                
-                let firstPage = true;
                 
                 for (let i = 0; i < customerData.length; i++) {
-                    if (!firstPage) {
-                        pdf.addPage();
+                    // Update loading message
+                    const loadingEl = document.querySelector('.loading');
+                    if (loadingEl) {
+                        loadingEl.innerHTML = `<p>Generating PDF ${i + 1} of ${customerData.length}...</p>`;
                     }
-                    firstPage = false;
                     
                     const tempDiv = document.createElement('div');
                     tempDiv.style.position = 'absolute';
@@ -1708,7 +1703,7 @@
                     const letterPage = tempDiv.querySelector('.letter-page');
                     
                     // Convert SVG signatures to PNG BEFORE html2canvas
-                    const sigImages = letterPage.querySelectorAll('.letter-closing img[src^="data:image/svg"]');
+                    const sigImages = letterPage.querySelectorAll('img[src^="data:image/svg"]');
                     for (const img of sigImages) {
                         try {
                             const pngSrc = await svgToPng(img.src, 400, 90);
@@ -1732,16 +1727,45 @@
                         height: 1056
                     });
                     
+                    // Create individual PDF
+                    const pdf = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'in',
+                        format: 'letter',
+                        compress: true
+                    });
+                    
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11, undefined, 'FAST');
+                    
+                    // Get PDF as blob and add to ZIP
+                    const pdfBlob = pdf.output('blob');
+                    const customer = customerData[i];
+                    const firstName = customer.firstName || 'Customer';
+                    const lastName = customer.lastName || i.toString();
+                    const filename = `Letter_${firstName}_${lastName}.pdf`.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+                    
+                    zip.file(filename, pdfBlob);
                     
                     document.body.removeChild(tempDiv);
                 }
                 
-                pdf.save('All_Letters.pdf');
+                // Generate and download ZIP
+                const loadingEl = document.querySelector('.loading');
+                if (loadingEl) {
+                    loadingEl.innerHTML = `<p>Creating ZIP file...</p>`;
+                }
+                
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(zipBlob);
+                link.download = 'All_Letters.zip';
+                link.click();
+                URL.revokeObjectURL(link.href);
+                
             } catch (error) {
-                console.error('PDF error:', error);
-                showError('Error creating PDF: ' + error.message);
+                console.error('PDF/ZIP error:', error);
+                showError('Error creating ZIP: ' + error.message);
             }
             showLoading(false);
         }
