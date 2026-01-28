@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.30 - Updated 2026-01-27 -->
+<!-- Mid-State Letter Generator v3.31 - Updated 2026-01-27 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.30</title>
+    <title>Mid-State Plumbing - Letter Generator v3.31</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -376,7 +376,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.30</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.31</div>
         </div>
 
         <div class="content">
@@ -473,7 +473,7 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-        // Version 3.30 - More spacing between date, address, greeting, and body
+        // Version 3.31 - Fixed address parsing for duplicate cities and name extraction
         
         // Track greeting overrides per customer (key = customer index, value = greeting index)
         let greetingOverrides = {};
@@ -493,7 +493,7 @@
         ];
         
         // Version number determines the color theme
-        const VERSION = '3.30';
+        const VERSION = '3.31';
         const versionNum = parseFloat(VERSION.replace(/^(\d+\.\d+).*/, '$1')) * 100;
         const themeIndex = Math.floor(versionNum) % colorThemes.length;
         const currentTheme = colorThemes[themeIndex];
@@ -831,25 +831,30 @@
             let extractedName = '';
             let extractedStreet = mailingAddress || addressForLetter;
             
-            // Pattern 1: "The Lastname Residence" or "The Lastname/Lastname Residence"
-            const residenceMatch = mailingAddress.match(/^(The\s+[\w\/\-]+\s+Residence)\s+(.+)$/i);
+            // Pattern 1: "The Lastname Residence" or "The Lastname/Lastname Residence" (with space or no space before address)
+            const residenceMatch = mailingAddress.match(/^(The\s+[\w\/\-]+\s+Residence)\s*(.*)$/i);
             if (residenceMatch) {
                 extractedName = residenceMatch[1];
-                extractedStreet = residenceMatch[2];
+                extractedStreet = residenceMatch[2].trim();
             }
             
             // Pattern 2: "Lastname Family" at start
             const familyMatch = mailingAddress.match(/^([\w\/\-]+\s+Family)\s+(.+)$/i);
             if (!extractedName && familyMatch) {
                 extractedName = familyMatch[1];
-                extractedStreet = familyMatch[2];
+                extractedStreet = familyMatch[2].trim();
             }
             
             // Pattern 3: "FirstName LastName" followed by street number
             const nameAddrMatch = mailingAddress.match(/^([A-Za-z]+\s+[A-Za-z\/\-]+)\s+(\d+.+)$/);
             if (!extractedName && nameAddrMatch) {
                 extractedName = nameAddrMatch[1];
-                extractedStreet = nameAddrMatch[2];
+                extractedStreet = nameAddrMatch[2].trim();
+            }
+            
+            // If extractedStreet is empty but we have addressForLetter, use that
+            if (!extractedStreet && addressForLetter) {
+                extractedStreet = addressForLetter;
             }
             
             // Determine the display name
@@ -931,37 +936,48 @@
             const stateName = customer.state ? customer.state.trim().toUpperCase() : '';
             const zipCode = customer.zip ? customer.zip.trim() : '';
             
+            // First, clean the street line of any city/state/zip that might be embedded
+            // Look for pattern: "City, ST ZIP" or "City ST ZIP" at the end
+            const cityStateZipPattern = /[,\s]+([A-Za-z\s]+),?\s*([A-Z]{2})\s*(\d{5}(?:-\d{4})?)\s*$/;
+            let embeddedMatch = streetLine.match(cityStateZipPattern);
+            
+            // Also check for duplicate city/state/zip (same info repeated)
+            const duplicatePattern = /([A-Za-z\s]+),?\s*([A-Z]{2})\s*(\d{5}(?:-\d{4})?)\s*\1/i;
+            if (duplicatePattern.test(streetLine)) {
+                // Remove the duplicate
+                streetLine = streetLine.replace(duplicatePattern, '$1, $2 $3');
+                embeddedMatch = streetLine.match(cityStateZipPattern);
+            }
+            
             if (cityName || stateName || zipCode) {
-                // We have separate fields - check if city is in the street line
-                const cityInStreet = cityName && streetLine.toLowerCase().includes(cityName.toLowerCase());
+                // We have separate fields from CSV
                 
-                if (cityInStreet) {
-                    // Split at city
-                    const cityIndex = streetLine.toLowerCase().indexOf(cityName.toLowerCase());
+                // Check if city is embedded in the street line and remove it
+                if (cityName) {
+                    const cityLower = cityName.toLowerCase();
+                    const streetLower = streetLine.toLowerCase();
+                    
+                    // Find all occurrences of city name and remove city/state/zip portion
+                    const cityIndex = streetLower.indexOf(cityLower);
                     if (cityIndex > 0) {
+                        // Take only the part before the city
                         streetLine = streetLine.substring(0, cityIndex).trim().replace(/[,\s]+$/, '');
                     }
                 }
                 
-                // Build city/state/zip line
+                // Build city/state/zip line from CSV fields
                 const parts = [];
                 if (cityName) parts.push(formatName(cityName));
                 if (stateName) parts.push(stateName);
                 cityStateZipLine = parts.join(', ');
                 if (zipCode) cityStateZipLine += ' ' + zipCode;
-            } else {
-                // Try to parse city/state/zip from street line
-                // Pattern: "Street Address, City, ST 12345" or "Street Address City, ST 12345"
-                const uspsPattern = /^(.+?),?\s+([A-Za-z\s]+),\s*([A-Z]{2})\s*(\d{5}(?:-\d{4})?)?$/;
-                const match = streetLine.match(uspsPattern);
-                
-                if (match) {
-                    streetLine = match[1].trim().replace(/,\s*$/, '');
-                    const parsedCity = match[2].trim();
-                    const parsedState = match[3];
-                    const parsedZip = match[4] || '';
-                    cityStateZipLine = formatName(parsedCity) + ', ' + parsedState + (parsedZip ? ' ' + parsedZip : '');
-                }
+            } else if (embeddedMatch) {
+                // Extract city/state/zip from the street line
+                streetLine = streetLine.replace(cityStateZipPattern, '').trim().replace(/[,\s]+$/, '');
+                const parsedCity = embeddedMatch[1].trim();
+                const parsedState = embeddedMatch[2];
+                const parsedZip = embeddedMatch[3] || '';
+                cityStateZipLine = formatName(parsedCity) + ', ' + parsedState + (parsedZip ? ' ' + parsedZip : '');
             }
             
             // Build formatted address block (Name on first line, street on second, city/state/zip on third)
