@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.18 - Updated 2026-01-27 -->
+<!-- Mid-State Letter Generator v3.21 - Updated 2026-01-27 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.18</title>
+    <title>Mid-State Plumbing - Letter Generator v3.21</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -365,7 +365,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.18</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.21</div>
         </div>
 
         <div class="content">
@@ -451,6 +451,7 @@
                 </div>
 
                 <div class="action-buttons" style="text-align: center; margin-top: 30px;">
+                    <button class="btn" onclick="randomizeGreeting()" style="background: #6b7280;">🔄 New Greeting</button>
                     <button class="btn" onclick="window.print()">🖨️ Print Current Letter</button>
                     <button class="btn btn-secondary" onclick="downloadCurrentPDF()">📄 Download as PDF</button>
                     <button class="btn" onclick="downloadAllPDFs()">📥 Download All Letters (PDF)</button>
@@ -461,7 +462,10 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-        // Version 3.18 - Rotating greetings for multi-name households
+        // Version 3.21 - Added New Greeting button to randomize greeting before print/download
+        
+        // Track greeting overrides per customer (key = customer index, value = greeting index)
+        let greetingOverrides = {};
         
         // Color theme based on version number - changes only when version updates
         const colorThemes = [
@@ -478,7 +482,7 @@
         ];
         
         // Version number determines the color theme
-        const VERSION = '3.18';
+        const VERSION = '3.21';
         const versionNum = parseFloat(VERSION.replace(/^(\d+\.\d+).*/, '$1')) * 100;
         const themeIndex = Math.floor(versionNum) % colorThemes.length;
         const currentTheme = colorThemes[themeIndex];
@@ -944,21 +948,37 @@
             let greeting;
             const isMultiName = displayName.includes('/') || displayName.includes('&') || displayName.includes(' and ');
             
+            // Universal greetings for multi-name households or no-name situations
+            const universalGreetings = [
+                'Dear Friends',
+                'Dear Neighbors', 
+                'Dear Homeowners',
+                'Dear Valued Customers',
+                'Dear Homeowner',
+                'Dear Neighbor'
+            ];
+            
+            // Get this customer's index in the data array for consistent rotation
+            const customerIndex = customerData.indexOf(customer);
+            const actualIndex = customerIndex >= 0 ? customerIndex : currentIndex;
+            
+            // Check for greeting override, otherwise use rotation based on index
+            const greetingIndex = greetingOverrides[actualIndex] !== undefined 
+                ? greetingOverrides[actualIndex] 
+                : actualIndex % universalGreetings.length;
+            
             if (!hasRealName) {
-                greeting = 'Dear Current Homeowner';
+                // No real name - use "Current Resident" for address, rotate greeting
+                displayName = 'Current Resident';
+                greeting = universalGreetings[greetingIndex];
             } else if (isMultiName) {
-                // Rotating greetings for multi-name households
+                // Multi-name household - rotate through universal greetings
                 const multiNameGreetings = [
-                    'Dear Friends',
-                    'Dear Neighbors', 
-                    'Dear Homeowners',
-                    'Dear Valued Customers',
+                    ...universalGreetings.slice(0, 4),
                     `Dear ${firstName.replace('/', ' & ')} Families`,
-                    'Dear Homeowner'
+                    universalGreetings[4]
                 ];
-                // Use customer index to rotate through greetings
-                const greetingIndex = currentIndex % multiNameGreetings.length;
-                greeting = multiNameGreetings[greetingIndex];
+                greeting = multiNameGreetings[greetingIndex % multiNameGreetings.length];
             } else {
                 greeting = `Dear ${firstName}`;
             }
@@ -1105,6 +1125,24 @@
             
             document.getElementById('prevBtn').disabled = index === 0;
             document.getElementById('nextBtn').disabled = index === customerData.length - 1;
+        }
+        
+        function randomizeGreeting() {
+            // Get a random greeting index (0-5) different from current
+            const currentGreetingIndex = greetingOverrides[currentIndex] !== undefined 
+                ? greetingOverrides[currentIndex] 
+                : currentIndex % 6;
+            
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * 6);
+            } while (newIndex === currentGreetingIndex);
+            
+            // Store the override
+            greetingOverrides[currentIndex] = newIndex;
+            
+            // Refresh the current letter
+            displayLetter(currentIndex);
         }
 
         function nextLetter() {
