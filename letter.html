@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.13 - Updated 2026-01-27 -->
+<!-- Mid-State Letter Generator v3.16 - Updated 2026-01-27 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.13</title>
+    <title>Mid-State Plumbing - Letter Generator v3.16</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -318,8 +318,12 @@
                 max-width: none;
                 padding: 0;
             }
-            .header, .upload-section, .navigation, .btn, .stats, .search-section, .action-buttons {
+            .header, .upload-section, .navigation, .btn, .stats, .search-section, .action-buttons, .preview-section > *:not(#letterContainer) {
                 display: none !important;
+            }
+            .preview-section {
+                padding: 0 !important;
+                margin: 0 !important;
             }
             #letterContainer {
                 padding: 0;
@@ -329,7 +333,11 @@
                 margin: 0;
                 padding: 0.5in 1in 0.5in 1in !important;
                 box-shadow: none;
-                page-break-after: always;
+                page-break-after: avoid;
+                page-break-inside: avoid;
+            }
+            .letter-page:last-child {
+                page-break-after: auto;
             }
             .letter-logo {
                 display: block !important;
@@ -357,7 +365,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.13</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.16</div>
         </div>
 
         <div class="content">
@@ -453,7 +461,7 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-        // Version 3.13 - Version-based color theme
+        // Version 3.16 - USPS standard address format (city/state/zip on separate line)
         
         // Color theme based on version number - changes only when version updates
         const colorThemes = [
@@ -470,7 +478,7 @@
         ];
         
         // Version number determines the color theme
-        const VERSION = '3.13';
+        const VERSION = '3.16';
         const versionNum = parseFloat(VERSION.replace(/^(\d+\.\d+).*/, '$1')) * 100;
         const themeIndex = Math.floor(versionNum) % colorThemes.length;
         const currentTheme = colorThemes[themeIndex];
@@ -700,9 +708,9 @@
             // Fix state abbreviations that got lowercased (2 letter caps)
             address = address.replace(/\b(Mn|Wi|Ia|Nd|Sd|Il|In|Oh|Mi|Tx|Ca|Fl|Ny|Pa|Az|Co|Nv|Wa|Or|Ut|Nm|Mt|Wy|Id|Ne|Ks|Ok|Mo|Ar|La|Ms|Al|Ga|Sc|Nc|Va|Wv|Ky|Tn|Md|De|Nj|Ct|Ri|Ma|Vt|Nh|Me|Ak|Hi)\b/gi, m => m.toUpperCase());
             
-            // USPS standard street suffix abbreviations with periods
+            // USPS standard street suffix abbreviations with periods (ONLY street types, not city words)
             const abbreviations = {
-                // Street types
+                // Street types only
                 'Street': 'St.', 'Str': 'St.',
                 'Avenue': 'Ave.', 'Aven': 'Ave.',
                 'Road': 'Rd.',
@@ -718,25 +726,7 @@
                 'Highway': 'Hwy.', 'Highwy': 'Hwy.',
                 'Expressway': 'Expy.',
                 'Freeway': 'Fwy.',
-                'Square': 'Sq.',
-                'Center': 'Ctr.',
-                'Crossing': 'Xing.',
-                'Junction': 'Jct.',
-                'Point': 'Pt.',
-                'Ridge': 'Rdg.',
-                'Valley': 'Vly.',
-                'View': 'Vw.',
-                'Heights': 'Hts.',
-                'Manor': 'Mnr.',
-                'Meadow': 'Mdw.', 'Meadows': 'Mdws.',
-                'Grove': 'Grv.',
-                'Glen': 'Gln.',
-                'Creek': 'Crk.',
-                'Cove': 'Cv.',
-                'Pass': 'Pass',
-                'Path': 'Path',
-                'Run': 'Run',
-                // Directionals
+                // Directionals (for streets only)
                 'North': 'N.', 'South': 'S.', 'East': 'E.', 'West': 'W.',
                 'Northeast': 'NE.', 'Northwest': 'NW.', 'Southeast': 'SE.', 'Southwest': 'SW.',
                 // Unit types
@@ -746,11 +736,6 @@
                 'Floor': 'Fl.', 'Fl': 'Fl.',
                 'Unit': 'Unit',
                 'Room': 'Rm.', 'Rm': 'Rm.',
-                'Department': 'Dept.', 'Dept': 'Dept.',
-                // Common words
-                'Mount': 'Mt.', 'Mountain': 'Mtn.',
-                'Fort': 'Ft.',
-                'Saint': 'St.',
                 'Post Office Box': 'PO Box', 'P.O. Box': 'PO Box', 'Po Box': 'PO Box'
             };
             
@@ -779,6 +764,32 @@
             
             return address;
         }
+        
+        // Proper name formatting - handles Mc/Mac names correctly
+        function formatName(name) {
+            if (!name) return name;
+            
+            // Title case first
+            let formatted = name.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+            
+            // Fix Mc names: Mcnamera -> McNamera, Mcdonald -> McDonald
+            formatted = formatted.replace(/\bMc([a-z])/g, (match, letter) => 'Mc' + letter.toUpperCase());
+            
+            // Fix Mac names: Macdonald -> MacDonald (but not words like "Machine")
+            formatted = formatted.replace(/\bMac([a-z]{3,})/g, (match, rest) => {
+                // Only capitalize if it looks like a name (not machine, macro, etc.)
+                const commonMacWords = ['hine', 'hinery', 'ro', 'ros', 'aroni', 'rame'];
+                if (commonMacWords.some(w => rest.toLowerCase().startsWith(w))) {
+                    return match; // Don't change
+                }
+                return 'Mac' + rest.charAt(0).toUpperCase() + rest.slice(1);
+            });
+            
+            // Fix O' names: O'brien -> O'Brien
+            formatted = formatted.replace(/\bO'([a-z])/g, (match, letter) => "O'" + letter.toUpperCase());
+            
+            return formatted;
+        }
 
         function formatDate() {
             const months = ['January', 'February', 'March', 'April', 'May', 'June', 
@@ -793,21 +804,24 @@
             const hasBuilder = customer.builder && customer.builder.trim() !== '';
             const builder = hasBuilder ? customer.builder : "";
             
-            // Check if we have a real name
-            const hasRealName = customer.firstName && 
-                                customer.firstName.trim() !== '' && 
-                                customer.firstName !== "Current" && 
-                                customer.firstName !== "Valued";
+            // Check if we have a real name (not empty, not "Current", not "Valued")
+            const rawFirstName = customer.firstName ? customer.firstName.trim() : '';
+            const rawLastName = customer.lastName ? customer.lastName.trim() : '';
+            const hasRealName = rawFirstName !== '' && 
+                                rawFirstName.toLowerCase() !== "current" && 
+                                rawFirstName.toLowerCase() !== "valued" &&
+                                rawFirstName.toLowerCase() !== "homeowner";
             
-            const firstName = hasRealName ? customer.firstName : "Current";
-            const lastName = (hasRealName && customer.lastName) ? customer.lastName : "Homeowner";
+            // Format names properly (handles Mc/Mac/O' names)
+            const firstName = hasRealName ? formatName(rawFirstName) : "Current";
+            const lastName = hasRealName ? formatName(rawLastName) : "Homeowner";
             const address = cleanAddress(customer.address || "your new home");
             const workType = formatWorkType(customer.workType);
             
             // Clean mailing address - remove name if it's at the beginning
             let mailingAddress = cleanAddress(customer.mailingAddress || address);
-            const fullName = `${customer.firstName} ${customer.lastName}`.trim();
-            if (mailingAddress.startsWith(fullName)) {
+            const fullName = `${rawFirstName} ${rawLastName}`.trim();
+            if (fullName && mailingAddress.toLowerCase().startsWith(fullName.toLowerCase())) {
                 // Remove the name and any trailing whitespace/commas
                 mailingAddress = mailingAddress.substring(fullName.length).replace(/^[\s,]+/, '').trim();
             }
@@ -816,32 +830,65 @@
                 mailingAddress = address;
             }
             
-            // Build city/state/zip line if we have the components
-            let cityStateZip = '';
-            if (customer.city || customer.state || customer.zip) {
-                const parts = [];
-                if (customer.city) parts.push(cleanAddress(customer.city));
-                if (customer.state) parts.push(customer.state.toUpperCase());
-                cityStateZip = parts.join(', ');
-                if (customer.zip) cityStateZip += ' ' + customer.zip;
+            // USPS Standard Format: Always put city, state, zip on separate line
+            // Format: STREET ADDRESS
+            //         CITY, ST ZIP
+            
+            let streetLine = mailingAddress;
+            let cityStateZipLine = '';
+            
+            // If we have separate city/state/zip fields, use them
+            const cityName = customer.city ? customer.city.trim() : '';
+            const stateName = customer.state ? customer.state.trim().toUpperCase() : '';
+            const zipCode = customer.zip ? customer.zip.trim() : '';
+            
+            if (cityName || stateName || zipCode) {
+                // We have separate fields - check if they're already in the mailing address
+                const cityInMailingAddr = cityName && mailingAddress.toLowerCase().includes(cityName.toLowerCase());
+                
+                if (cityInMailingAddr) {
+                    // City is in the mailing address - need to split it out
+                    // Try to find where city starts and split there
+                    const cityIndex = mailingAddress.toLowerCase().indexOf(cityName.toLowerCase());
+                    if (cityIndex > 0) {
+                        streetLine = mailingAddress.substring(0, cityIndex).trim().replace(/[,\s]+$/, '');
+                        // Take the rest as city/state/zip but rebuild it cleanly
+                        cityStateZipLine = formatName(cityName);
+                        if (stateName) cityStateZipLine += ', ' + stateName;
+                        if (zipCode) cityStateZipLine += ' ' + zipCode;
+                    }
+                } else {
+                    // City not in mailing address - just add the city/state/zip line
+                    streetLine = mailingAddress;
+                    const parts = [];
+                    if (cityName) parts.push(formatName(cityName));
+                    if (stateName) parts.push(stateName);
+                    cityStateZipLine = parts.join(', ');
+                    if (zipCode) cityStateZipLine += ' ' + zipCode;
+                }
+            } else {
+                // No separate fields - try to parse from mailing address
+                // Look for pattern: "Street Address, City, ST 12345" or "Street Address, City ST 12345"
+                const uspsPattern = /^(.+?),\s*([A-Za-z\s]+?),?\s*([A-Z]{2})\s*(\d{5}(?:-\d{4})?)?\s*$/;
+                const match = mailingAddress.match(uspsPattern);
+                
+                if (match) {
+                    streetLine = match[1].trim();
+                    const parsedCity = match[2].trim();
+                    const parsedState = match[3];
+                    const parsedZip = match[4] || '';
+                    cityStateZipLine = formatName(parsedCity) + ', ' + parsedState + (parsedZip ? ' ' + parsedZip : '');
+                } else {
+                    // Can't parse - just use as-is on one line
+                    streetLine = mailingAddress;
+                    cityStateZipLine = '';
+                }
             }
             
-            // Format full mailing address with line break for city/state
-            let formattedMailingAddress = mailingAddress;
-            if (cityStateZip && !mailingAddress.toLowerCase().includes(customer.city?.toLowerCase() || '___NOMATCH___')) {
-                // City not already in mailing address, add it on new line
-                formattedMailingAddress = mailingAddress + '<br>' + cityStateZip;
-            } else if (mailingAddress.includes(',')) {
-                // Mailing address likely has city/state - try to split at the city
-                // Look for pattern: "123 Street, City, ST 12345" or "123 Street City, ST 12345"
-                const cityStateMatch = mailingAddress.match(/^(.+?)[\s,]+([A-Za-z\s]+),?\s*([A-Z]{2})\s*(\d{5}(?:-\d{4})?)?$/);
-                if (cityStateMatch) {
-                    const streetPart = cityStateMatch[1].trim().replace(/,\s*$/, '');
-                    const cityPart = cityStateMatch[2].trim();
-                    const statePart = cityStateMatch[3];
-                    const zipPart = cityStateMatch[4] || '';
-                    formattedMailingAddress = streetPart + '<br>' + cityPart + ', ' + statePart + (zipPart ? ' ' + zipPart : '');
-                }
+            // Build final formatted address
+            let formattedMailingAddress = streetLine;
+            if (cityStateZipLine) {
+                formattedMailingAddress = streetLine + '<br>' + cityStateZipLine;
             }
             
             // Determine work description based on department
