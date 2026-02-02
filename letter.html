@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.40 - Updated 2026-02-02 -->
+<!-- Mid-State Letter Generator v3.41 - Updated 2026-02-02 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.40</title>
+    <title>Mid-State Plumbing - Letter Generator v3.41</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -351,7 +351,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.40</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.41</div>
         </div>
 
         <div class="content">
@@ -363,7 +363,7 @@
 
                 <div class="input-group">
                     <label for="signerSelect">Default Letter Signer:</label>
-                    <select id="signerSelect" onchange="updateSignerFields()" style="width: 100%; padding: 10px; font-size: 14px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 15px;">
+                    <select id="signerSelect" style="width: 100%; padding: 10px; font-size: 14px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 15px;">
                         <option value="robert">Robert Danaher (<template class="__cf_email__" data-cfemail="0d7f626f687f794d6064697e796c79687d6178606f64636a236e6260">[email&#160;protected]</template>)</option>
                         <option value="victoria">Victoria Ellsworth (<template class="__cf_email__" data-cfemail="45332c26312a372c2405282c21363124312035293028272c2b226b262a28">[email&#160;protected]</template>)</option>
                         <option value="midstate">Mid-State Plumbing & Heating (<template class="__cf_email__" data-cfemail="71181f171e311c18150205100514011d041c13181f165f121e1c">[email&#160;protected]</template>)</option>
@@ -391,7 +391,7 @@
 
                 <div class="input-group">
                     <label for="fileUpload">Upload CSV or Excel File:</label>
-                    <input type="file" id="fileUpload" accept=".csv,.xlsx,.xls" onchange="loadFromFile()">
+                    <input type="file" id="fileUpload" accept=".csv,.xlsx,.xls">
                 </div>
                 
                 <p style="margin-top: 20px; color: #666; font-size: 0.9em;">
@@ -446,7 +446,7 @@
         </div>
     </div>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    <script>
         // Version 3.4 - Fixed horizontal logo and contact layout
         let customerData = [];
         let currentIndex = 0;
@@ -1363,6 +1363,25 @@
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11, undefined, 'FAST');
                     document.body.removeChild(tempDiv);
-                    
-                    if (i < customerData.length - 1) {
-                        pdf.addPage();
+                }
+                
+                pdf.save('mid-state-letters-bulk.pdf');
+                showLoading(false);
+            } catch (error) {
+                console.error('PDF Generation Error:', error);
+                showError('Failed to generate PDFs: ' + error.message);
+                showLoading(false);
+            }
+        }
+
+        // Initialize event listeners when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // File upload event listener
+            document.getElementById('fileUpload').addEventListener('change', loadFromFile);
+            
+            // Signer select event listener
+            document.getElementById('signerSelect').addEventListener('change', updateSignerFields);
+        });
+    </script>
+</body>
+</html>
