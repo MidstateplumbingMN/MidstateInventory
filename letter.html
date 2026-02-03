@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.42 - Updated 2026-01-30 -->
+<!-- Mid-State Letter Generator v3.43 - Updated 2026-01-30 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.42</title>
+    <title>Mid-State Plumbing - Letter Generator v3.43</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -19,7 +19,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a5276 0%, #2980b9 100%);
+            background: linear-gradient(135deg, #1e8449 0%, #27ae60 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -34,7 +34,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #1a5276 0%, #2980b9 100%);
+            background: linear-gradient(135deg, #1e8449 0%, #27ae60 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -102,7 +102,7 @@
         }
 
         .btn {
-            background: linear-gradient(135deg, #1a5276 0%, #2980b9 100%);
+            background: linear-gradient(135deg, #1e8449 0%, #27ae60 100%);
             color: white;
             border: none;
             padding: 15px 40px;
@@ -124,7 +124,7 @@
         }
 
         .btn-secondary {
-            background: linear-gradient(135deg, #1a5276 0%, #2980b9 100%);
+            background: linear-gradient(135deg, #1e8449 0%, #27ae60 100%);
         }
 
         .btn:disabled {
@@ -145,7 +145,7 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #1a5276 0%, #2980b9 100%);
+            background: linear-gradient(135deg, #1e8449 0%, #27ae60 100%);
             color: white;
             padding: 20px;
             border-radius: 10px;
@@ -351,7 +351,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.42</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.43</div>
         </div>
 
         <div class="content">
@@ -364,9 +364,9 @@
                 <div class="input-group">
                     <label for="signerSelect">Default Letter Signer:</label>
                     <select id="signerSelect" onchange="updateSignerFields()" style="width: 100%; padding: 10px; font-size: 14px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 15px;">
-                        <option value="robert">Robert Danaher (<template class="__cf_email__" data-cfemail="92e0fdf0f7e0e6d2fffbf6e1e6f3e6f7e2fee7fff0fbfcf5bcf1fdff">[email&#160;protected]</template>)</option>
-                        <option value="victoria">Victoria Ellsworth (<template class="__cf_email__" data-cfemail="4b3d22283f2439222a0b26222f383f2a3f2e3b273e262922252c65282426">[email&#160;protected]</template>)</option>
-                        <option value="midstate">Mid-State Plumbing & Heating (<template class="__cf_email__" data-cfemail="adc4c3cbc2edc0c4c9ded9ccd9c8ddc1d8c0cfc4c3ca83cec2c0">[email&#160;protected]</template>)</option>
+                        <option value="robert">Robert Danaher (<template class="__cf_email__" data-cfemail="07756865627573476a6e637473667362776b726a656e69602964686a">[email&#160;protected]</template>)</option>
+                        <option value="victoria">Victoria Ellsworth (<template class="__cf_email__" data-cfemail="6f19060c1b001d060e2f02060b1c1b0e1b0a1f031a020d060108410c0002">[email&#160;protected]</template>)</option>
+                        <option value="midstate">Mid-State Plumbing & Heating (<template class="__cf_email__" data-cfemail="7b12151d143b16121f080f1a0f1e0b170e161912151c55181416">[email&#160;protected]</template>)</option>
                         <option value="custom">+ Add Custom Signer</option>
                     </select>
                     
@@ -446,7 +446,7 @@
         </div>
     </div>
 
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         // Version 3.4 - Fixed horizontal logo and contact layout
         let customerData = [];
         let currentIndex = 0;
@@ -1305,7 +1305,16 @@
                 console.log('Adding image to PDF at: 0, 0, 8.5, 11');
                 
                 // Add image at full letter size (8.5 x 11)
-                pdf.addImage('Error creating PDF: ' + error.message);
+                pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11, undefined, 'FAST');
+                
+                const customer = customerData[currentIndex];
+                const filename = `Letter_${customer.firstName}_${customer.lastName}.pdf`;
+                
+                console.log('Saving PDF:', filename);
+                pdf.save(filename);
+            } catch (error) {
+                console.error('PDF error:', error);
+                showError('Error creating PDF: ' + error.message);
             }
             showLoading(false);
         }
