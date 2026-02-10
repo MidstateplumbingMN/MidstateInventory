@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.48 - Updated 2026-02-10 -->
+<!-- Mid-State Letter Generator v3.49 - Updated 2026-02-10 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.48</title>
+    <title>Mid-State Plumbing - Letter Generator v3.49</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -34,7 +34,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #2d5a3d 0%, #4a8c5e 100%);
+            background: linear-gradient(135deg, #8b4513 0%, #cd853f 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -350,7 +350,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.48</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.49</div>
         </div>
 
         <div class="content">
@@ -496,55 +496,55 @@
 
         const letterTemplates = {
             openings: [
-                "We hope you've been enjoying your home.",
-                "We hope this note finds you well.",
-                "We wanted to reach out and say hello.",
-                "After working together during construction, we wanted to reconnect.",
-                "It's been a little while, and we wanted to check in.",
-                "We've been thinking about the homes we helped build and wanted to drop you a line.",
-                "Now that you've had some time to settle in, we wanted to say hi.",
-                "We hope the new home is everything you hoped for.",
-                "We wanted to send a quick note and see how things are going.",
+                "Hope you've been enjoying your home.",
+                "Hope this note finds you well.",
+                "Just wanted to reach out and say hello.",
+                "After working together during construction, it felt right to reconnect.",
+                "It's been a little while, and it seemed like a good time to check in.",
+                "Your home has been on our mind, so we wanted to drop you a line.",
+                "Now that you've had some time to settle in, hello seemed in order.",
+                "Hope the new home is everything you wished for.",
+                "Wanted to send a quick note and see how things are going.",
                 "Hope everything is going smoothly with your home.",
-                "As the seasons change, we wanted to check in with you.",
-                "We wanted to introduce ourselves and share a little about what we do."
+                "As the seasons change, it seemed like a good time to check in.",
+                "Wanted to introduce ourselves and share a little about what we do."
             ],
             introductions: [
-                "In ${yearBuilt}, we partnered with {builder} to complete the {workType} systems in your home, and we're glad we could be part of that process. As your needs change over time—whether it's finishing a basement, adding a wet bar, or taking care of routine system care—we'd be happy to help.",
-                "We had the opportunity to work with {builder} on your home's {workType} systems in ${yearBuilt}. As time goes on, we'd be honored to continue serving as a resource—whether for future projects, system upgrades, or ongoing care.",
-                "During construction, we collaborated with {builder} to install the {workType} systems designed to keep your home comfortable. Now that you're settled in, we remain available whenever you need support.",
-                "In ${yearBuilt}, we worked alongside {builder} on the {workType} systems for your home. We enjoyed being involved, and we're here if anything comes up down the road.",
-                "We partnered with {builder} to complete the {workType} work during construction, and it was great to be part of bringing your home together. We'd love to continue being a resource as your needs evolve."
+                "In ${yearBuilt}, our team partnered with {builder} to complete the {workType} systems in your home, and it was a pleasure to be part of that process. As your needs change over time—whether it's finishing a basement, adding a wet bar, or taking care of routine system care—please know the door is always open.",
+                "Your home's {workType} systems were something {builder} trusted us with back in ${yearBuilt}. As time goes on, it would be an honor to continue serving as a resource—whether for future projects, system upgrades, or ongoing care.",
+                "During construction, our crew collaborated with {builder} to install the {workType} systems designed to keep your home comfortable. Now that you're settled in, that same support remains available whenever you need it.",
+                "Back in ${yearBuilt}, the {workType} systems for your home came together through a partnership with {builder}. It was rewarding to be involved, and that connection remains if anything comes up down the road.",
+                "The {workType} work during construction was a collaboration with {builder}, and being part of bringing your home together was genuinely enjoyable. That relationship continues as your needs evolve."
             ],
             introductionsNoBuilder: [
-                "In ${yearBuilt}, we completed the {workType} systems in your home, and we're glad we could be part of that process. As your needs change over time—whether it's finishing a basement, adding a wet bar, or taking care of routine system care—we'd be happy to help.",
-                "We had the opportunity to work on your home's {workType} systems in ${yearBuilt}. As time goes on, we'd be honored to continue serving as a resource—whether for future projects, system upgrades, or ongoing care.",
-                "During construction, we installed the {workType} systems designed to keep your home comfortable. Now that you're settled in, we remain available whenever you need support.",
-                "In ${yearBuilt}, we handled the {workType} systems for your home. We enjoyed being involved, and we're here if anything comes up down the road.",
-                "We completed the {workType} work during construction, and it was great to be part of bringing your home together. We'd love to continue being a resource as your needs evolve."
+                "In ${yearBuilt}, our team completed the {workType} systems in your home, and it was a pleasure to be part of that process. As your needs change over time—whether it's finishing a basement, adding a wet bar, or taking care of routine system care—please know the door is always open.",
+                "Your home's {workType} systems were installed by our crew back in ${yearBuilt}. As time goes on, it would be an honor to continue serving as a resource—whether for future projects, system upgrades, or ongoing care.",
+                "During construction, the {workType} systems were designed to keep your home comfortable for years to come. Now that you're settled in, that same support remains available whenever you need it.",
+                "Back in ${yearBuilt}, the {workType} systems for your home were something our team handled. It was rewarding to be involved, and that connection remains if anything comes up down the road.",
+                "The {workType} work during construction was genuinely enjoyable to be part of. That relationship continues as your needs evolve."
             ],
             giftCertificate: [
-                "As a thank-you for trusting us with your home, we've included a gift certificate for $50 off any service or repair, or $500 off a new equipment installation. See the certificate for details.",
-                "Enclosed, you'll find a gift certificate as our way of saying thank you: $50 off any service or repair, or $500 off a new equipment installation. Details are on the certificate.",
-                "We've included a gift certificate to say thanks: $50 off any service or repair, or $500 off a new equipment installation. Please see the certificate for details."
+                "As a thank-you for trusting us with your home, a gift certificate is enclosed: $50 off any service or repair, or $500 off a new equipment installation. See the certificate for details.",
+                "Enclosed you'll find a gift certificate as a small token of appreciation: $50 off any service or repair, or $500 off a new equipment installation. Details are on the certificate.",
+                "A gift certificate is included to say thanks: $50 off any service or repair, or $500 off a new equipment installation. Please see the certificate for details."
             ],
             maintenanceClub: [
-                "We also offer a Maintenance Club designed to help keep your systems running reliably year after year. Members enjoy benefits such as maintenance that helps preserve manufacturer warranties, longer equipment life, savings on repairs and projects, priority scheduling, and early issue detection before small concerns become costly.",
+                "There's also a Maintenance Club designed to help keep your systems running reliably year after year. Members enjoy benefits such as maintenance that helps preserve manufacturer warranties, longer equipment life, savings on repairs and projects, priority scheduling, and early issue detection before small concerns become costly.",
                 "For homeowners who value long-term performance, our Maintenance Club provides proactive care that supports manufacturer warranty requirements, extends system lifespan, offers preferred scheduling, and includes savings on repairs and improvements.",
                 "Our Maintenance Club is designed to help protect your home's systems over time. Members receive professional care that supports warranty compliance, extends equipment life, and catches small issues before they become bigger problems—plus savings and priority scheduling."
             ],
             community: [
-                "We're proud to be a Hastings-based company and believe in supporting the community we serve. Recently, we were honored to support events like Birdies for Abilities and Hockey Day MN.",
-                "As a locally owned Hastings company, we're proud to give back to the community, including recent support for Birdies for Abilities and Hockey Day MN.",
-                "Being part of this community matters to us. We were glad to support Birdies for Abilities and Hockey Day MN this year.",
-                "We're proud to be based in Hastings and to support the community we serve—including events like Birdies for Abilities and Hockey Day MN."
+                "As a Hastings-based company, supporting the community matters. Recently, it was an honor to contribute to events like Birdies for Abilities and Hockey Day MN.",
+                "Being locally owned in Hastings means giving back is part of who we are—including recent support for Birdies for Abilities and Hockey Day MN.",
+                "This community matters to us. Supporting Birdies for Abilities and Hockey Day MN this year was a privilege.",
+                "Hastings is home, and supporting the community feels natural—including events like Birdies for Abilities and Hockey Day MN."
             ],
             closings: [
-                "We enjoyed working on your home. If you ever have a question or need assistance, we're just a call away.",
-                "Thank you again for the opportunity to work on your home. We look forward to helping whenever the need arises.",
-                "We appreciate the opportunity to have been part of your home, and we're here whenever you need us.",
+                "Working on your home was a pleasure. If you ever have a question or need assistance, a phone call is all it takes.",
+                "Thank you again for the opportunity to work on your home. Helping whenever the need arises would be a privilege.",
+                "The opportunity to have been part of your home is appreciated, and that support continues whenever you need it.",
                 "Thank you for trusting us with your home. If anything ever comes up, please don't hesitate to reach out.",
-                "We're glad we could be part of your home. We're always happy to help if you need anything."
+                "Being part of your home was rewarding. Helping with anything that comes up would be a pleasure."
             ]
         };
 
@@ -644,22 +644,51 @@
             const builder = hasBuilder ? customer.builder : "";
             
             // Check if we have a real name
-            const hasRealName = customer.firstName && 
+            const hasFirstName = customer.firstName && 
                                 customer.firstName.trim() !== '' && 
                                 customer.firstName !== "Current" && 
                                 customer.firstName !== "Valued";
             
-            const firstName = hasRealName ? customer.firstName : "Current";
-            const lastName = (hasRealName && customer.lastName) ? customer.lastName : "Homeowner";
+            const hasLastName = customer.lastName && 
+                                customer.lastName.trim() !== '' &&
+                                customer.lastName !== "Homeowner" &&
+                                customer.lastName !== "Resident";
+            
+            const firstName = hasFirstName ? customer.firstName : "";
+            const lastName = hasLastName ? customer.lastName : "";
             const address = cleanAddress(customer.address || "your new home");
             const workType = formatWorkType(customer.workType);
             
-            // Clean mailing address - remove name if it's at the beginning
+            // Build the addressee line - only use one format
+            let addressee;
+            if (hasFirstName && hasLastName) {
+                addressee = `${firstName} ${lastName}`;
+            } else if (hasFirstName) {
+                addressee = firstName;
+            } else if (hasLastName) {
+                addressee = `The ${lastName} Residence`;
+            } else {
+                addressee = "Current Homeowner";
+            }
+            
+            // Build greeting
+            const greeting = hasFirstName ? `Dear ${firstName}` : `Dear Current Homeowner`;
+            
+            // Clean mailing address - remove any name/residence references
             let mailingAddress = cleanAddress(customer.mailingAddress || address);
-            const fullName = `${customer.firstName} ${customer.lastName}`.trim();
-            if (mailingAddress.startsWith(fullName)) {
-                // Remove the name and any trailing whitespace/commas
-                mailingAddress = mailingAddress.substring(fullName.length).replace(/^[\s,]+/, '').trim();
+            
+            // Remove patterns like "The Adams Residence", "John Smith", etc.
+            if (hasLastName) {
+                // Remove "The [LastName] Residence" pattern
+                const residencePattern = new RegExp(`^The\\s+${lastName}\\s+Residence[\\s,]*`, 'i');
+                mailingAddress = mailingAddress.replace(residencePattern, '').trim();
+            }
+            if (hasFirstName || hasLastName) {
+                // Remove full name if at the beginning
+                const fullName = `${customer.firstName || ''} ${customer.lastName || ''}`.trim();
+                if (fullName && mailingAddress.toLowerCase().startsWith(fullName.toLowerCase())) {
+                    mailingAddress = mailingAddress.substring(fullName.length).replace(/^[\s,]+/, '').trim();
+                }
             }
             // If nothing left after removing name, use address
             if (!mailingAddress) {
@@ -675,8 +704,6 @@
             } else {
                 workDescription = "installation";
             }
-            
-            const greeting = hasRealName ? `Dear ${firstName}` : `Dear Current Homeowner`;
 
             const opening = getRandomItem(letterTemplates.openings);
             
@@ -727,7 +754,7 @@
                     </div>
 
                     <div class="letter-to">
-                        ${firstName} ${lastName}<br>
+                        ${addressee}<br>
                         ${mailingAddress}
                     </div>
 
@@ -749,7 +776,7 @@
                         <p>${preventOrphans(closing)}</p>
                     </div>
 
-                    <div class="letter-closing">
+                    <div class="letter-closing" style="margin-top: 0.3in;">
                         <div class="letter-signature">Warm regards,</div>
                         ${signer.signature ? `<img src="${signer.signature}" alt="Signature" style="height: 60px; margin: 10px 0;">` : '<div style="height: 40px;"></div>'}
                         <div>
