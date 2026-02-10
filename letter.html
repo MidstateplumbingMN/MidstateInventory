@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.49 - Updated 2026-02-10 -->
+<!-- Mid-State Letter Generator v3.52 - Updated 2026-02-10 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.49</title>
+    <title>Mid-State Plumbing - Letter Generator v3.52</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -34,7 +34,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #8b4513 0%, #cd853f 100%);
+            background: linear-gradient(135deg, #1e3a5f 0%, #3d6a99 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -309,21 +309,39 @@
 
         @media print {
             body {
-                background: white;
-                padding: 0;
-                margin: 0;
+                background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
             }
             .container {
-                box-shadow: none;
-                max-width: none;
+                box-shadow: none !important;
+                max-width: none !important;
+                background: white !important;
             }
-            .header, .upload-section, .navigation, .btn, .stats {
+            /* Hide everything except the letter */
+            .header, .upload-section, .navigation, .btn, .stats, .content > *:not(.preview-section) {
                 display: none !important;
             }
+            /* Hide all preview section controls, keep only the letter */
+            .preview-section > *:not(.letter-page) {
+                display: none !important;
+            }
+            /* Also hide specific elements by selector */
+            #customerSearch, #searchResults, input, button, select, label,
+            [style*="Search for a Customer"], [onclick], .stat-card {
+                display: none !important;
+            }
+            /* Make sure letter page is visible and formatted */
+            .preview-section {
+                display: block !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
             .letter-page {
-                margin: 0;
+                display: block !important;
+                margin: 0 !important;
                 padding: 0.4in 1in 1in 1in !important;
-                box-shadow: none;
+                box-shadow: none !important;
                 page-break-after: always;
                 max-height: 11in;
                 overflow: hidden;
@@ -336,6 +354,11 @@
                 display: block !important;
                 visibility: visible !important;
                 margin: 0 auto !important;
+            }
+            /* Hide the content wrapper styling */
+            .content {
+                padding: 0 !important;
+                margin: 0 !important;
             }
         }
 
@@ -350,7 +373,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.49</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.52</div>
         </div>
 
         <div class="content">
@@ -523,6 +546,16 @@
                 "Back in ${yearBuilt}, the {workType} systems for your home were something our team handled. It was rewarding to be involved, and that connection remains if anything comes up down the road.",
                 "The {workType} work during construction was genuinely enjoyable to be part of. That relationship continues as your needs evolve."
             ],
+            personalTouch: [
+                "Every home has its own story, and yours is no different. From the layout to the little details, there's a lot that makes it uniquely yours. That's something worth protecting.",
+                "Homes change over time—sometimes it's a dripping faucet, sometimes it's a furnace that sounds a little different than it used to. Those moments are part of homeownership, and they don't have to be stressful.",
+                "There's something special about the homes in this area. The neighborhoods, the families, the sense of community—it's why many of our team members live nearby too.",
+                "A well-maintained home tends to take care of the people inside it. Small things—like changing filters, checking water pressure, or listening for unusual sounds—can make a real difference over time.",
+                "One thing we've learned over the years: every homeowner's situation is different. Some prefer to handle things themselves, others like having someone on call. Either way, having options matters.",
+                "Seasons in Minnesota ask a lot of your home's systems. The humidity of summer, the deep freeze of January—your plumbing and HVAC work hard year-round to keep things comfortable.",
+                "It's easy to forget about the systems behind the walls until something goes wrong. But a little attention here and there can go a long way toward peace of mind.",
+                "Your home is more than just a building—it's where life happens. Morning coffee, family dinners, quiet evenings. Keeping it running smoothly is something we take seriously."
+            ],
             giftCertificate: [
                 "As a thank-you for trusting us with your home, a gift certificate is enclosed: $50 off any service or repair, or $500 off a new equipment installation. See the certificate for details.",
                 "Enclosed you'll find a gift certificate as a small token of appreciation: $50 off any service or repair, or $500 off a new equipment installation. Details are on the certificate.",
@@ -671,8 +704,17 @@
                 addressee = "Current Homeowner";
             }
             
-            // Build greeting
-            const greeting = hasFirstName ? `Dear ${firstName}` : `Dear Current Homeowner`;
+            // Build greeting - use friendly but formal greeting when we only have last name
+            let greeting;
+            if (hasFirstName) {
+                greeting = `Dear ${firstName}`;
+            } else if (hasLastName) {
+                // Formal greetings for when we have last name but no first name
+                const formalGreetings = ["Hello", "Greetings", "Good day"];
+                greeting = getRandomItem(formalGreetings);
+            } else {
+                greeting = "Dear Current Homeowner";
+            }
             
             // Clean mailing address - remove any name/residence references
             let mailingAddress = cleanAddress(customer.mailingAddress || address);
@@ -717,6 +759,7 @@
                 .replace('{builder}', builder)
                 .replace('{workType}', workType)
                 .replace('{workDescription}', workDescription);
+            const personalTouch = getRandomItem(letterTemplates.personalTouch);
             const giftCertificate = getRandomItem(letterTemplates.giftCertificate);
             const maintenanceClub = getRandomItem(letterTemplates.maintenanceClub);
             const community = getRandomItem(letterTemplates.community);
@@ -767,6 +810,8 @@
                         
                         <p>${preventOrphans(intro)}</p>
                         
+                        <p>${preventOrphans(personalTouch)}</p>
+                        
                         <p>${preventOrphans(giftCertificate)}</p>
                         
                         <p>${preventOrphans(maintenanceClub)}</p>
@@ -776,7 +821,7 @@
                         <p>${preventOrphans(closing)}</p>
                     </div>
 
-                    <div class="letter-closing" style="margin-top: 0.3in;">
+                    <div class="letter-closing" style="margin-top: 0.45in;">
                         <div class="letter-signature">Warm regards,</div>
                         ${signer.signature ? `<img src="${signer.signature}" alt="Signature" style="height: 60px; margin: 10px 0;">` : '<div style="height: 40px;"></div>'}
                         <div>
