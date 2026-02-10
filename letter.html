@@ -34,7 +34,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #7a1a5f 0%, #9e2d8a 100%);
+            background: linear-gradient(135deg, #1a4f7a 0%, #2d7a9e 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -350,7 +350,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.46</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.47</div>
         </div>
 
         <div class="content">
@@ -445,7 +445,7 @@
         </div>
     </div>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    <script>
         // Version 3.4 - Fixed horizontal logo and contact layout
         let customerData = [];
         let currentIndex = 0;
@@ -1362,7 +1362,15 @@
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11, undefined, 'FAST');
                     document.body.removeChild(tempDiv);
-                    
-                    if (i < customerData.length - 1) {
-                        pdf.addPage();
-  
+                }
+                
+                pdf.save('All_Customer_Letters.pdf');
+            } catch (error) {
+                console.error('PDF error:', error);
+                showError('Error creating PDF: ' + error.message);
+            }
+            showLoading(false);
+        }
+    </script>
+</body>
+</html>
