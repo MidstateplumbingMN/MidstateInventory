@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.52 - Updated 2026-02-10 -->
+<!-- Mid-State Letter Generator v3.53 - Updated 2026-02-10 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.52</title>
+    <title>Mid-State Plumbing - Letter Generator v3.53</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -34,7 +34,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #1e3a5f 0%, #3d6a99 100%);
+            background: linear-gradient(135deg, #722f37 0%, #a94452 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -373,7 +373,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.52</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.53</div>
         </div>
 
         <div class="content">
@@ -519,42 +519,38 @@
 
         const letterTemplates = {
             openings: [
-                "Hope you've been enjoying your home.",
-                "Hope this note finds you well.",
-                "Just wanted to reach out and say hello.",
-                "After working together during construction, it felt right to reconnect.",
-                "It's been a little while, and it seemed like a good time to check in.",
-                "Your home has been on our mind, so we wanted to drop you a line.",
-                "Now that you've had some time to settle in, hello seemed in order.",
-                "Hope the new home is everything you wished for.",
-                "Wanted to send a quick note and see how things are going.",
-                "Hope everything is going smoothly with your home.",
-                "As the seasons change, it seemed like a good time to check in.",
-                "Wanted to introduce ourselves and share a little about what we do."
+                "Thank you for taking a moment to read this letter.",
+                "Congratulations on your beautiful home.",
+                "Hope this letter finds you well.",
+                "Thank you for letting us share a little about ourselves.",
+                "It's a pleasure to introduce ourselves.",
+                "Hope you're enjoying your home.",
+                "Thank you for your time today.",
+                "Congratulations on your new home—it's a beautiful one."
             ],
             introductions: [
-                "In ${yearBuilt}, our team partnered with {builder} to complete the {workType} systems in your home, and it was a pleasure to be part of that process. As your needs change over time—whether it's finishing a basement, adding a wet bar, or taking care of routine system care—please know the door is always open.",
-                "Your home's {workType} systems were something {builder} trusted us with back in ${yearBuilt}. As time goes on, it would be an honor to continue serving as a resource—whether for future projects, system upgrades, or ongoing care.",
-                "During construction, our crew collaborated with {builder} to install the {workType} systems designed to keep your home comfortable. Now that you're settled in, that same support remains available whenever you need it.",
-                "Back in ${yearBuilt}, the {workType} systems for your home came together through a partnership with {builder}. It was rewarding to be involved, and that connection remains if anything comes up down the road.",
-                "The {workType} work during construction was a collaboration with {builder}, and being part of bringing your home together was genuinely enjoyable. That relationship continues as your needs evolve."
+                "We're proud to have partnered with {builder} in ${yearBuilt} to install the {workType} systems that help make your home comfortable and efficient. Because our team did the original work, we're already familiar with your home's layout and systems.",
+                "In ${yearBuilt}, {builder} trusted us with the {workType} installation for your home, and it was an honor to be part of creating something beautiful. Our familiarity with your home's specific systems means we understand how everything was designed to work together.",
+                "Your home's {workType} systems were installed by our team during construction with {builder} in ${yearBuilt}. We take pride in the craftsmanship that went into your home, and that firsthand knowledge stays with us.",
+                "{builder} selected us to complete the {workType} work for your home in ${yearBuilt}, and we're grateful for that opportunity. Having installed these systems ourselves, we know your home's setup inside and out.",
+                "We had the privilege of working alongside {builder} to bring your home's {workType} systems to life in ${yearBuilt}. That experience gives us unique insight into how your home was built and how its systems operate."
             ],
             introductionsNoBuilder: [
-                "In ${yearBuilt}, our team completed the {workType} systems in your home, and it was a pleasure to be part of that process. As your needs change over time—whether it's finishing a basement, adding a wet bar, or taking care of routine system care—please know the door is always open.",
-                "Your home's {workType} systems were installed by our crew back in ${yearBuilt}. As time goes on, it would be an honor to continue serving as a resource—whether for future projects, system upgrades, or ongoing care.",
-                "During construction, the {workType} systems were designed to keep your home comfortable for years to come. Now that you're settled in, that same support remains available whenever you need it.",
-                "Back in ${yearBuilt}, the {workType} systems for your home were something our team handled. It was rewarding to be involved, and that connection remains if anything comes up down the road.",
-                "The {workType} work during construction was genuinely enjoyable to be part of. That relationship continues as your needs evolve."
+                "We're proud to have installed the {workType} systems in your home back in ${yearBuilt}. Because our team did the original work, we're already familiar with your home's layout and systems.",
+                "In ${yearBuilt}, we had the honor of completing the {workType} installation that helps make your home comfortable and efficient. Our familiarity with your home's specific systems means we understand how everything was designed to work together.",
+                "Your home's {workType} systems were installed by our team during construction in ${yearBuilt}. We take pride in the craftsmanship that went into your home, and that firsthand knowledge stays with us.",
+                "The {workType} work in your home was completed by our crew in ${yearBuilt}, and we're grateful to have been part of building something beautiful. Having installed these systems ourselves, we know your home's setup inside and out.",
+                "We had the privilege of bringing your home's {workType} systems to life in ${yearBuilt}. That experience gives us unique insight into how your home was built and how its systems operate."
             ],
             personalTouch: [
-                "Every home has its own story, and yours is no different. From the layout to the little details, there's a lot that makes it uniquely yours. That's something worth protecting.",
-                "Homes change over time—sometimes it's a dripping faucet, sometimes it's a furnace that sounds a little different than it used to. Those moments are part of homeownership, and they don't have to be stressful.",
-                "There's something special about the homes in this area. The neighborhoods, the families, the sense of community—it's why many of our team members live nearby too.",
-                "A well-maintained home tends to take care of the people inside it. Small things—like changing filters, checking water pressure, or listening for unusual sounds—can make a real difference over time.",
-                "One thing we've learned over the years: every homeowner's situation is different. Some prefer to handle things themselves, others like having someone on call. Either way, having options matters.",
-                "Seasons in Minnesota ask a lot of your home's systems. The humidity of summer, the deep freeze of January—your plumbing and HVAC work hard year-round to keep things comfortable.",
-                "It's easy to forget about the systems behind the walls until something goes wrong. But a little attention here and there can go a long way toward peace of mind.",
-                "Your home is more than just a building—it's where life happens. Morning coffee, family dinners, quiet evenings. Keeping it running smoothly is something we take seriously."
+                "Whether you're considering a basement finish, adding a bathroom, installing a wet bar, or simply want a trusted resource for your plumbing and heating needs—we're just a phone call away.",
+                "As your home evolves with your family's needs—maybe a bathroom addition, a kitchen upgrade, or outdoor living space—we'd be honored to help bring those ideas to life.",
+                "From drain cleaning to water heater service to furnace maintenance, we handle all aspects of plumbing and HVAC. And because we know your home, we can often provide insight that others can't.",
+                "Many homeowners eventually add a basement bathroom, upgrade fixtures, or expand their living space. When those projects come up, having a team that already knows your home can make all the difference.",
+                "We service everything from faucets and water heaters to furnaces and air conditioners. Whatever your plumbing or heating needs, we're here to help—and we already know your home.",
+                "Future projects like basement finishes, garage heaters, or bathroom remodels are easier when your contractor already understands your home's systems. We're here whenever you're ready.",
+                "Our services include drain cleaning, water heater installation, furnace service, air conditioning, and much more. Having worked on your home from the start, we're well-positioned to help with whatever comes next.",
+                "When the time comes for a new water heater, an updated bathroom, or even a backyard gas line for the grill—we'd love the opportunity to continue what we started."
             ],
             giftCertificate: [
                 "As a thank-you for trusting us with your home, a gift certificate is enclosed: $50 off any service or repair, or $500 off a new equipment installation. See the certificate for details.",
@@ -573,11 +569,11 @@
                 "Hastings is home, and supporting the community feels natural—including events like Birdies for Abilities and Hockey Day MN."
             ],
             closings: [
-                "Working on your home was a pleasure. If you ever have a question or need assistance, a phone call is all it takes.",
-                "Thank you again for the opportunity to work on your home. Helping whenever the need arises would be a privilege.",
-                "The opportunity to have been part of your home is appreciated, and that support continues whenever you need it.",
-                "Thank you for trusting us with your home. If anything ever comes up, please don't hesitate to reach out.",
-                "Being part of your home was rewarding. Helping with anything that comes up would be a pleasure."
+                "We hope this letter has been a helpful introduction. If you ever need plumbing, heating, or cooling assistance, we'd be honored to help.",
+                "Thank you for taking the time to learn a little about us. We hope to hear from you whenever the need arises.",
+                "Please don't hesitate to reach out for any of your plumbing, drain, heating, or cooling needs. We're always happy to help.",
+                "We'd love the opportunity to serve you in the future. When the time comes, we're just a phone call away.",
+                "Thank you for reading. We hope to be a resource for your home for years to come."
             ]
         };
 
