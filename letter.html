@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.59 - Updated 2026-02-11 -->
+<!-- Mid-State Letter Generator v3.60 - Updated 2026-02-11 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.59</title>
+    <title>Mid-State Plumbing - Letter Generator v3.60</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -35,7 +35,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+            background: linear-gradient(135deg, #92400e 0%, #b45309 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -374,7 +374,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.59</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.60</div>
         </div>
 
         <div class="content">
@@ -708,8 +708,17 @@
             if (hasFirstName) {
                 greeting = `Dear ${firstName}`;
             } else {
-                // Formal greetings for when we don't have a first name
-                const formalGreetings = ["Hello", "Greetings", "Good day"];
+                // Warm, formal greetings for when we don't have a first name
+                const formalGreetings = [
+                    "Greetings",
+                    "Good day",
+                    "Warm greetings",
+                    "Good afternoon",
+                    "Welcome",
+                    "Kind greetings",
+                    "Sincere greetings",
+                    "Cordial greetings"
+                ];
                 greeting = getRandomItem(formalGreetings);
             }
             
