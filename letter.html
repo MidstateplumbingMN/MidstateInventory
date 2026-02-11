@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.55 - Updated 2026-02-11 -->
+<!-- Mid-State Letter Generator v3.57 - Updated 2026-02-11 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.55</title>
+    <title>Mid-State Plumbing - Letter Generator v3.57</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -34,7 +35,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
+            background: linear-gradient(135deg, #334155 0%, #475569 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -318,21 +319,21 @@
                 max-width: none !important;
                 background: white !important;
             }
-            /* Hide everything except the letter */
-            .header, .upload-section, .navigation, .btn, .stats, .content > *:not(.preview-section) {
+            /* Hide UI elements */
+            .header, .upload-section, .navigation, .btn, .stats, .stat-card {
                 display: none !important;
             }
-            /* Hide all preview section controls, keep only the letter */
-            .preview-section > *:not(.letter-page) {
+            /* Hide search and controls */
+            #customerSearch, #searchResults, input, button, select, label {
                 display: none !important;
             }
-            /* Also hide specific elements by selector */
-            #customerSearch, #searchResults, input, button, select, label,
-            [style*="Search for a Customer"], [onclick], .stat-card {
+            /* Hide divs with inline styles (search box, button container) but not letterContainer */
+            .preview-section > div[style*="background"]:not(#letterContainer),
+            .preview-section > div[style*="text-align: center"] {
                 display: none !important;
             }
-            /* Make sure letter page is visible and formatted */
-            .preview-section {
+            /* Make sure preview section and letter container are visible */
+            .preview-section, #letterContainer {
                 display: block !important;
                 padding: 0 !important;
                 margin: 0 !important;
@@ -343,8 +344,8 @@
                 padding: 0.5in 0.75in 0.75in 0.75in !important;
                 box-shadow: none !important;
                 page-break-after: always;
-                max-height: 11in;
-                overflow: hidden;
+                max-height: none;
+                overflow: visible;
             }
             .letter-logo {
                 display: block !important;
@@ -373,7 +374,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.55</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.57</div>
         </div>
 
         <div class="content">
@@ -461,7 +462,7 @@
                 <div style="text-align: center; margin-top: 30px;">
                     <button class="btn" onclick="window.print()">🖨️ Print Current Letter</button>
                     <button class="btn btn-secondary" onclick="downloadCurrentPDF()">📄 Download as PDF</button>
-                    <button class="btn" onclick="downloadAllPDFs()">📥 Download All Letters (PDF)</button>
+                    <button class="btn" onclick="downloadAllPDFs()">📥 Download All Letters (ZIP)</button>
                     <button class="btn" onclick="resetApp()">🔄 Load New Data</button>
                 </div>
             </div>
@@ -1390,20 +1391,16 @@
             showLoading(true);
             try {
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'in',
-                    format: 'letter',
-                    compress: true
-                });
-                
-                let firstPage = true;
+                const zip = new JSZip();
                 
                 for (let i = 0; i < customerData.length; i++) {
-                    if (!firstPage) {
-                        pdf.addPage();
-                    }
-                    firstPage = false;
+                    // Create individual PDF for each customer
+                    const pdf = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'in',
+                        format: 'letter',
+                        compress: true
+                    });
                     
                     const tempDiv = document.createElement('div');
                     tempDiv.style.position = 'absolute';
@@ -1430,12 +1427,29 @@
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11, undefined, 'FAST');
                     document.body.removeChild(tempDiv);
+                    
+                    // Generate filename for this customer
+                    const customer = customerData[i];
+                    const firstName = customer.firstName || 'Current';
+                    const lastName = customer.lastName || 'Homeowner';
+                    const filename = `Letter_${firstName}_${lastName}.pdf`.replace(/[^a-zA-Z0-9_\-.]/g, '_');
+                    
+                    // Add PDF to zip as blob
+                    const pdfBlob = pdf.output('blob');
+                    zip.file(filename, pdfBlob);
                 }
                 
-                pdf.save('All_Customer_Letters.pdf');
+                // Generate and download zip file
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(zipBlob);
+                link.download = 'Customer_Letters.zip';
+                link.click();
+                URL.revokeObjectURL(link.href);
+                
             } catch (error) {
-                console.error('PDF error:', error);
-                showError('Error creating PDF: ' + error.message);
+                console.error('PDF/Zip error:', error);
+                showError('Error creating zip file: ' + error.message);
             }
             showLoading(false);
         }
