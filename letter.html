@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.57 - Updated 2026-02-11 -->
+<!-- Mid-State Letter Generator v3.59 - Updated 2026-02-11 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.57</title>
+    <title>Mid-State Plumbing - Letter Generator v3.59</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -35,7 +35,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #334155 0%, #475569 100%);
+            background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -374,7 +374,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.57</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.59</div>
         </div>
 
         <div class="content">
@@ -676,13 +676,15 @@
             // Check if we have a real name
             const hasFirstName = customer.firstName && 
                                 customer.firstName.trim() !== '' && 
-                                customer.firstName !== "Current" && 
-                                customer.firstName !== "Valued";
+                                customer.firstName.toLowerCase() !== "current" && 
+                                customer.firstName.toLowerCase() !== "valued" &&
+                                customer.firstName.toLowerCase() !== "new";
             
             const hasLastName = customer.lastName && 
                                 customer.lastName.trim() !== '' &&
-                                customer.lastName !== "Homeowner" &&
-                                customer.lastName !== "Resident";
+                                customer.lastName.toLowerCase() !== "homeowner" &&
+                                customer.lastName.toLowerCase() !== "resident" &&
+                                customer.lastName.toLowerCase() !== "owner";
             
             const firstName = hasFirstName ? customer.firstName : "";
             const lastName = hasLastName ? customer.lastName : "";
@@ -698,23 +700,26 @@
             } else if (hasLastName) {
                 addressee = `The ${lastName} Residence`;
             } else {
-                addressee = "Current Homeowner";
+                addressee = "Current Resident";
             }
             
-            // Build greeting - use friendly but formal greeting when we only have last name
+            // Build greeting - use friendly formal greeting when no first name
             let greeting;
             if (hasFirstName) {
                 greeting = `Dear ${firstName}`;
-            } else if (hasLastName) {
-                // Formal greetings for when we have last name but no first name
+            } else {
+                // Formal greetings for when we don't have a first name
                 const formalGreetings = ["Hello", "Greetings", "Good day"];
                 greeting = getRandomItem(formalGreetings);
-            } else {
-                greeting = "Dear Current Homeowner";
             }
             
             // Clean mailing address - remove any name/residence references
             let mailingAddress = cleanAddress(customer.mailingAddress || address);
+            
+            // Remove common placeholder patterns from mailing address
+            mailingAddress = mailingAddress.replace(/^Current\s+(Homeowner|Resident|Owner)[\s,]*/i, '').trim();
+            mailingAddress = mailingAddress.replace(/^Valued\s+(Homeowner|Resident|Customer)[\s,]*/i, '').trim();
+            mailingAddress = mailingAddress.replace(/^New\s+(Homeowner|Resident|Owner)[\s,]*/i, '').trim();
             
             // Remove patterns like "The Adams Residence", "John Smith", etc.
             if (hasLastName) {
