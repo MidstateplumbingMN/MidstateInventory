@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Midstate Plumbing - #10 Envelope Printer v1.2</title>
+    <title>Midstate Plumbing - #10 Envelope Printer v1.4</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
@@ -14,7 +14,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #6b21a8 0%, #a855f7 100%);
+            background: linear-gradient(135deg, #0e7490 0%, #06b6d4 100%);
             padding: 20px;
             min-height: 100vh;
         }
@@ -188,10 +188,38 @@
             border-left-color: #1e3a8a;
         }
 
+        .address-item.printed {
+            background: #f0fdf4;
+            border-left-color: #10b981;
+        }
+
+        .address-item.printed.selected {
+            background: #d1fae5;
+            border-left-color: #059669;
+        }
+
         .address-item-header {
             font-weight: 600;
             color: #1e3a8a;
             margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .printed-badge {
+            background: #10b981;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+
+        .print-count {
+            color: #64748b;
+            font-size: 0.8em;
+            font-weight: normal;
         }
 
         .address-item-content {
@@ -404,7 +432,7 @@
     <div class="container">
         <header>
             <h1>📮 #10 Envelope Printer</h1>
-            <div class="version">Version 1.2 | Midstate Plumbing & Heating</div>
+            <div class="version">Version 1.4 | Midstate Plumbing & Heating</div>
         </header>
 
         <!-- Return Address Section -->
@@ -429,9 +457,26 @@
                     <div class="stat-label">Total Addresses</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value" id="validCount">0</div>
-                    <div class="stat-label">Valid Addresses</div>
+                    <div class="stat-value" id="printedCount">0</div>
+                    <div class="stat-label">Printed</div>
                 </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="unprintedCount">0</div>
+                    <div class="stat-label">Not Printed</div>
+                </div>
+            </div>
+            <div class="form-group hidden" id="sortContainer" style="margin-top: 15px;">
+                <label>Sort Order</label>
+                <select id="sortOrder" onchange="sortAddresses()">
+                    <option value="original">Original Order</option>
+                    <option value="zip">By ZIP Code</option>
+                    <option value="printed">Printed Status</option>
+                </select>
+            </div>
+            <div class="button-group hidden" id="historyControls" style="margin-top: 10px;">
+                <button class="btn-secondary" onclick="resetPrintHistory()" style="font-size: 0.9em; padding: 8px 16px;">
+                    <span>🔄</span> Reset Print History
+                </button>
             </div>
             <div id="addressList" class="hidden"></div>
         </div>
@@ -524,6 +569,7 @@
 
     <script>
         let addresses = [];
+        let originalAddresses = [];
         let selectedIndex = null;
 
         // File upload handler
@@ -557,10 +603,17 @@
                 if (address && address.toString().trim()) {
                     addresses.push({
                         raw: address.toString().trim(),
-                        formatted: formatAddressUSPS(address.toString().trim())
+                        formatted: formatAddressUSPS(address.toString().trim()),
+                        printed: false,
+                        printCount: 0,
+                        lastPrinted: null,
+                        originalIndex: addresses.length
                     });
                 }
             }
+
+            // Save original order
+            originalAddresses = [...addresses];
 
             displayAddresses();
             updateStats();
@@ -612,10 +665,18 @@
             addresses.forEach((addr, index) => {
                 const item = document.createElement('div');
                 item.className = 'address-item';
+                if (addr.printed) {
+                    item.classList.add('printed');
+                }
                 item.onclick = () => selectAddress(index);
                 
+                const printedBadge = addr.printed ? `<span class="printed-badge">✓ Printed ${addr.printCount}x</span>` : '';
+                
                 item.innerHTML = `
-                    <div class="address-item-header">#${index + 1}</div>
+                    <div class="address-item-header">
+                        <span>#${index + 1}</span>
+                        ${printedBadge}
+                    </div>
                     <div class="address-item-content">${addr.formatted}</div>
                 `;
                 
@@ -641,8 +702,42 @@
 
         function updateStats() {
             document.getElementById('statsContainer').classList.remove('hidden');
+            document.getElementById('sortContainer').classList.remove('hidden');
+            document.getElementById('historyControls').classList.remove('hidden');
+            
+            const printed = addresses.filter(a => a.printed).length;
+            const unprinted = addresses.length - printed;
+            
             document.getElementById('totalCount').textContent = addresses.length;
-            document.getElementById('validCount').textContent = addresses.length;
+            document.getElementById('printedCount').textContent = printed;
+            document.getElementById('unprintedCount').textContent = unprinted;
+        }
+
+        function sortAddresses() {
+            const sortOrder = document.getElementById('sortOrder').value;
+            
+            if (sortOrder === 'original') {
+                addresses.sort((a, b) => a.originalIndex - b.originalIndex);
+            } else if (sortOrder === 'zip') {
+                addresses.sort((a, b) => {
+                    const zipA = extractZipCode(a.formatted);
+                    const zipB = extractZipCode(b.formatted);
+                    return zipA.localeCompare(zipB);
+                });
+            } else if (sortOrder === 'printed') {
+                addresses.sort((a, b) => {
+                    // Unprinted first, then printed
+                    if (a.printed === b.printed) return 0;
+                    return a.printed ? 1 : -1;
+                });
+            }
+            
+            displayAddresses();
+        }
+
+        function extractZipCode(address) {
+            const match = address.match(/\b(\d{5}(?:-\d{4})?)\b/);
+            return match ? match[1] : '99999';
         }
 
         function printAll() {
@@ -657,8 +752,29 @@
                 return;
             }
 
+            // Check if any have been printed
+            const alreadyPrinted = addresses.filter(a => a.printed).length;
+            if (alreadyPrinted > 0) {
+                const confirm = window.confirm(`${alreadyPrinted} envelope(s) have already been printed.\n\nDo you want to print them again?`);
+                if (!confirm) return;
+            }
+
             generateEnvelopes(0, addresses.length - 1, returnAddr);
+            
+            // Mark all as printed
+            addresses.forEach(addr => {
+                addr.printed = true;
+                addr.printCount++;
+                addr.lastPrinted = new Date().toISOString();
+            });
+            
             window.print();
+            
+            // Update UI after print dialog closes
+            setTimeout(() => {
+                displayAddresses();
+                updateStats();
+            }, 500);
         }
 
         function printSingle() {
@@ -682,8 +798,28 @@
                 return;
             }
 
-            generateEnvelopes(singleNum - 1, singleNum - 1, returnAddr);
+            const idx = singleNum - 1;
+            
+            // Check if already printed
+            if (addresses[idx].printed) {
+                const confirm = window.confirm(`Envelope #${singleNum} has already been printed ${addresses[idx].printCount} time(s).\n\nDo you want to print it again?`);
+                if (!confirm) return;
+            }
+
+            generateEnvelopes(idx, idx, returnAddr);
+            
+            // Mark as printed
+            addresses[idx].printed = true;
+            addresses[idx].printCount++;
+            addresses[idx].lastPrinted = new Date().toISOString();
+            
             window.print();
+            
+            // Update UI after print dialog closes
+            setTimeout(() => {
+                displayAddresses();
+                updateStats();
+            }, 500);
         }
 
         function printRange() {
@@ -709,8 +845,33 @@
                 return;
             }
 
+            // Check if any in range have been printed
+            let alreadyPrinted = 0;
+            for (let i = from - 1; i < to; i++) {
+                if (addresses[i].printed) alreadyPrinted++;
+            }
+            
+            if (alreadyPrinted > 0) {
+                const confirm = window.confirm(`${alreadyPrinted} envelope(s) in this range have already been printed.\n\nDo you want to print them again?`);
+                if (!confirm) return;
+            }
+
             generateEnvelopes(from - 1, to - 1, returnAddr);
+            
+            // Mark range as printed
+            for (let i = from - 1; i < to; i++) {
+                addresses[i].printed = true;
+                addresses[i].printCount++;
+                addresses[i].lastPrinted = new Date().toISOString();
+            }
+            
             window.print();
+            
+            // Update UI after print dialog closes
+            setTimeout(() => {
+                displayAddresses();
+                updateStats();
+            }, 500);
         }
 
         function showPreview() {
@@ -779,7 +940,23 @@
         }
 
         // Set default return address
-        document.getElementById('returnAddress').value = 'MIDSTATE PLUMBING & HEATING\n1817 GERVAIS AVE\nMAPLEWOOD, MN 55109';
+        document.getElementById('returnAddress').value = 'MIDSTATE PLUMBING & HEATING\n3500 CANNON ST\nHASTINGS, MN 55033';
+
+        function resetPrintHistory() {
+            const confirm = window.confirm('This will clear all print history and reset all envelopes to "Not Printed".\n\nAre you sure?');
+            if (!confirm) return;
+            
+            addresses.forEach(addr => {
+                addr.printed = false;
+                addr.printCount = 0;
+                addr.lastPrinted = null;
+            });
+            
+            displayAddresses();
+            updateStats();
+            
+            alert('Print history has been reset!');
+        }
 
         function exportForStamps() {
             if (addresses.length === 0) {
