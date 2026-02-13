@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.73 - Updated 2026-02-12 -->
+<!-- Mid-State Letter Generator v3.75 - Updated 2026-02-12 -->
 
 <html lang="en">
 <head>
@@ -20,7 +20,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #be123c 0%, #f43f5e 100%);
+            background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -373,7 +373,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.73</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.75</div>
         </div>
 
         <div class="content">
@@ -535,21 +535,21 @@
             giftCertificate: [
                 "As a small token of appreciation, enclosed is a gift certificate for $50 to be used towards any service or repair, or $500 to be used towards a new equipment installation.",
                 "Enclosed is a gift certificate as a small thank-you: $50 towards any service or repair, or $500 towards a new equipment installation.",
-                "As a token of our appreciation, we've enclosed a gift certificate for $50 off any service or repair, or $500 off a new equipment installation."
+                "Please find enclosed a gift certificate for $50 off any service or repair, or $500 off a new equipment installation—a small token of our appreciation."
             ],
             services: [
                 "Our services include drain cleaning, water heater installation, furnace and air conditioning services, and much more. We'd be happy to help with any of your future heating, air conditioning, and plumbing needs.",
                 "From drain cleaning to water heater installation to furnace and air conditioning services, we're here to help with all your plumbing and HVAC needs.",
-                "We offer drain cleaning, water heater installation, furnace and air conditioning services, and more. Whatever your heating, cooling, or plumbing needs, we're here to help."
+                "Drain cleaning, water heater installation, furnace and air conditioning services, and more—whatever your heating, cooling, or plumbing needs, we're here to help."
             ],
             maintenanceClub: [
                 "We also offer a Maintenance Club program that provides proactive care to support your manufacturer warranty requirements, extends the lifespan of your system, offers priority scheduling, and includes discounts on repairs and improvements.",
                 "Our Maintenance Club program provides proactive care that supports manufacturer warranty requirements, extends system lifespan, offers priority scheduling, and includes discounts on repairs and improvements.",
-                "We offer a Maintenance Club designed to support your warranty requirements, extend the life of your system, provide priority scheduling, and offer discounts on repairs and improvements."
+                "A Maintenance Club program is also available, providing proactive care to support your manufacturer warranty requirements, extend the lifespan of your system, offer priority scheduling, and include discounts on repairs and improvements."
             ],
             community: [
                 "Midstate Plumbing and Heating is deeply committed to giving back to the community, supporting the Ability 2 Believe Foundation and having proudly sponsored Hockey Day MN 2026.",
-                "Giving back matters to us. Midstate Plumbing and Heating proudly supports the Ability 2 Believe Foundation and proudly sponsored Hockey Day MN 2026.",
+                "Giving back matters to us. Midstate Plumbing and Heating proudly supports the Ability 2 Believe Foundation and was a sponsor of Hockey Day MN 2026.",
                 "Community involvement is important to us. Midstate Plumbing and Heating supports the Ability 2 Believe Foundation and proudly sponsored Hockey Day MN 2026."
             ],
             closing: [
@@ -682,13 +682,8 @@
                 addressee = "Current Resident";
             }
             
-            // Build greeting - "Dear FirstName" if we have one, otherwise "Greetings"
-            let greeting;
-            if (hasFirstName) {
-                greeting = `Dear ${firstName}`;
-            } else {
-                greeting = "Greetings";
-            }
+            // Build greeting - always "Greetings,"
+            let greeting = "Greetings,";
             
             // Clean mailing address - remove any name/residence references
             let mailingAddress = cleanAddress(customer.mailingAddress || address);
