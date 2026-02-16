@@ -3,8 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Midstate Plumbing - #10 Envelope Printer v1.4</title>
+    <title>Midstate Plumbing - #10 Envelope Printer v2.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <!-- Google Sheets API -->
+    <script src="https://apis.google.com/js/api.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -14,7 +22,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0e7490 0%, #06b6d4 100%);
+            background: linear-gradient(135deg, #b45309 0%, #f59e0b 100%);
             padding: 20px;
             min-height: 100vh;
         }
@@ -432,8 +440,122 @@
     <div class="container">
         <header>
             <h1>📮 #10 Envelope Printer</h1>
-            <div class="version">Version 1.4 | Midstate Plumbing & Heating</div>
+            <div class="version">Version 2.0 | Midstate Plumbing & Heating</div>
         </header>
+
+        <!-- Firebase Configuration Section -->
+        <div class="section no-print">
+            <h2>🔥 Firebase Setup (One-Time)</h2>
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="useFirebase" onchange="toggleFirebase()" style="width: auto;">
+                    <span>Enable Firebase Cloud Tracking</span>
+                </label>
+            </div>
+            
+            <div id="firebaseConfig" class="hidden" style="margin-top: 15px;">
+                <div class="form-group">
+                    <label>Firebase API Key</label>
+                    <input type="text" id="firebaseApiKey" placeholder="AIzaSyC...">
+                </div>
+                <div class="form-group">
+                    <label>Project ID</label>
+                    <input type="text" id="firebaseProjectId" placeholder="your-project-id">
+                </div>
+                <div class="form-group">
+                    <label>Database URL</label>
+                    <input type="text" id="firebaseDatabaseUrl" placeholder="https://your-project.firebaseio.com">
+                </div>
+                <div class="form-group">
+                    <label>Database Path (where to store envelope data)</label>
+                    <input type="text" id="firebaseDatabasePath" placeholder="envelope-tracking" value="envelope-tracking">
+                    <small style="color: #64748b; display: block; margin-top: 5px;">
+                        Data will be stored at: /your-path/file_12345/addresses/...
+                    </small>
+                </div>
+                <div class="button-group">
+                    <button class="btn-success" onclick="initializeFirebase()">
+                        <span>✓</span> Connect to Firebase
+                    </button>
+                </div>
+                <div id="firebaseStatus" style="margin-top: 10px; color: #64748b; font-size: 0.9em;"></div>
+            </div>
+
+            <div class="info-box">
+                <h3>🔥 Firebase Integration:</h3>
+                <ul>
+                    <li><strong>Persistent Tracking:</strong> Print history saved in the cloud, never lost</li>
+                    <li><strong>Multi-User:</strong> Share tracking across multiple computers/users</li>
+                    <li><strong>Real-Time Sync:</strong> See updates instantly across all devices</li>
+                    <li><strong>Existing Database:</strong> Enter a custom path to store data in your existing Firebase database (e.g., "tools/envelope-tracking")</li>
+                    <li><strong>Data Structure:</strong> Stores at /your-path/file_12345/addresses/0, 1, 2...</li>
+                    <li><strong>Setup:</strong> Get credentials from your existing Firebase project at <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Google Sheets Integration Section -->
+        <div class="section no-print">
+            <h2>📊 Google Sheets Integration (Optional)</h2>
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="useGoogleSheets" onchange="toggleGoogleSheets()" style="width: auto;">
+                    <span>Connect to Live Google Sheet</span>
+                </label>
+            </div>
+            
+            <div id="googleSheetsConfig" class="hidden" style="margin-top: 15px;">
+                <div class="form-group">
+                    <label>Google Sheets API Key</label>
+                    <input type="text" id="googleSheetsApiKey" placeholder="AIzaSy... (from Google Cloud Console)">
+                </div>
+                <div class="form-group">
+                    <label>Google Sheet ID</label>
+                    <input type="text" id="googleSheetId" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms">
+                    <small style="color: #64748b; display: block; margin-top: 5px;">
+                        Found in the URL: docs.google.com/spreadsheets/d/<strong>SHEET_ID</strong>/edit
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label>Sheet Name (Tab Name)</label>
+                    <input type="text" id="googleSheetName" placeholder="Sheet1" value="Sheet1">
+                </div>
+                <div class="form-group">
+                    <label>Address Column</label>
+                    <input type="text" id="googleSheetColumn" placeholder="M" value="M">
+                    <small style="color: #64748b; display: block; margin-top: 5px;">
+                        Column letter where addresses are stored
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label>Print Status Column (will be created if doesn't exist)</label>
+                    <input type="text" id="googleSheetStatusColumn" placeholder="N" value="N">
+                    <small style="color: #64748b; display: block; margin-top: 5px;">
+                        Column where print status will be written (e.g., "Printed 2x on 2/16/26")
+                    </small>
+                </div>
+                <div class="button-group">
+                    <button class="btn-success" onclick="connectGoogleSheet()">
+                        <span>✓</span> Load from Google Sheet
+                    </button>
+                    <button class="btn-primary" onclick="refreshFromSheet()">
+                        <span>🔄</span> Refresh Data
+                    </button>
+                </div>
+                <div id="googleSheetsStatus" style="margin-top: 10px; color: #64748b; font-size: 0.9em;"></div>
+            </div>
+
+            <div class="info-box">
+                <h3>📊 Google Sheets Benefits:</h3>
+                <ul>
+                    <li><strong>Live Data:</strong> Always print from the latest version of your spreadsheet</li>
+                    <li><strong>Two-Way Sync:</strong> Print status writes back to the sheet automatically</li>
+                    <li><strong>Team Access:</strong> Multiple people can update the sheet, everyone sees changes</li>
+                    <li><strong>Easy Corrections:</strong> Fix an address in the sheet, refresh here, reprint</li>
+                    <li><strong>Share Required:</strong> Sheet must be set to "Anyone with the link can view"</li>
+                </ul>
+            </div>
+        </div>
 
         <!-- Return Address Section -->
         <div class="section no-print">
@@ -446,10 +568,13 @@
 
         <!-- Upload Section -->
         <div class="section no-print">
-            <h2>2. Upload Spreadsheet</h2>
+            <h2>2. Upload Spreadsheet (or use Google Sheets above)</h2>
             <div class="form-group">
                 <label>Select File (CSV or Excel)</label>
                 <input type="file" id="fileInput" accept=".csv,.xlsx,.xls">
+                <small style="color: #64748b; display: block; margin-top: 5px;">
+                    Upload a file OR connect to Google Sheets above - not both
+                </small>
             </div>
             <div class="stats hidden" id="statsContainer">
                 <div class="stat-item">
@@ -474,9 +599,19 @@
                 </select>
             </div>
             <div class="button-group hidden" id="historyControls" style="margin-top: 10px;">
+                <button class="btn-primary" onclick="exportPrintHistory()" style="font-size: 0.9em; padding: 8px 16px;">
+                    <span>💾</span> Export Print History
+                </button>
+                <button class="btn-primary" onclick="document.getElementById('importHistory').click()" style="font-size: 0.9em; padding: 8px 16px;">
+                    <span>📂</span> Import Print History
+                </button>
                 <button class="btn-secondary" onclick="resetPrintHistory()" style="font-size: 0.9em; padding: 8px 16px;">
                     <span>🔄</span> Reset Print History
                 </button>
+                <input type="file" id="importHistory" accept=".json" style="display: none;" onchange="importPrintHistory(event)">
+            </div>
+            <div id="lastSaved" class="hidden" style="margin-top: 10px; padding: 10px; background: #f0fdf4; border-radius: 6px; font-size: 0.9em; color: #166534; text-align: center;">
+                ✓ Print history auto-saved
             </div>
             <div id="addressList" class="hidden"></div>
         </div>
@@ -571,6 +706,379 @@
         let addresses = [];
         let originalAddresses = [];
         let selectedIndex = null;
+        let database = null;
+        let firebaseInitialized = false;
+        let currentFileHash = null;
+        let databasePath = 'envelope-tracking'; // Default path
+        
+        // Google Sheets
+        let googleSheetsApiKey = null;
+        let googleSheetId = null;
+        let googleSheetName = 'Sheet1';
+        let googleSheetColumn = 'M';
+        let googleSheetStatusColumn = 'N';
+        let googleSheetsConnected = false;
+        let sheetsDataStartRow = 2; // Assumes row 1 is header
+
+        // Firebase Configuration
+        function toggleFirebase() {
+            const enabled = document.getElementById('useFirebase').checked;
+            const configDiv = document.getElementById('firebaseConfig');
+            
+            if (enabled) {
+                configDiv.classList.remove('hidden');
+            } else {
+                configDiv.classList.add('hidden');
+                firebaseInitialized = false;
+                database = null;
+                updateFirebaseStatus('Firebase disabled', '#64748b');
+            }
+        }
+
+        function initializeFirebase() {
+            const apiKey = document.getElementById('firebaseApiKey').value.trim();
+            const projectId = document.getElementById('firebaseProjectId').value.trim();
+            const databaseUrl = document.getElementById('firebaseDatabaseUrl').value.trim();
+            const dbPath = document.getElementById('firebaseDatabasePath').value.trim() || 'envelope-tracking';
+
+            if (!apiKey || !projectId || !databaseUrl) {
+                alert('Please fill in all Firebase configuration fields!');
+                return;
+            }
+
+            try {
+                const firebaseConfig = {
+                    apiKey: apiKey,
+                    projectId: projectId,
+                    databaseURL: databaseUrl,
+                    databasePath: dbPath
+                };
+
+                // Initialize Firebase
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                
+                database = firebase.database();
+                databasePath = dbPath;
+                firebaseInitialized = true;
+                
+                updateFirebaseStatus(`✓ Connected to Firebase at /${dbPath}/`, '#10b981');
+                
+                // Save config to localStorage for next time
+                localStorage.setItem('firebaseConfig', JSON.stringify(firebaseConfig));
+                
+                // Load existing print history if addresses are loaded
+                if (addresses.length > 0) {
+                    loadPrintHistoryFromFirebase();
+                }
+            } catch (error) {
+                console.error('Firebase initialization error:', error);
+                updateFirebaseStatus('✗ Connection failed: ' + error.message, '#ef4444');
+                firebaseInitialized = false;
+            }
+        }
+
+        function updateFirebaseStatus(message, color) {
+            const statusDiv = document.getElementById('firebaseStatus');
+            statusDiv.textContent = message;
+            statusDiv.style.color = color;
+        }
+
+        // Load saved Firebase config on page load
+        function generateFileHash(addresses) {
+            // Create a simple hash from the addresses to identify this file
+            const addressStrings = addresses.map(a => a.raw).join('|');
+            let hash = 0;
+            for (let i = 0; i < addressStrings.length; i++) {
+                const char = addressStrings.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return 'file_' + Math.abs(hash);
+        }
+
+        async function savePrintHistoryToFirebase(indices) {
+            if (!firebaseInitialized || !database || !currentFileHash) return;
+
+            try {
+                const updates = {};
+                indices.forEach(idx => {
+                    const addr = addresses[idx];
+                    updates[`${databasePath}/${currentFileHash}/addresses/${idx}`] = {
+                        printed: addr.printed,
+                        printCount: addr.printCount,
+                        lastPrinted: addr.lastPrinted,
+                        formatted: addr.formatted
+                    };
+                });
+
+                await database.ref().update(updates);
+                updateFirebaseStatus('✓ Synced to cloud', '#10b981');
+            } catch (error) {
+                console.error('Error saving to Firebase:', error);
+                updateFirebaseStatus('✗ Sync failed', '#ef4444');
+            }
+        }
+
+        async function loadPrintHistoryFromFirebase() {
+            if (!firebaseInitialized || !database || !currentFileHash) return;
+
+            try {
+                const snapshot = await database.ref(`${databasePath}/${currentFileHash}/addresses`).once('value');
+                const data = snapshot.val();
+
+                if (data) {
+                    Object.keys(data).forEach(idx => {
+                        const i = parseInt(idx);
+                        if (i < addresses.length && addresses[i]) {
+                            addresses[i].printed = data[idx].printed || false;
+                            addresses[i].printCount = data[idx].printCount || 0;
+                            addresses[i].lastPrinted = data[idx].lastPrinted || null;
+                        }
+                    });
+
+                    displayAddresses();
+                    updateStats();
+                    updateFirebaseStatus('✓ Loaded from cloud', '#10b981');
+                }
+            } catch (error) {
+                console.error('Error loading from Firebase:', error);
+                updateFirebaseStatus('✗ Load failed', '#ef4444');
+            }
+        }
+
+        // Google Sheets Integration
+        function toggleGoogleSheets() {
+            const enabled = document.getElementById('useGoogleSheets').checked;
+            const configDiv = document.getElementById('googleSheetsConfig');
+            
+            if (enabled) {
+                configDiv.classList.remove('hidden');
+            } else {
+                configDiv.classList.add('hidden');
+                googleSheetsConnected = false;
+                updateGoogleSheetsStatus('Google Sheets disconnected', '#64748b');
+            }
+        }
+
+        function updateGoogleSheetsStatus(message, color) {
+            const statusDiv = document.getElementById('googleSheetsStatus');
+            statusDiv.textContent = message;
+            statusDiv.style.color = color;
+        }
+
+        async function connectGoogleSheet() {
+            googleSheetsApiKey = document.getElementById('googleSheetsApiKey').value.trim();
+            googleSheetId = document.getElementById('googleSheetId').value.trim();
+            googleSheetName = document.getElementById('googleSheetName').value.trim() || 'Sheet1';
+            googleSheetColumn = document.getElementById('googleSheetColumn').value.trim() || 'M';
+            googleSheetStatusColumn = document.getElementById('googleSheetStatusColumn').value.trim() || 'N';
+
+            if (!googleSheetsApiKey || !googleSheetId) {
+                alert('Please fill in API Key and Sheet ID!');
+                return;
+            }
+
+            // Save config
+            const config = {
+                apiKey: googleSheetsApiKey,
+                sheetId: googleSheetId,
+                sheetName: googleSheetName,
+                column: googleSheetColumn,
+                statusColumn: googleSheetStatusColumn
+            };
+            localStorage.setItem('googleSheetsConfig', JSON.stringify(config));
+
+            // Load data
+            await loadFromGoogleSheet();
+        }
+
+        async function loadFromGoogleSheet() {
+            if (!googleSheetsApiKey || !googleSheetId) {
+                alert('Please configure Google Sheets first!');
+                return;
+            }
+
+            updateGoogleSheetsStatus('Loading from Google Sheets...', '#3b82f6');
+
+            try {
+                // Read addresses from specified column
+                const range = `${googleSheetName}!${googleSheetColumn}:${googleSheetColumn}`;
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetId}/values/${range}?key=${googleSheetsApiKey}`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error.message);
+                }
+
+                if (!data.values || data.values.length === 0) {
+                    updateGoogleSheetsStatus('No data found in column ' + googleSheetColumn, '#ef4444');
+                    return;
+                }
+
+                // Also read print status column if it exists
+                const statusRange = `${googleSheetName}!${googleSheetStatusColumn}:${googleSheetStatusColumn}`;
+                const statusUrl = `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetId}/values/${statusRange}?key=${googleSheetsApiKey}`;
+                const statusResponse = await fetch(statusUrl);
+                const statusData = await statusResponse.json();
+                const statusValues = statusData.values || [];
+
+                // Parse addresses
+                addresses = [];
+                for (let i = 1; i < data.values.length; i++) { // Start at 1 to skip header
+                    const address = data.values[i][0];
+                    
+                    if (address && address.toString().trim()) {
+                        const status = statusValues[i] ? statusValues[i][0] : '';
+                        const printInfo = parsePrintStatus(status);
+                        
+                        addresses.push({
+                            raw: address.toString().trim(),
+                            formatted: formatAddressUSPS(address.toString().trim()),
+                            printed: printInfo.printed,
+                            printCount: printInfo.printCount,
+                            lastPrinted: printInfo.lastPrinted,
+                            originalIndex: addresses.length,
+                            sheetRow: i + 1 // Row number in the sheet (1-indexed)
+                        });
+                    }
+                }
+
+                originalAddresses = [...addresses];
+                currentFileHash = generateFileHash(addresses);
+                googleSheetsConnected = true;
+
+                displayAddresses();
+                updateStats();
+                updateGoogleSheetsStatus(`✓ Loaded ${addresses.length} addresses from Google Sheets`, '#10b981');
+
+            } catch (error) {
+                console.error('Google Sheets error:', error);
+                updateGoogleSheetsStatus('✗ Error: ' + error.message, '#ef4444');
+                
+                if (error.message.includes('API key')) {
+                    alert('API key error. Make sure:\n1. You enabled Google Sheets API\n2. Your API key is correct\n3. Sheet is shared as "Anyone with the link can view"');
+                }
+            }
+        }
+
+        function parsePrintStatus(status) {
+            // Parse status like "Printed 2x on 2/16/26"
+            if (!status || !status.includes('Printed')) {
+                return { printed: false, printCount: 0, lastPrinted: null };
+            }
+
+            const match = status.match(/Printed (\d+)x on (.+)/);
+            if (match) {
+                return {
+                    printed: true,
+                    printCount: parseInt(match[1]),
+                    lastPrinted: match[2]
+                };
+            }
+
+            return { printed: true, printCount: 1, lastPrinted: status };
+        }
+
+        async function refreshFromSheet() {
+            if (!googleSheetsConnected) {
+                alert('Please connect to Google Sheets first!');
+                return;
+            }
+            await loadFromGoogleSheet();
+        }
+
+        async function updatePrintStatusInSheet(indices) {
+            if (!googleSheetsConnected || !googleSheetsApiKey || !googleSheetId) return;
+
+            try {
+                // Prepare batch update
+                const updates = [];
+                
+                indices.forEach(idx => {
+                    const addr = addresses[idx];
+                    if (addr.sheetRow) {
+                        const date = new Date().toLocaleDateString();
+                        const status = `Printed ${addr.printCount}x on ${date}`;
+                        
+                        updates.push({
+                            range: `${googleSheetName}!${googleSheetStatusColumn}${addr.sheetRow}`,
+                            values: [[status]]
+                        });
+                    }
+                });
+
+                if (updates.length === 0) return;
+
+                // Use batchUpdate API
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetId}/values:batchUpdate?key=${googleSheetsApiKey}`;
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        valueInputOption: 'RAW',
+                        data: updates
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.error) {
+                    console.error('Sheet update error:', result.error);
+                    updateGoogleSheetsStatus('✗ Failed to update sheet', '#ef4444');
+                } else {
+                    updateGoogleSheetsStatus(`✓ Updated ${updates.length} row(s) in sheet`, '#10b981');
+                }
+
+            } catch (error) {
+                console.error('Error updating Google Sheet:', error);
+                updateGoogleSheetsStatus('✗ Sheet update failed', '#ef4444');
+            }
+        }
+
+        // Load saved Google Sheets config on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Load Firebase config
+            const savedFirebaseConfig = localStorage.getItem('firebaseConfig');
+            if (savedFirebaseConfig) {
+                try {
+                    const config = JSON.parse(savedFirebaseConfig);
+                    document.getElementById('firebaseApiKey').value = config.apiKey;
+                    document.getElementById('firebaseProjectId').value = config.projectId;
+                    document.getElementById('firebaseDatabaseUrl').value = config.databaseURL;
+                    document.getElementById('firebaseDatabasePath').value = config.databasePath || 'envelope-tracking';
+                    document.getElementById('useFirebase').checked = true;
+                    toggleFirebase();
+                    
+                    setTimeout(() => initializeFirebase(), 500);
+                } catch (e) {
+                    console.error('Error loading saved Firebase config:', e);
+                }
+            }
+
+            // Load Google Sheets config
+            const savedSheetsConfig = localStorage.getItem('googleSheetsConfig');
+            if (savedSheetsConfig) {
+                try {
+                    const config = JSON.parse(savedSheetsConfig);
+                    document.getElementById('googleSheetsApiKey').value = config.apiKey;
+                    document.getElementById('googleSheetId').value = config.sheetId;
+                    document.getElementById('googleSheetName').value = config.sheetName || 'Sheet1';
+                    document.getElementById('googleSheetColumn').value = config.column || 'M';
+                    document.getElementById('googleSheetStatusColumn').value = config.statusColumn || 'N';
+                    document.getElementById('useGoogleSheets').checked = true;
+                    toggleGoogleSheets();
+                } catch (e) {
+                    console.error('Error loading saved Google Sheets config:', e);
+                }
+            }
+        });
 
         // File upload handler
         document.getElementById('fileInput').addEventListener('change', handleFileUpload);
@@ -615,8 +1123,16 @@
             // Save original order
             originalAddresses = [...addresses];
 
+            // Generate file hash
+            currentFileHash = generateFileHash(addresses);
+
             displayAddresses();
             updateStats();
+
+            // Load print history from Firebase if connected
+            if (firebaseInitialized) {
+                loadPrintHistoryFromFirebase();
+            }
         }
 
         function formatAddressUSPS(address) {
@@ -711,6 +1227,49 @@
             document.getElementById('totalCount').textContent = addresses.length;
             document.getElementById('printedCount').textContent = printed;
             document.getElementById('unprintedCount').textContent = unprinted;
+            
+            // Save to localStorage
+            savePrintHistory();
+        }
+
+        function savePrintHistory() {
+            try {
+                const historyData = addresses.map(addr => ({
+                    formatted: addr.formatted,
+                    printed: addr.printed,
+                    printCount: addr.printCount,
+                    lastPrinted: addr.lastPrinted,
+                    originalIndex: addr.originalIndex
+                }));
+                localStorage.setItem('midstate_envelope_history', JSON.stringify(historyData));
+                localStorage.setItem('midstate_envelope_timestamp', new Date().toISOString());
+            } catch (e) {
+                console.error('Failed to save print history:', e);
+            }
+        }
+
+        function loadPrintHistory() {
+            try {
+                const saved = localStorage.getItem('midstate_envelope_history');
+                if (!saved) return false;
+                
+                const historyData = JSON.parse(saved);
+                
+                // Match saved history with current addresses
+                addresses.forEach(addr => {
+                    const match = historyData.find(h => h.formatted === addr.formatted);
+                    if (match) {
+                        addr.printed = match.printed;
+                        addr.printCount = match.printCount;
+                        addr.lastPrinted = match.lastPrinted;
+                    }
+                });
+                
+                return true;
+            } catch (e) {
+                console.error('Failed to load print history:', e);
+                return false;
+            }
         }
 
         function sortAddresses() {
@@ -762,11 +1321,23 @@
             generateEnvelopes(0, addresses.length - 1, returnAddr);
             
             // Mark all as printed
-            addresses.forEach(addr => {
+            const indices = [];
+            addresses.forEach((addr, idx) => {
                 addr.printed = true;
                 addr.printCount++;
                 addr.lastPrinted = new Date().toISOString();
+                indices.push(idx);
             });
+            
+            // Save to Firebase
+            if (firebaseInitialized) {
+                savePrintHistoryToFirebase(indices);
+            }
+            
+            // Update Google Sheets
+            if (googleSheetsConnected) {
+                updatePrintStatusInSheet(indices);
+            }
             
             window.print();
             
@@ -812,6 +1383,16 @@
             addresses[idx].printed = true;
             addresses[idx].printCount++;
             addresses[idx].lastPrinted = new Date().toISOString();
+            
+            // Save to Firebase
+            if (firebaseInitialized) {
+                savePrintHistoryToFirebase([idx]);
+            }
+            
+            // Update Google Sheets
+            if (googleSheetsConnected) {
+                updatePrintStatusInSheet([idx]);
+            }
             
             window.print();
             
@@ -859,10 +1440,22 @@
             generateEnvelopes(from - 1, to - 1, returnAddr);
             
             // Mark range as printed
+            const indices = [];
             for (let i = from - 1; i < to; i++) {
                 addresses[i].printed = true;
                 addresses[i].printCount++;
                 addresses[i].lastPrinted = new Date().toISOString();
+                indices.push(i);
+            }
+            
+            // Save to Firebase
+            if (firebaseInitialized) {
+                savePrintHistoryToFirebase(indices);
+            }
+            
+            // Update Google Sheets
+            if (googleSheetsConnected) {
+                updatePrintStatusInSheet(indices);
             }
             
             window.print();
@@ -940,7 +1533,7 @@
         }
 
         // Set default return address
-        document.getElementById('returnAddress').value = 'MIDSTATE PLUMBING & HEATING\n3500 CANNON ST\nHASTINGS, MN 55033';
+        document.getElementById('returnAddress').value = 'MIDSTATE PLUMBING & HEATING\n3500 CANNON ST STE 100\nHASTINGS, MN 55033';
 
         function resetPrintHistory() {
             const confirm = window.confirm('This will clear all print history and reset all envelopes to "Not Printed".\n\nAre you sure?');
@@ -951,6 +1544,17 @@
                 addr.printCount = 0;
                 addr.lastPrinted = null;
             });
+            
+            // Clear Firebase data
+            if (firebaseInitialized && database && currentFileHash) {
+                database.ref(`${databasePath}/${currentFileHash}/addresses`).remove()
+                    .then(() => {
+                        updateFirebaseStatus('✓ History cleared from cloud', '#10b981');
+                    })
+                    .catch(error => {
+                        console.error('Error clearing Firebase:', error);
+                    });
+            }
             
             displayAddresses();
             updateStats();
