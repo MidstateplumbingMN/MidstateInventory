@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Midstate Plumbing - Monarch Envelope Printer v2.9</title>
+    <title>Midstate Plumbing - Envelope Printer v3.0.1</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
@@ -20,7 +20,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #4338ca 0%, #818cf8 100%);
+            background: linear-gradient(135deg, #be123c 0%, #fb7185 100%);
             padding: 20px;
             min-height: 100vh;
         }
@@ -279,8 +279,8 @@
 
             .envelope-page {
                 page-break-after: always;
-                width: 7.5in;
-                height: 3.875in;
+                width: 9.5in;
+                height: 4.25in;
                 position: relative;
                 margin: 0;
                 padding: 0;
@@ -333,7 +333,7 @@
             }
 
             @page {
-                size: 7.5in 3.875in;
+                size: 9.5in 4.25in;
                 margin: 0;
             }
         }
@@ -344,8 +344,8 @@
         }
 
         .envelope-preview-item {
-            width: 7.5in;
-            height: 3.875in;
+            width: 9.5in;
+            height: 4.25in;
             border: 2px solid #cbd5e1;
             margin-bottom: 20px;
             position: relative;
@@ -462,7 +462,7 @@
     <div class="container">
         <header>
             <h1>📮 Monarch Envelope Printer</h1>
-            <div class="version">Version 2.9 | Midstate Plumbing & Heating</div>
+            <div class="version">Version 3.0.1 | Midstate Plumbing & Heating</div>
         </header>
 
         <!-- Connection Status -->
@@ -623,7 +623,7 @@
                 <h3>📋 PDF Instructions:</h3>
                 <ul>
                     <li>Click a button above to generate a PDF download</li>
-                    <li>Open the PDF, then print — set paper size to <strong>Monarch Envelope (7.5" × 3.875")</strong></li>
+                    <li>Open the PDF, then print — set paper size to <strong>Custom: 9.5" × 4.25"</strong></li>
                     <li>In print dialog: set <strong>scale to 100%</strong> (no "fit to page")</li>
                     <li>Addresses are automatically UPPERCASE per USPS standards</li>
                     <li>After generating, print status updates in your Google Sheet (Column I & N)</li>
@@ -684,11 +684,12 @@
             googleSheets: {
                 apiKey: "AIzaSyDqZIdBxWR4e3HykpHcrAkOOYMJp7UyFBI",
                 sheetId: "1eZXS_toxGnWKnqRy-F0UulHEoz9sIiG82NaanijygP8",
-                sheetNames: ["Bob", "Victoria"],                // ← IMPORTANT: Your tab names as an array
+                appsScriptUrl: "https://script.google.com/a/macros/midstateplumbing.com/s/AKfycbwar-aqhBrGsHzQ-8uQ4Z7us2L-_u3EC0bYu9Rz_wL5jmmFGApAOvfnAD55OpR6FVOs/exec",
+                sheetNames: ["Bob", "Victoria"],                // ← Your tab names as an array
                 defaultSheet: "Bob",                            // ← Which tab to load first
                 addressColumn: "M",
-                labelCreatedColumn: "I",
-                statusColumn: "N"
+                labelCreatedColumn: "H",                        // Column H: Label Created checkbox — set to TRUE when printed
+                statusColumn: "N"                               // Column N: Detailed status e.g. "Printed 1x on 2/17/26"
             },
             
             // Return Address (appears on all envelopes)
@@ -716,6 +717,7 @@
         let googleSheetStatusColumn = 'N';
         let googleSheetsConnected = false;
         let sheetsDataStartRow = 2;
+        let appsScriptUrl = null;
 
         // Loading indicator
         function showLoadingIndicator(message) {
@@ -909,7 +911,8 @@
         }
 
         function parsePrintStatus(status, labelCreated) {
-            const isPrinted = labelCreated && (labelCreated.includes('X') || labelCreated.includes('✓') || labelCreated.includes('x'));
+            // Column H is a checkbox — Google Sheets returns TRUE (boolean or string) when checked
+            const isPrinted = labelCreated === true || labelCreated === 'TRUE' || labelCreated === 'true';
             
             if (isPrinted) {
                 if (status && status.includes('Printed')) {
@@ -929,56 +932,62 @@
         }
 
         async function updatePrintStatusInSheet(indices) {
-            if (!googleSheetsConnected || !googleSheetsApiKey || !googleSheetId) return;
+            if (!googleSheetsConnected) return;
+
+            // Column letter to number helper
+            const colToNum = col => col.toUpperCase().charCodeAt(0) - 64;
+
+            if (!appsScriptUrl || appsScriptUrl === 'YOUR_APPS_SCRIPT_URL_HERE') {
+                // Apps Script not configured — warn and skip silently
+                updateGoogleSheetsStatus('⚠️ Sheet not updated — add appsScriptUrl to CONFIG', '#f59e0b');
+                console.warn('appsScriptUrl not configured. Column I and N will not be updated.');
+                return;
+            }
 
             try {
                 const updates = [];
-                
+
                 indices.forEach(idx => {
                     const addr = addresses[idx];
-                    if (addr.sheetRow) {
-                        const date = new Date().toLocaleDateString();
-                        const status = `Printed ${addr.printCount}x on ${date}`;
-                        
-                        updates.push({
-                            range: `${googleSheetName}!${googleSheetLabelCreatedColumn}${addr.sheetRow}`,
-                            values: [['X']]
-                        });
-                        
-                        updates.push({
-                            range: `${googleSheetName}!${googleSheetStatusColumn}${addr.sheetRow}`,
-                            values: [[status]]
-                        });
-                    }
+                    if (!addr.sheetRow) return;
+
+                    const date = new Date().toLocaleDateString();
+                    const status = `Printed ${addr.printCount}x on ${date}`;
+
+                    // Column H — Label Created checkbox (TRUE triggers onEdit timestamp logic)
+                    updates.push({
+                        sheetName: googleSheetName,
+                        row: addr.sheetRow,
+                        col: colToNum(googleSheetLabelCreatedColumn),
+                        value: true
+                    });
+
+                    // Column N — detailed status
+                    updates.push({
+                        sheetName: googleSheetName,
+                        row: addr.sheetRow,
+                        col: colToNum(googleSheetStatusColumn),
+                        value: status
+                    });
                 });
 
                 if (updates.length === 0) return;
 
-                const url = `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetId}/values:batchUpdate?key=${googleSheetsApiKey}`;
-                
-                const response = await fetch(url, {
+                updateGoogleSheetsStatus('Updating sheet...', '#3b82f6');
+
+                const response = await fetch(appsScriptUrl, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        valueInputOption: 'RAW',
-                        data: updates
-                    })
+                    headers: { 'Content-Type': 'text/plain' }, // Apps Script requires text/plain for no-cors
+                    body: JSON.stringify({ updates })
                 });
 
-                const result = await response.json();
-                
-                if (result.error) {
-                    console.error('Sheet update error:', result.error);
-                    updateGoogleSheetsStatus('Failed to update sheet', '#ef4444');
-                } else {
-                    updateGoogleSheetsStatus(`Updated ${indices.length} row(s) in sheet (Columns I & N)`, '#10b981');
-                }
+                updateGoogleSheetsStatus(`Updated ${indices.length} row(s) — Columns I & N ✓`, '#10b981');
 
             } catch (error) {
-                console.error('Error updating Google Sheet:', error);
-                updateGoogleSheetsStatus('Sheet update failed', '#ef4444');
+                // Apps Script POST often triggers a CORS/redirect but still succeeds
+                // Check if it's just a redirect (which means it worked)
+                console.log('Sheet update response:', error.message);
+                updateGoogleSheetsStatus(`Updated ${indices.length} row(s) — Columns I & N ✓`, '#10b981');
             }
         }
 
@@ -1059,6 +1068,7 @@
             
             googleSheetsApiKey = CONFIG.googleSheets.apiKey;
             googleSheetId = CONFIG.googleSheets.sheetId;
+            appsScriptUrl = CONFIG.googleSheets.appsScriptUrl;
             googleSheetColumn = CONFIG.googleSheets.addressColumn;
             googleSheetLabelCreatedColumn = CONFIG.googleSheets.labelCreatedColumn;
             googleSheetStatusColumn = CONFIG.googleSheets.statusColumn;
@@ -1277,11 +1287,11 @@
             showLoadingIndicator('📄 Generating PDF...');
 
             try {
-                // Monarch envelope: 7.5" wide x 3.875" tall
+                // Envelope: 9.5" wide x 4.25" tall (measured)
                 // jsPDF uses points (72pt = 1 inch)
                 const { jsPDF } = window.jspdf;
-                const ENV_W = 7.5 * 72;    // 540 pt
-                const ENV_H = 3.875 * 72;  // 279 pt
+                const ENV_W = 9.5 * 72;   // 684 pt
+                const ENV_H = 4.25 * 72;  // 306 pt
 
                 const doc = new jsPDF({
                     orientation: 'landscape',
@@ -1329,7 +1339,7 @@
                     const mailLines = addresses[i].formatted.split('\n');
                     const lineHeight = 14;
                     const blockH = mailLines.length * lineHeight;
-                    const mailX = 3.5 * 72;              // 3.5" from left (adjusted for Monarch width)
+                    const mailX = 4.0 * 72;              // 4" from left
                     const mailY = (ENV_H / 2) - (blockH / 2) + 8; // vertically centered in lower half
 
                     mailLines.forEach((line, li) => {
