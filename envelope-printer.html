@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Midstate Plumbing - Envelope Printer 9.5x4.25 v3.2</title>
+    <title>Midstate Plumbing - #10 Envelope Printer v3.4</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
@@ -20,7 +20,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #d97706 0%, #fbbf24 100%);
+            background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
             padding: 20px;
             min-height: 100vh;
         }
@@ -280,7 +280,7 @@
             .envelope-page {
                 page-break-after: always;
                 width: 9.5in;
-                height: 4.25in;
+                height: 4.125in;
                 position: relative;
                 margin: 0;
                 padding: 0;
@@ -333,7 +333,7 @@
             }
 
             @page {
-                size: 9.5in 4.25in;
+                size: 9.5in 4.125in;
                 margin: 0;
             }
         }
@@ -345,7 +345,7 @@
 
         .envelope-preview-item {
             width: 9.5in;
-            height: 4.25in;
+            height: 4.125in;
             border: 2px solid #cbd5e1;
             margin-bottom: 20px;
             position: relative;
@@ -461,8 +461,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>📮 Envelope Printer — 9.5" × 4.25"</h1>
-            <div class="version">Version 3.2 | Midstate Plumbing & Heating</div>
+            <h1>📮 #10 Envelope Printer</h1>
+            <div class="version">Version 3.4 | Midstate Plumbing & Heating</div>
         </header>
 
         <!-- Connection Status -->
@@ -623,7 +623,7 @@
                 <h3>📋 PDF Instructions:</h3>
                 <ul>
                     <li>Click a button above to generate a PDF download</li>
-                    <li>Open the PDF, then print — set paper size to <strong>Custom: 9.5" × 4.25"</strong></li>
+                    <li>Open the PDF, then print — set paper size to <strong>#10 Envelope (9.5" × 4.125")</strong></li>
                     <li>In print dialog: set <strong>scale to 100%</strong> (no "fit to page")</li>
                     <li>Addresses are automatically UPPERCASE per USPS standards</li>
                     <li>After generating, print status updates in your Google Sheet (Column I & N)</li>
@@ -1287,69 +1287,68 @@
             showLoadingIndicator('📄 Generating PDF...');
 
             try {
-                // Envelope: 9.5" wide x 4.25" tall (measured)
+                // #10 Envelope: 9.5" wide x 4.125" tall (standard)
                 const { jsPDF } = window.jspdf;
 
-                // Use inches throughout — no unit conversion confusion
                 const doc = new jsPDF({
                     orientation: 'landscape',
                     unit: 'in',
-                    format: [4.25, 9.5]  // jsPDF landscape: [short-side, long-side]
+                    format: [4.125, 9.5]
                 });
 
                 const returnLines = returnAddr.split('\n');
                 const showPostage = document.getElementById('showPostageBox').checked;
 
                 for (let i = startIdx; i <= endIdx; i++) {
-                    if (i > startIdx) doc.addPage([4.25, 9.5], 'landscape');
+                    if (i > startIdx) doc.addPage([4.125, 9.5], 'landscape');
 
-                    // ── Return Address — top-left (shifted left 1", down 0.5") ──
-                    // Was: 0.4" from left, 0.5" from top
-                    // Now: -0.6" from left (wraps to right side), 1.0" from top
+                    // ── Return Address — top-left corner ──
+                    // USPS standard: 0.375" from left, 0.25" from top
                     doc.setFont('helvetica', 'normal');
-                    doc.setFontSize(8);
-                    let retY = 1.0;  // moved down 0.5"
+                    doc.setFontSize(9);
+                    let retY = 0.3;
                     returnLines.forEach(line => {
-                        doc.text(line.toUpperCase(), 0.4, retY);  // keeping left as-is since -0.6" would be off-page
-                        retY += 0.13;
+                        doc.text(line.toUpperCase(), 0.375, retY);
+                        retY += 0.14;
                     });
 
-                    // ── Postage placeholder — top-right (shifted down 0.5") ──
+                    // ── Postage Box — top-right corner ──
+                    // 1" x 0.75", positioned 0.25" from top/right
                     if (showPostage) {
-                        const boxW = 1.25;
+                        const boxW = 1.0;
                         const boxH = 0.75;
-                        const boxX = 9.5 - boxW - 0.35;
-                        const boxY = 0.8;  // was 0.3", now 0.8" (down 0.5")
+                        const boxX = 9.5 - boxW - 0.25;  // 8.25" from left
+                        const boxY = 0.25;
                         doc.setDrawColor(180, 180, 180);
-                        doc.setLineDash([0.07, 0.04]);
+                        doc.setLineDash([0.05, 0.03]);
                         doc.rect(boxX, boxY, boxW, boxH);
                         doc.setLineDash([]);
-                        doc.setFontSize(6);
+                        doc.setFontSize(7);
                         doc.setTextColor(160, 160, 160);
-                        doc.text('POSTAGE', boxX + boxW / 2, boxY + boxH / 2 - 0.05, { align: 'center' });
-                        doc.text('AREA',    boxX + boxW / 2, boxY + boxH / 2 + 0.1,  { align: 'center' });
+                        doc.text('STAMP', boxX + boxW / 2, boxY + boxH / 2, { align: 'center' });
                         doc.setTextColor(0, 0, 0);
                     }
 
-                    // ── Mailing Address — center (shifted left 1", down 0.5") ──
-                    // Was: 4.0" from left
-                    // Now: 3.0" from left
+                    // ── Mailing Address — centered in USPS OCR zone ──
+                    // Horizontal: 5" from left (right of center)
+                    // Vertical: centered (4.125 / 2 = 2.0625")
                     doc.setFont('helvetica', 'normal');
-                    doc.setFontSize(11);
+                    doc.setFontSize(12);
                     const mailLines = addresses[i].formatted.split('\n');
-                    const lineH = 0.2;
+                    const lineH = 0.18;
                     const blockHeight = mailLines.length * lineH;
-                    const mailX = 3.0;  // was 4.0", now 3.0" (left 1")
-                    const mailY = (4.25 / 2) - (blockHeight / 2) + 0.6;  // was +0.1, now +0.6 (down 0.5")
+                    
+                    const mailX = 5.0;  // Right of center for USPS OCR zone
+                    const mailY = 2.1 - (blockHeight / 2);  // Vertically centered
 
                     mailLines.forEach((line, li) => {
                         doc.text(line, mailX, mailY + li * lineH);
                     });
 
-                    // ── Envelope number — bottom-left, tiny ──
-                    doc.setFontSize(5);
-                    doc.setTextColor(210, 210, 210);
-                    doc.text(`#${i + 1}`, 0.15, 4.15);
+                    // ── Envelope number — tiny, bottom-left ──
+                    doc.setFontSize(6);
+                    doc.setTextColor(220, 220, 220);
+                    doc.text(`#${i + 1}`, 0.1, 4.0);
                     doc.setTextColor(0, 0, 0);
                 }
 
