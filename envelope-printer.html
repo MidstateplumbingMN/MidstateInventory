@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Midstate Plumbing - #10 Envelope Printer v3.7</title>
+    <title>Midstate Plumbing - #10 Envelope Printer v3.8</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
@@ -462,7 +462,7 @@
     <div class="container">
         <header>
             <h1>📮 #10 Envelope Printer</h1>
-            <div class="version">Version 3.7 | Midstate Plumbing & Heating</div>
+            <div class="version">Version 3.8 | Midstate Plumbing & Heating</div>
         </header>
 
         <!-- Connection Status -->
@@ -1309,7 +1309,7 @@
                     const lineH = 0.2;
                     const blockHeight = mailLines.length * lineH;
                     
-                    const mailX = 4.75;
+                    const mailX = 3.25;  // Was 4.75", moved left 1.5" to 3.25"
                     const mailY = 2.2 - (blockHeight / 2);
 
                     mailLines.forEach((line, li) => {
