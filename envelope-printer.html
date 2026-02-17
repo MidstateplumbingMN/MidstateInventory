@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Midstate Plumbing - #10 Envelope Printer v2.7.1</title>
+    <title>Midstate Plumbing - #10 Envelope Printer v2.8</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    
-    <!-- Google Sheets API -->
-    <script src="https://apis.google.com/js/api.js"></script>
     
     <style>
         * {
@@ -22,7 +20,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+            background: linear-gradient(135deg, #ea580c 0%, #fb923c 100%);
             padding: 20px;
             min-height: 100vh;
         }
@@ -464,7 +462,7 @@
     <div class="container">
         <header>
             <h1>📮 #10 Envelope Printer</h1>
-            <div class="version">Version 2.7.1 | Midstate Plumbing & Heating</div>
+            <div class="version">Version 2.8 | Midstate Plumbing & Heating</div>
         </header>
 
         <!-- Connection Status -->
@@ -578,17 +576,17 @@
 
         <!-- Print Options Section -->
         <div class="section no-print">
-            <h2>3. Print Options</h2>
+            <h2>3. Generate PDF</h2>
             
             <div class="button-group">
-                <button class="btn-success" onclick="printAll()">
-                    <span>🖨️</span> Print All Envelopes
+                <button class="btn-success" onclick="generatePDF('all')">
+                    <span>📄</span> PDF — All Envelopes
                 </button>
-                <button class="btn-primary" onclick="printSingle()">
-                    <span>📄</span> Print Single
+                <button class="btn-primary" onclick="showSingleOptions()">
+                    <span>📄</span> PDF — Single
                 </button>
-                <button class="btn-primary" onclick="printRange()">
-                    <span>📑</span> Print Range
+                <button class="btn-primary" onclick="showRangeOptions()">
+                    <span>📄</span> PDF — Range
                 </button>
                 <button class="btn-secondary" onclick="showPreview()">
                     <span>👁️</span> Preview
@@ -596,33 +594,39 @@
             </div>
 
             <div id="singlePrintOptions" class="hidden" style="margin-top: 15px;">
-                <div class="form-group">
-                    <label>Select Envelope Number</label>
+                <div class="form-group" style="max-width: 300px;">
+                    <label>Envelope Number</label>
                     <input type="number" id="singleNumber" min="1" value="1">
                 </div>
+                <button class="btn-primary" onclick="generatePDF('single')" style="margin-top: 10px;">
+                    <span>📄</span> Generate PDF
+                </button>
             </div>
 
             <div id="rangePrintOptions" class="hidden" style="margin-top: 15px;">
-                <div class="range-inputs">
+                <div class="range-inputs" style="max-width: 400px;">
                     <div class="form-group">
                         <label>From</label>
                         <input type="number" id="rangeFrom" min="1" value="1">
                     </div>
                     <div class="form-group">
                         <label>To</label>
-                        <input type="number" id="rangeTo" min="1" value="1">
+                        <input type="number" id="rangeTo" min="1" value="10">
                     </div>
                 </div>
+                <button class="btn-primary" onclick="generatePDF('range')" style="margin-top: 10px;">
+                    <span>📄</span> Generate PDF
+                </button>
             </div>
 
-            <div class="info-box">
-                <h3>📋 USPS Compliance Notes:</h3>
+            <div class="info-box" style="margin-top: 15px;">
+                <h3>📋 PDF Instructions:</h3>
                 <ul>
-                    <li>Addresses are automatically formatted in UPPERCASE per USPS standards</li>
-                    <li>Return address positioned at 0.5" from top and left edges</li>
-                    <li>Mailing address centered on envelope (USPS OCR read zone)</li>
-                    <li>#10 Envelope size: 4.125" x 9.5"</li>
-                    <li>Make sure your printer is set to "Envelope #10" size</li>
+                    <li>Click a button above to generate a PDF download</li>
+                    <li>Open the PDF, then print — set paper size to <strong>#10 Envelope (9.5" × 4.125")</strong></li>
+                    <li>In print dialog: set <strong>scale to 100%</strong> (no "fit to page")</li>
+                    <li>Addresses are automatically UPPERCASE per USPS standards</li>
+                    <li>After generating, print status updates in your Google Sheet (Column I & N)</li>
                 </ul>
             </div>
         </div>
@@ -1215,114 +1219,19 @@
             return match ? match[1] : '99999';
         }
 
-        function printAll() {
-            if (addresses.length === 0) {
-                alert('Please load addresses first!');
-                return;
-            }
-
-            const returnAddr = document.getElementById('returnAddress').value.trim();
-            if (!returnAddr) {
-                alert('Please enter a return address!');
-                return;
-            }
-
-            const alreadyPrinted = addresses.filter(a => a.printed).length;
-            if (alreadyPrinted > 0) {
-                const confirm = window.confirm(`${alreadyPrinted} envelope(s) have already been printed.\n\nDo you want to print them again?`);
-                if (!confirm) return;
-            }
-
-            generateEnvelopes(0, addresses.length - 1, returnAddr);
-            
-            const indices = [];
-            addresses.forEach((addr, idx) => {
-                addr.printed = true;
-                addr.printCount++;
-                addr.lastPrinted = new Date().toISOString();
-                indices.push(idx);
-            });
-            
-            if (firebaseInitialized) {
-                savePrintHistoryToFirebase(indices);
-            }
-            
-            if (googleSheetsConnected) {
-                updatePrintStatusInSheet(indices);
-            }
-            
-            window.print();
-            
-            setTimeout(() => {
-                displayAddresses();
-                updateStats();
-            }, 500);
-        }
-
-        function printSingle() {
+        function showSingleOptions() {
             document.getElementById('singlePrintOptions').classList.toggle('hidden');
             document.getElementById('rangePrintOptions').classList.add('hidden');
-
-            if (addresses.length === 0) {
-                alert('Please load addresses first!');
-                return;
-            }
-
-            const singleNum = parseInt(document.getElementById('singleNumber').value);
-            if (singleNum < 1 || singleNum > addresses.length) {
-                alert(`Please enter a number between 1 and ${addresses.length}`);
-                return;
-            }
-
-            const returnAddr = document.getElementById('returnAddress').value.trim();
-            if (!returnAddr) {
-                alert('Please enter a return address!');
-                return;
-            }
-
-            const idx = singleNum - 1;
-            
-            if (addresses[idx].printed) {
-                const confirm = window.confirm(`Envelope #${singleNum} has already been printed ${addresses[idx].printCount} time(s).\n\nDo you want to print it again?`);
-                if (!confirm) return;
-            }
-
-            generateEnvelopes(idx, idx, returnAddr);
-            
-            addresses[idx].printed = true;
-            addresses[idx].printCount++;
-            addresses[idx].lastPrinted = new Date().toISOString();
-            
-            if (firebaseInitialized) {
-                savePrintHistoryToFirebase([idx]);
-            }
-            
-            if (googleSheetsConnected) {
-                updatePrintStatusInSheet([idx]);
-            }
-            
-            window.print();
-            
-            setTimeout(() => {
-                displayAddresses();
-                updateStats();
-            }, 500);
         }
 
-        function printRange() {
+        function showRangeOptions() {
             document.getElementById('rangePrintOptions').classList.toggle('hidden');
             document.getElementById('singlePrintOptions').classList.add('hidden');
+        }
 
+        async function generatePDF(mode) {
             if (addresses.length === 0) {
                 alert('Please load addresses first!');
-                return;
-            }
-
-            const from = parseInt(document.getElementById('rangeFrom').value);
-            const to = parseInt(document.getElementById('rangeTo').value);
-
-            if (from < 1 || to > addresses.length || from > to) {
-                alert(`Please enter a valid range between 1 and ${addresses.length}`);
                 return;
             }
 
@@ -1332,41 +1241,142 @@
                 return;
             }
 
-            let alreadyPrinted = 0;
-            for (let i = from - 1; i < to; i++) {
-                if (addresses[i].printed) alreadyPrinted++;
-            }
-            
-            if (alreadyPrinted > 0) {
-                const confirm = window.confirm(`${alreadyPrinted} envelope(s) in this range have already been printed.\n\nDo you want to print them again?`);
-                if (!confirm) return;
+            // Determine which envelopes to print
+            let startIdx, endIdx;
+
+            if (mode === 'all') {
+                startIdx = 0;
+                endIdx = addresses.length - 1;
+            } else if (mode === 'single') {
+                const num = parseInt(document.getElementById('singleNumber').value);
+                if (isNaN(num) || num < 1 || num > addresses.length) {
+                    alert(`Please enter a number between 1 and ${addresses.length}`);
+                    return;
+                }
+                startIdx = num - 1;
+                endIdx = num - 1;
+            } else if (mode === 'range') {
+                startIdx = parseInt(document.getElementById('rangeFrom').value) - 1;
+                endIdx = parseInt(document.getElementById('rangeTo').value) - 1;
+                if (isNaN(startIdx) || isNaN(endIdx) || startIdx < 0 || endIdx >= addresses.length || startIdx > endIdx) {
+                    alert(`Please enter a valid range between 1 and ${addresses.length}`);
+                    return;
+                }
             }
 
-            generateEnvelopes(from - 1, to - 1, returnAddr);
-            
-            const indices = [];
-            for (let i = from - 1; i < to; i++) {
-                addresses[i].printed = true;
-                addresses[i].printCount++;
-                addresses[i].lastPrinted = new Date().toISOString();
-                indices.push(i);
+            // Warn about reprints
+            const alreadyPrinted = [];
+            for (let i = startIdx; i <= endIdx; i++) {
+                if (addresses[i].printed) alreadyPrinted.push(i + 1);
             }
-            
-            if (firebaseInitialized) {
-                savePrintHistoryToFirebase(indices);
+            if (alreadyPrinted.length > 0) {
+                const ok = window.confirm(`${alreadyPrinted.length} envelope(s) have already been printed.\n\nGenerate PDF anyway?`);
+                if (!ok) return;
             }
-            
-            if (googleSheetsConnected) {
-                updatePrintStatusInSheet(indices);
-            }
-            
-            window.print();
-            
-            setTimeout(() => {
+
+            showLoadingIndicator('📄 Generating PDF...');
+
+            try {
+                // #10 envelope: 9.5" wide x 4.125" tall
+                // jsPDF uses points by default (72pt = 1 inch)
+                const { jsPDF } = window.jspdf;
+                const ENV_W = 9.5 * 72;   // 684 pt
+                const ENV_H = 4.125 * 72; // 297 pt
+
+                const doc = new jsPDF({
+                    orientation: 'landscape',
+                    unit: 'pt',
+                    format: [ENV_H, ENV_W]  // jsPDF takes [height, width] for landscape
+                });
+
+                const returnLines = returnAddr.split('\n');
+                const showPostage = document.getElementById('showPostageBox').checked;
+
+                for (let i = startIdx; i <= endIdx; i++) {
+                    if (i > startIdx) doc.addPage([ENV_H, ENV_W], 'landscape');
+
+                    // ── Return Address (0.5" from top-left) ──
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(9);
+                    const retX = 0.5 * 72;  // 36pt
+                    let retY = 0.55 * 72;   // 39.6pt
+                    returnLines.forEach(line => {
+                        doc.text(line.toUpperCase(), retX, retY);
+                        retY += 11;
+                    });
+
+                    // ── Postage placeholder (top-right) ──
+                    if (showPostage) {
+                        const boxX = ENV_W - (2.5 * 72);
+                        const boxY = 0.4 * 72;
+                        const boxW = 2.0 * 72;
+                        const boxH = 0.9 * 72;
+                        doc.setDrawColor(180, 180, 180);
+                        doc.setLineDash([4, 3]);
+                        doc.rect(boxX, boxY, boxW, boxH);
+                        doc.setLineDash([]);
+                        doc.setFontSize(7);
+                        doc.setTextColor(160, 160, 160);
+                        doc.text('POSTAGE', boxX + boxW / 2, boxY + boxH / 2 - 4, { align: 'center' });
+                        doc.text('AREA', boxX + boxW / 2, boxY + boxH / 2 + 5, { align: 'center' });
+                        doc.setTextColor(0, 0, 0);
+                    }
+
+                    // ── Mailing Address (centered in OCR read zone) ──
+                    // USPS OCR zone: starts ~2" from top, 4" from left
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(11);
+                    const mailLines = addresses[i].formatted.split('\n');
+                    const lineHeight = 14;
+                    const blockH = mailLines.length * lineHeight;
+                    const mailX = 4.0 * 72;              // 4" from left
+                    const mailY = (ENV_H / 2) - (blockH / 2) + 8; // vertically centered in lower half
+
+                    mailLines.forEach((line, li) => {
+                        doc.text(line, mailX, mailY + li * lineHeight);
+                    });
+
+                    // ── Envelope number (small, bottom-left corner) ──
+                    doc.setFontSize(6);
+                    doc.setTextColor(200, 200, 200);
+                    doc.text(`#${i + 1}`, 6, ENV_H - 5);
+                    doc.setTextColor(0, 0, 0);
+                }
+
+                // Save the PDF
+                const count = endIdx - startIdx + 1;
+                const sheetLabel = googleSheetName || 'envelopes';
+                const filename = `envelopes-${sheetLabel}-${count}-${new Date().toISOString().split('T')[0]}.pdf`;
+                doc.save(filename);
+
+                // Mark as printed and update sheet
+                const indices = [];
+                for (let i = startIdx; i <= endIdx; i++) {
+                    addresses[i].printed = true;
+                    addresses[i].printCount++;
+                    addresses[i].lastPrinted = new Date().toISOString();
+                    indices.push(i);
+                }
+
+                if (firebaseInitialized) savePrintHistoryToFirebase(indices);
+                if (googleSheetsConnected) updatePrintStatusInSheet(indices);
+
                 displayAddresses();
                 updateStats();
-            }, 500);
+
+                hideLoadingIndicator();
+
+            } catch (err) {
+                hideLoadingIndicator();
+                console.error('PDF generation error:', err);
+                alert('PDF generation failed: ' + err.message);
+            }
         }
+
+        // Keep showPreview for screen preview only (no print)
+        function printAll()   { generatePDF('all'); }
+        function printSingle(){ showSingleOptions(); }
+        function printRange() { showRangeOptions(); }
 
         function showPreview() {
             if (addresses.length === 0) {
