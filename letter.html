@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v3.76 - Updated 2026-02-12 -->
+<!-- Mid-State Letter Generator v4.01 - Google Sheets Integrated - 2026-02-18 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v3.65</title>
+    <title>Mid-State Plumbing - Letter Generator v4.01 (Google Sheets)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -20,7 +20,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0d9488 0%, #2dd4bf 100%);
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -35,7 +35,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -160,6 +160,85 @@
 
         .stat-card p {
             opacity: 0.9;
+        }
+
+        /* Customer List Table */
+        .customer-list-section {
+            display: none;
+            margin-bottom: 30px;
+        }
+
+        .customer-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+
+        .customer-table th, .customer-table td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .customer-table th {
+            background: #f3f4f6;
+            font-weight: 600;
+            color: #374151;
+            position: sticky;
+            top: 0;
+        }
+
+        .customer-table tr:hover {
+            background: #f9fafb;
+        }
+
+        .customer-table tr.selected {
+            background: #dbeafe;
+        }
+
+        .customer-table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+
+        .range-selector {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .range-selector label {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .range-selector input[type="number"] {
+            width: 80px;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .range-selector select {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+            margin: 5px;
         }
 
         /* FORMAL LETTER STYLES - Optimized for printing/PDF */
@@ -373,7 +452,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 3.76</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 4.01 - Google Sheets Integrated</div>
         </div>
 
         <div class="content">
@@ -403,13 +482,32 @@
                         </div>
                         <button onclick="saveCustomSigner()" style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 5px;">Save Custom Signer</button>
                     </div>
-                    
-                    <div id="sheetSignerMapping" style="display: none; margin-top: 15px; padding: 15px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px;">
-                        <h4 style="margin-bottom: 10px; color: #856404;">📋 Multiple Sheets Detected - Assign Signers</h4>
-                        <p style="font-size: 13px; color: #856404; margin-bottom: 15px;">Your spreadsheet has multiple sheets. Please confirm who should sign letters for each sheet:</p>
-                        <div id="sheetSignerList"></div>
+                </div>
+
+                <div class="input-group" style="margin-top: 20px;">
+                    <label>Select Sheet Tab:</label>
+                    <div style="display: flex; gap: 15px; margin-top: 10px;">
+                        <button class="btn" onclick="loadIntegratedSheet('Bob')" style="flex: 1;">
+                            📋 Load Bob's List
+                        </button>
+                        <button class="btn" onclick="loadIntegratedSheet('Victoria')" style="flex: 1;">
+                            📋 Load Victoria's List
+                        </button>
                     </div>
                 </div>
+
+                <div style="text-align: center; margin: 25px 0; color: #666;">— OR —</div>
+
+                <div class="input-group">
+                    <label for="sheetUrl">Custom Google Sheet URL:</label>
+                    <input type="text" id="sheetUrl" placeholder="Paste a different Google Sheet URL here..." style="margin-bottom: 10px;">
+                    <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
+                        ⚠️ Sheet must be published: File → Share → Publish to web → Select sheet → Publish
+                    </p>
+                    <button class="btn" onclick="loadFromGoogleSheet()" id="loadSheetBtn">📊 Load from URL</button>
+                </div>
+
+                <div style="text-align: center; margin: 20px 0; color: #666;">— OR —</div>
 
                 <div class="input-group">
                     <label for="fileUpload">Upload CSV or Excel File:</label>
@@ -417,9 +515,64 @@
                 </div>
                 
                 <p style="margin-top: 20px; color: #666; font-size: 0.9em;">
-                    <strong>Note:</strong> File will load automatically when selected. Expected columns: 
+                    <strong>Expected columns:</strong> 
                     A=Builder, B=First Name, C=Last Name, D=Address, H=Year Built, L=Department, M=Mailing Address
                 </p>
+            </div>
+
+            <!-- Customer List Section -->
+            <div class="customer-list-section" id="customerListSection">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="color: #374151; margin: 0;">📋 Customer List</h3>
+                    <span id="currentTabIndicator" style="background: #1e40af; color: white; padding: 5px 15px; border-radius: 20px; font-size: 14px;"></span>
+                </div>
+                
+                <div class="range-selector">
+                    <label>Print Range:</label>
+                    <select id="rangeType" onchange="updateRangeInputs()">
+                        <option value="all">All Letters</option>
+                        <option value="single">Single Letter</option>
+                        <option value="range">Range</option>
+                        <option value="selected">Selected Only</option>
+                    </select>
+                    
+                    <div id="singleInputs" style="display: none;">
+                        <label>Letter #:</label>
+                        <input type="number" id="singleNum" min="1" value="1">
+                    </div>
+                    
+                    <div id="rangeInputs" style="display: none;">
+                        <label>From:</label>
+                        <input type="number" id="rangeFrom" min="1" value="1">
+                        <label>To:</label>
+                        <input type="number" id="rangeTo" min="1" value="1">
+                    </div>
+                    
+                    <button class="btn btn-small" onclick="previewSelected()">👁️ Preview</button>
+                    <button class="btn btn-small" onclick="generateCombinedPDF()">📄 Generate PDF</button>
+                </div>
+
+                <div class="customer-table-container">
+                    <table class="customer-table" id="customerTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+                                <th style="width: 50px;">#</th>
+                                <th>Name</th>
+                                <th>Address</th>
+                                <th>Builder</th>
+                                <th>Year</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customerTableBody">
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-small" onclick="showUploadSection()">🔄 Load Different Data</button>
+                    <span id="selectionCount" style="padding: 10px; color: #666;">0 selected</span>
+                </div>
             </div>
 
             <div class="preview-section" id="previewSection">
@@ -459,22 +612,481 @@
                 </div>
 
                 <div style="text-align: center; margin-top: 30px;">
+                    <button class="btn" onclick="backToList()">📋 Back to List</button>
                     <button class="btn" onclick="window.print()">🖨️ Print Current Letter</button>
                     <button class="btn btn-secondary" onclick="downloadCurrentPDF()">📄 Download as PDF</button>
-                    <button class="btn" onclick="downloadAllPDFs()">📥 Download All Letters (ZIP)</button>
-                    <button class="btn" onclick="resetApp()">🔄 Load New Data</button>
+                    <button class="btn" onclick="generateCombinedPDF()">📥 Download Selected as PDF</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Version 3.4 - Fixed horizontal logo and contact layout
+        // Version 4.01 - Google Sheets Edition with Integrated Sheet
+        
+        // ===== CONFIGURATION =====
+        const SHEET_ID = '1eZXS_toxGnWKnqRy-F0UulHEoz9sIiG82NaanijygP8';
+        const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwar-aqhBrGsHzQ-8uQ4Z7us2L-_u3EC0bYu9Rz_wL5jmmFGApAOvfnAD55OpR6FVOs/exec';
+        const SHEET_TABS = [
+            { name: 'Bob', signer: 'robert' },
+            { name: 'Victoria', signer: 'victoria' }
+        ];
+        const LETTER_PRINTED_COL = 15; // Column O
+        // ===========================
+        
         let customerData = [];
         let currentIndex = 0;
+        let currentSheetTab = 'Bob'; // Currently selected sheet tab
         let sheetSignerMap = {}; // Maps sheet names to signer keys
         let spreadsheetSheets = []; // Array of sheet names
         let sheetSigners = {}; // Maps sheet numbers to signer info {name, email, etc.}
+        let selectedCustomers = new Set(); // Track selected customer indices
+        let previewIndices = []; // Indices to preview/print
+
+        // Google Sheets functions
+        async function loadIntegratedSheet(tabName) {
+            currentSheetTab = tabName;
+            
+            // Set the signer based on sheet tab
+            const tabConfig = SHEET_TABS.find(t => t.name === tabName);
+            if (tabConfig) {
+                document.getElementById('signerSelect').value = tabConfig.signer;
+            }
+            
+            showLoading(true);
+            hideError();
+
+            try {
+                // Fetch the specific tab as CSV
+                const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`;
+                const response = await fetch(csvUrl);
+                
+                if (!response.ok) {
+                    throw new Error('Could not access sheet. Make sure it is shared properly.');
+                }
+
+                const csvText = await response.text();
+                
+                // Parse CSV using PapaParse
+                Papa.parse(csvText, {
+                    header: false,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        processSheetData(results.data, tabName);
+                    },
+                    error: function(error) {
+                        showError('Error parsing sheet data: ' + error.message);
+                        showLoading(false);
+                    }
+                });
+
+            } catch (error) {
+                showError('Error loading sheet: ' + error.message);
+                showLoading(false);
+            }
+        }
+
+        // Mark letter as printed by updating Column O with timestamp
+        async function markLetterPrinted(customerIndex) {
+            const customer = customerData[customerIndex];
+            if (!customer || !customer.sheetRow) return false;
+            
+            const timestamp = new Date().toLocaleString();
+            
+            try {
+                const response = await fetch(WEBAPP_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    mode: 'no-cors', // Required for Apps Script
+                    body: JSON.stringify({
+                        updates: [{
+                            sheetName: customer.sheetTab || currentSheetTab,
+                            row: customer.sheetRow,
+                            col: LETTER_PRINTED_COL,
+                            value: timestamp
+                        }]
+                    })
+                });
+                
+                console.log(`Marked letter printed for row ${customer.sheetRow}`);
+                return true;
+            } catch (error) {
+                console.error('Error marking letter as printed:', error);
+                return false;
+            }
+        }
+
+        // Mark multiple letters as printed
+        async function markMultipleLettersPrinted(indices) {
+            const updates = indices.map(index => {
+                const customer = customerData[index];
+                if (!customer || !customer.sheetRow) return null;
+                return {
+                    sheetName: customer.sheetTab || currentSheetTab,
+                    row: customer.sheetRow,
+                    col: LETTER_PRINTED_COL,
+                    value: new Date().toLocaleString()
+                };
+            }).filter(u => u !== null);
+
+            if (updates.length === 0) return;
+
+            try {
+                await fetch(WEBAPP_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    mode: 'no-cors',
+                    body: JSON.stringify({ updates })
+                });
+                
+                console.log(`Marked ${updates.length} letters as printed`);
+            } catch (error) {
+                console.error('Error marking letters as printed:', error);
+            }
+        }
+
+        function extractSheetId(url) {
+            // Extract sheet ID from various Google Sheets URL formats
+            const patterns = [
+                /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/,
+                /\/d\/([a-zA-Z0-9-_]+)/,
+                /key=([a-zA-Z0-9-_]+)/
+            ];
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match) return match[1];
+            }
+            return null;
+        }
+
+        async function loadFromGoogleSheet() {
+            const urlInput = document.getElementById('sheetUrl').value.trim();
+            if (!urlInput) {
+                showError('Please enter a Google Sheet URL');
+                return;
+            }
+
+            const sheetId = extractSheetId(urlInput);
+            if (!sheetId) {
+                showError('Could not extract Sheet ID from URL. Please check the URL format.');
+                return;
+            }
+
+            showLoading(true);
+            hideError();
+
+            try {
+                // Try to fetch as published CSV
+                const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+                const response = await fetch(csvUrl);
+                
+                if (!response.ok) {
+                    throw new Error('Could not access sheet. Make sure it is published to web (File → Share → Publish to web)');
+                }
+
+                const csvText = await response.text();
+                
+                // Parse CSV using PapaParse
+                Papa.parse(csvText, {
+                    header: false,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        processSheetData(results.data);
+                    },
+                    error: function(error) {
+                        showError('Error parsing sheet data: ' + error.message);
+                        showLoading(false);
+                    }
+                });
+
+            } catch (error) {
+                showError('Error loading Google Sheet: ' + error.message);
+                showLoading(false);
+            }
+        }
+
+        function processSheetData(rows, sheetTabName = null) {
+            if (rows.length < 2) {
+                showError('Sheet appears to be empty or has no data rows');
+                showLoading(false);
+                return;
+            }
+
+            // Skip header row, process data
+            const dataRows = rows.slice(1);
+            customerData = [];
+
+            dataRows.forEach((row, index) => {
+                if (row.length < 4) return; // Skip incomplete rows
+                
+                const builder = row[0] || '';
+                const firstName = row[1] || '';
+                const lastName = row[2] || '';
+                const address = row[3] || '';
+                const yearBuilt = row[7] || ''; // Column H
+                const department = row[11] || ''; // Column L
+                const mailingAddress = row[12] || ''; // Column M
+                
+                // Check columns I and J for skip logic (same as existing script)
+                const columnI = row[8] ? row[8].toString().trim().toLowerCase() : '';
+                const columnJ = row[9] ? row[9].toString().trim().toLowerCase() : '';
+                
+                // Skip if marked as complete
+                if (['true', 'yes', 'x', '1', 'checked'].includes(columnI) ||
+                    ['true', 'yes', 'x', '1', 'checked'].includes(columnJ)) {
+                    return;
+                }
+
+                // Skip if no address
+                if (!address.trim()) return;
+
+                customerData.push({
+                    builder: builder.trim(),
+                    firstName: firstName.trim(),
+                    lastName: lastName.trim(),
+                    address: address.trim(),
+                    yearBuilt: yearBuilt.toString().trim(),
+                    department: department.trim(),
+                    mailingAddress: mailingAddress.trim(),
+                    sheetIndex: 0,
+                    sheetRow: index + 2, // +2 because: +1 for header row, +1 for 1-based indexing
+                    sheetTab: sheetTabName || currentSheetTab
+                });
+            });
+
+            if (customerData.length === 0) {
+                showError('No valid customer data found in sheet (rows may be marked complete)');
+                showLoading(false);
+                return;
+            }
+
+            showLoading(false);
+            populateCustomerTable();
+            showCustomerListSection();
+        }
+
+        function populateCustomerTable() {
+            const tbody = document.getElementById('customerTableBody');
+            tbody.innerHTML = '';
+            selectedCustomers.clear();
+
+            customerData.forEach((customer, index) => {
+                const name = [customer.firstName, customer.lastName].filter(Boolean).join(' ') || 'Current Resident';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="customer-checkbox" data-index="${index}" onchange="toggleCustomerSelection(${index})"></td>
+                    <td>${index + 1}</td>
+                    <td>${escapeHtml(name)}</td>
+                    <td>${escapeHtml(customer.address)}</td>
+                    <td>${escapeHtml(customer.builder || '—')}</td>
+                    <td>${escapeHtml(customer.yearBuilt || '—')}</td>
+                `;
+                tr.id = `customer-row-${index}`;
+                tbody.appendChild(tr);
+            });
+
+            // Update range inputs
+            document.getElementById('rangeTo').max = customerData.length;
+            document.getElementById('rangeTo').value = customerData.length;
+            document.getElementById('singleNum').max = customerData.length;
+            
+            updateSelectionCount();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function toggleCustomerSelection(index) {
+            const checkbox = document.querySelector(`input[data-index="${index}"]`);
+            const row = document.getElementById(`customer-row-${index}`);
+            
+            if (checkbox.checked) {
+                selectedCustomers.add(index);
+                row.classList.add('selected');
+            } else {
+                selectedCustomers.delete(index);
+                row.classList.remove('selected');
+            }
+            updateSelectionCount();
+        }
+
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.customer-checkbox');
+            
+            checkboxes.forEach((cb, index) => {
+                cb.checked = selectAll.checked;
+                const row = document.getElementById(`customer-row-${index}`);
+                if (selectAll.checked) {
+                    selectedCustomers.add(index);
+                    row.classList.add('selected');
+                } else {
+                    selectedCustomers.delete(index);
+                    row.classList.remove('selected');
+                }
+            });
+            updateSelectionCount();
+        }
+
+        function updateSelectionCount() {
+            document.getElementById('selectionCount').textContent = `${selectedCustomers.size} selected`;
+        }
+
+        function updateRangeInputs() {
+            const rangeType = document.getElementById('rangeType').value;
+            document.getElementById('singleInputs').style.display = rangeType === 'single' ? 'inline-flex' : 'none';
+            document.getElementById('rangeInputs').style.display = rangeType === 'range' ? 'inline-flex' : 'none';
+        }
+
+        function getSelectedIndices() {
+            const rangeType = document.getElementById('rangeType').value;
+            let indices = [];
+
+            switch (rangeType) {
+                case 'all':
+                    indices = customerData.map((_, i) => i);
+                    break;
+                case 'single':
+                    const num = parseInt(document.getElementById('singleNum').value) - 1;
+                    if (num >= 0 && num < customerData.length) {
+                        indices = [num];
+                    }
+                    break;
+                case 'range':
+                    const from = parseInt(document.getElementById('rangeFrom').value) - 1;
+                    const to = parseInt(document.getElementById('rangeTo').value) - 1;
+                    for (let i = Math.max(0, from); i <= Math.min(to, customerData.length - 1); i++) {
+                        indices.push(i);
+                    }
+                    break;
+                case 'selected':
+                    indices = Array.from(selectedCustomers).sort((a, b) => a - b);
+                    break;
+            }
+            return indices;
+        }
+
+        function previewSelected() {
+            previewIndices = getSelectedIndices();
+            if (previewIndices.length === 0) {
+                showError('No letters selected for preview');
+                return;
+            }
+
+            currentIndex = 0;
+            document.getElementById('customerListSection').style.display = 'none';
+            document.getElementById('previewSection').style.display = 'block';
+            document.getElementById('totalLetters').textContent = previewIndices.length;
+            
+            displayLetter(previewIndices[currentIndex]);
+            updateNavigation();
+        }
+
+        function showCustomerListSection() {
+            document.getElementById('uploadSection').style.display = 'none';
+            document.getElementById('customerListSection').style.display = 'block';
+            document.getElementById('previewSection').style.display = 'none';
+            
+            // Update tab indicator
+            const indicator = document.getElementById('currentTabIndicator');
+            if (currentSheetTab) {
+                indicator.textContent = `${currentSheetTab}'s List`;
+                indicator.style.display = 'inline-block';
+            } else {
+                indicator.style.display = 'none';
+            }
+        }
+
+        function showUploadSection() {
+            document.getElementById('uploadSection').style.display = 'block';
+            document.getElementById('customerListSection').style.display = 'none';
+            document.getElementById('previewSection').style.display = 'none';
+        }
+
+        async function generateCombinedPDF() {
+            const indices = getSelectedIndices();
+            if (indices.length === 0) {
+                showError('No letters selected for PDF generation');
+                return;
+            }
+
+            showLoading(true);
+            document.getElementById('loading').textContent = `Generating PDF with ${indices.length} letter(s)...`;
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'in', 'letter');
+                
+                // Temporarily show preview section to render letters
+                const previewSection = document.getElementById('previewSection');
+                const wasHidden = previewSection.style.display === 'none';
+                previewSection.style.display = 'block';
+
+                for (let i = 0; i < indices.length; i++) {
+                    document.getElementById('loading').textContent = `Generating letter ${i + 1} of ${indices.length}...`;
+                    
+                    displayLetter(indices[i]);
+                    await new Promise(resolve => setTimeout(resolve, 100)); // Let render complete
+                    
+                    const letterElement = document.querySelector('.letter-page');
+                    if (!letterElement) continue;
+
+                    const canvas = await html2canvas(letterElement, {
+                        scale: 2,
+                        useCORS: true,
+                        logging: false,
+                        backgroundColor: '#ffffff'
+                    });
+
+                    if (i > 0) pdf.addPage();
+                    
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                    pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11);
+                }
+
+                if (wasHidden) {
+                    previewSection.style.display = 'none';
+                    document.getElementById('customerListSection').style.display = 'block';
+                }
+
+                // Generate filename
+                const timestamp = new Date().toISOString().slice(0, 10);
+                const filename = indices.length === 1 
+                    ? `Letter_${indices[0] + 1}_${timestamp}.pdf`
+                    : `Letters_${indices.length}_${timestamp}.pdf`;
+
+                pdf.save(filename);
+                showLoading(false);
+
+                // Ask if user wants to mark letters as printed
+                if (WEBAPP_URL && WEBAPP_URL !== 'YOUR_WEBAPP_URL_HERE') {
+                    const markPrinted = confirm(`PDF generated with ${indices.length} letter(s).\n\nMark these letters as printed in the spreadsheet?\n(This will add a timestamp to Column O)`);
+                    if (markPrinted) {
+                        showLoading(true);
+                        document.getElementById('loading').textContent = 'Updating spreadsheet...';
+                        await markMultipleLettersPrinted(indices);
+                        showLoading(false);
+                        alert('Letters marked as printed in spreadsheet.');
+                        
+                        // Reload the sheet to reflect changes
+                        if (currentSheetTab) {
+                            loadIntegratedSheet(currentSheetTab);
+                        }
+                    }
+                }
+
+            } catch (error) {
+                showError('Error generating PDF: ' + error.message);
+                showLoading(false);
+            }
+        }
 
         const signerInfo = {
             robert: {
@@ -836,31 +1448,52 @@
             }
         }
 
-        function displayLetter(index) {
-            if (index < 0 || index >= customerData.length) return;
+        function displayLetter(customerIndex) {
+            if (customerIndex < 0 || customerIndex >= customerData.length) return;
             
-            currentIndex = index;
-            const customer = customerData[index];
+            const customer = customerData[customerIndex];
             const letterHTML = generateLetter(customer);
             
             document.getElementById('letterContainer').innerHTML = letterHTML;
-            document.getElementById('currentIndex').textContent = index + 1;
-            document.getElementById('navInfo').textContent = `Letter ${index + 1} of ${customerData.length}`;
             
-            document.getElementById('prevBtn').disabled = index === 0;
-            document.getElementById('nextBtn').disabled = index === customerData.length - 1;
+            // Find position in previewIndices for display
+            const previewPos = previewIndices.indexOf(customerIndex);
+            if (previewPos !== -1) {
+                currentIndex = previewPos;
+            }
+            
+            updateNavigation();
+        }
+
+        function updateNavigation() {
+            const total = previewIndices.length || customerData.length;
+            const current = currentIndex + 1;
+            
+            document.getElementById('currentIndex').textContent = current;
+            document.getElementById('totalLetters').textContent = total;
+            document.getElementById('navInfo').textContent = `Letter ${current} of ${total}`;
+            
+            document.getElementById('prevBtn').disabled = currentIndex === 0;
+            document.getElementById('nextBtn').disabled = currentIndex >= total - 1;
         }
 
         function nextLetter() {
-            if (currentIndex < customerData.length - 1) {
-                displayLetter(currentIndex + 1);
+            if (currentIndex < previewIndices.length - 1) {
+                currentIndex++;
+                displayLetter(previewIndices[currentIndex]);
             }
         }
 
         function previousLetter() {
             if (currentIndex > 0) {
-                displayLetter(currentIndex - 1);
+                currentIndex--;
+                displayLetter(previewIndices[currentIndex]);
             }
+        }
+
+        function backToList() {
+            document.getElementById('previewSection').style.display = 'none';
+            document.getElementById('customerListSection').style.display = 'block';
         }
 
         function parseCustomerData(rows) {
@@ -1192,10 +1825,9 @@
         }
 
         function showPreview() {
-            document.getElementById('uploadSection').style.display = 'none';
-            document.getElementById('previewSection').style.display = 'block';
-            document.getElementById('totalLetters').textContent = customerData.length;
-            displayLetter(0);
+            // For file uploads, populate customer table and show list section
+            populateCustomerTable();
+            showCustomerListSection();
         }
 
         function searchCustomer() {
@@ -1260,11 +1892,14 @@
 
         function resetApp() {
             document.getElementById('uploadSection').style.display = 'block';
+            document.getElementById('customerListSection').style.display = 'none';
             document.getElementById('previewSection').style.display = 'none';
-            document.getElementById('sheetsUrl').value = '';
+            document.getElementById('sheetUrl').value = '';
             document.getElementById('fileUpload').value = '';
             customerData = [];
             currentIndex = 0;
+            previewIndices = [];
+            selectedCustomers.clear();
             hideError();
         }
 
