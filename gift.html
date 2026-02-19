@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mid-State Gift Certificate Numbering Tool</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -49,43 +47,6 @@
 
         .content {
             padding: 40px;
-        }
-
-        .mode-selector {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        .mode-card {
-            padding: 20px;
-            border: 3px solid #e5e7eb;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-        }
-
-        .mode-card:hover {
-            border-color: #2563eb;
-            background: #eff6ff;
-        }
-
-        .mode-card.active {
-            border-color: #2563eb;
-            background: #eff6ff;
-        }
-
-        .mode-card h3 {
-            color: #1e40af;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-
-        .mode-card p {
-            color: #6b7280;
-            font-size: 13px;
         }
 
         .step {
@@ -304,40 +265,6 @@
             color: #1e40af;
         }
 
-        .spreadsheet-preview {
-            background: white;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .spreadsheet-preview table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        .spreadsheet-preview th {
-            background: #f3f4f6;
-            padding: 10px;
-            text-align: left;
-            border-bottom: 2px solid #e5e7eb;
-            font-weight: 600;
-            color: #374151;
-        }
-
-        .spreadsheet-preview td {
-            padding: 8px 10px;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .spreadsheet-preview tr:hover {
-            background: #f9fafb;
-        }
-
         .cert-number-highlight {
             background: #dbeafe;
             color: #1e40af;
@@ -345,6 +272,72 @@
             padding: 4px 8px;
             border-radius: 4px;
             display: inline-block;
+        }
+
+        .btn-print-single {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-print-single:hover {
+            background: #d97706;
+            transform: translateY(-1px);
+        }
+
+        .single-cert-section {
+            background: #fffbeb;
+            border: 2px solid #fcd34d;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .single-cert-section h3 {
+            color: #92400e;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .single-cert-controls {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .single-cert-controls .input-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .btn-amber {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-amber:hover {
+            background: #d97706;
+        }
+
+        @media print {
+            body * { visibility: hidden; }
+            #printFrame, #printFrame * { visibility: visible; }
+            #printFrame { position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: none; }
         }
     </style>
 </head>
@@ -363,17 +356,6 @@
 
             <div class="error" id="error"></div>
 
-            <div class="mode-selector">
-                <div class="mode-card active" onclick="selectMode('spreadsheet')" id="modeSpreadsheet">
-                    <h3>📊 From Spreadsheet</h3>
-                    <p>Add cert numbers to your customer list</p>
-                </div>
-                <div class="mode-card" onclick="selectMode('quantity')" id="modeQuantity">
-                    <h3>🔢 Set Quantity</h3>
-                    <p>Generate specific number of certificates</p>
-                </div>
-            </div>
-
             <div class="step">
                 <h2><span class="step-number">1</span> Upload Template Certificate (PDF)</h2>
                 <div class="input-group">
@@ -385,20 +367,7 @@
                 </div>
             </div>
 
-            <!-- Spreadsheet Mode -->
-            <div class="step" id="stepSpreadsheet">
-                <h2><span class="step-number">2</span> Upload Customer Spreadsheet</h2>
-                <div class="input-group">
-                    <label for="customerFile">Select your customer spreadsheet (CSV or Excel):</label>
-                    <input type="file" id="customerFile" accept=".csv,.xlsx,.xls" onchange="loadCustomers()">
-                    <div class="help-text">
-                        📊 Same format as your letter spreadsheet. Certificate numbers will be added to a new column.
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quantity Mode -->
-            <div class="step hidden" id="stepQuantity">
+            <div class="step" id="stepQuantity">
                 <h2><span class="step-number">2</span> Set Quantity</h2>
                 <div class="input-group">
                     <label for="certQuantity">How many certificates do you need?</label>
@@ -470,33 +439,12 @@
                     </div>
                 </div>
 
-                <!-- Spreadsheet Preview -->
-                <div class="spreadsheet-preview" id="spreadsheetPreview" style="display: none;">
-                    <h3 style="margin-bottom: 15px; color: #1e40af;">📋 Preview with Certificate Numbers</h3>
-                    <table id="previewTable">
-                        <thead>
-                            <tr>
-                                <th>First Name</th>
-                                <th>Last Name</th>
-                                <th>Address</th>
-                                <th>Certificate #</th>
-                            </tr>
-                        </thead>
-                        <tbody id="previewTableBody">
-                        </tbody>
-                    </table>
-                </div>
-
                 <button class="btn btn-secondary" onclick="generateCertificates()" style="margin-top: 30px;" id="generateBtn">
                     🎁 Download All Certificates (Single PDF)
                 </button>
 
                 <button class="btn btn-secondary" onclick="generateIndividualCertificates()" style="margin-top: 10px; background: #8b5cf6;" id="generateIndividualBtn">
                     📦 Download Individual Certificates (Separate PDFs)
-                </button>
-
-                <button class="btn btn-download" onclick="downloadUpdatedSpreadsheet()" style="margin-top: 10px; display: none;" id="downloadSpreadsheetBtn">
-                    📥 Download Updated Spreadsheet with Certificate Numbers
                 </button>
 
                 <div class="success-message" id="successMessage"></div>
@@ -510,37 +458,31 @@
                         <div id="progressBar" style="background: #2563eb; height: 100%; width: 0%; transition: width 0.3s;"></div>
                     </div>
                 </div>
+
+                <!-- Single Certificate Print Section -->
+                <div class="single-cert-section" id="singleCertSection" style="display:none;">
+                    <h3>🖨️ Print a Single Certificate</h3>
+                    <p style="color: #78350f; font-size: 13px; margin-bottom: 15px;">Enter a certificate number or pick one from the list above using the 🖨️ button.</p>
+                    <div class="single-cert-controls">
+                        <div class="input-group">
+                            <label for="singleCertNum" style="color: #92400e;">Certificate Number:</label>
+                            <input type="text" id="singleCertNum" placeholder="e.g. MSP-2026-001">
+                        </div>
+                        <button class="btn-amber" onclick="printSingleCertificate()">🖨️ Print Certificate</button>
+                        <button class="btn-amber" onclick="downloadSingleCertificate()" style="background:#8b5cf6;">⬇️ Download</button>
+                    </div>
+                    <div class="success-message" id="singleSuccessMessage" style="margin-top:10px;"></div>
+                </div>
+
+                <!-- Hidden iframe for printing -->
+                <iframe id="printFrame" style="display:none;"></iframe>
             </div>
         </div>
     </div>
 
     <script>
         let templatePDF = null;
-        let customerData = [];
-        let currentMode = 'spreadsheet';
-        let originalSpreadsheetData = null;
-        let spreadsheetType = null;
         const currentYear = new Date().getFullYear();
-
-        function selectMode(mode) {
-            currentMode = mode;
-            
-            // Update UI
-            document.getElementById('modeSpreadsheet').classList.toggle('active', mode === 'spreadsheet');
-            document.getElementById('modeQuantity').classList.toggle('active', mode === 'quantity');
-            
-            document.getElementById('stepSpreadsheet').classList.toggle('hidden', mode !== 'spreadsheet');
-            document.getElementById('stepQuantity').classList.toggle('hidden', mode !== 'quantity');
-            
-            document.getElementById('downloadSpreadsheetBtn').style.display = 'none';
-            document.getElementById('spreadsheetPreview').style.display = 'none';
-            
-            if (mode === 'quantity') {
-                updateQuantityPreview();
-            } else if (customerData.length > 0) {
-                updatePreview();
-            }
-        }
 
         async function loadTemplate() {
             const file = document.getElementById('templatePDF').files[0];
@@ -552,7 +494,7 @@
                 templatePDF = await PDFLib.PDFDocument.load(arrayBuffer);
                 showError('');
                 showSuccess('✓ Template loaded successfully!', 'successMessage');
-                updatePreview();
+                updateQuantityPreview();
             } catch (error) {
                 console.error('PDF loading error:', error);
                 showError('Error loading PDF template: ' + error.message);
@@ -560,144 +502,7 @@
             showLoading(false);
         }
 
-        async function loadCustomers() {
-            const file = document.getElementById('customerFile').files[0];
-            if (!file) return;
-
-            showLoading(true, 'Loading spreadsheet...');
-            const fileName = file.name.toLowerCase();
-            spreadsheetType = fileName.endsWith('.csv') ? 'csv' : 'xlsx';
-
-            if (spreadsheetType === 'xlsx') {
-                const reader = new FileReader();
-                reader.onload = async function(e) {
-                    try {
-                        const data = new Uint8Array(e.target.result);
-                        const workbook = XLSX.read(data, {type: 'array'});
-                        
-                        console.log(`Found ${workbook.SheetNames.length} sheets:`, workbook.SheetNames);
-                        
-                        // Process all sheets and combine data
-                        let allRows = [];
-                        let headerRow = null;
-                        
-                        for (let sheetIndex = 0; sheetIndex < workbook.SheetNames.length; sheetIndex++) {
-                            const sheetName = workbook.SheetNames[sheetIndex];
-                            const sheet = workbook.Sheets[sheetName];
-                            const rows = XLSX.utils.sheet_to_json(sheet, {header: 1});
-                            
-                            console.log(`Sheet "${sheetName}" has ${rows.length} rows`);
-                            
-                            if (sheetIndex === 0) {
-                                // First sheet - include header
-                                headerRow = rows[0];
-                                allRows = rows;
-                            } else {
-                                // Additional sheets - skip header row (row 0), add rest
-                                for (let i = 1; i < rows.length; i++) {
-                                    if (rows[i] && rows[i].length > 0) {
-                                        allRows.push(rows[i]);
-                                    }
-                                }
-                            }
-                        }
-                        
-                        console.log(`Total combined rows: ${allRows.length}`);
-                        
-                        originalSpreadsheetData = {
-                            workbook: workbook,
-                            allRows: allRows,
-                            headerRow: headerRow
-                        };
-                        
-                        customerData = parseCustomerData(allRows);
-                        showLoading(false);
-                        
-                        if (customerData.length === 0) {
-                            showError('No valid customer records found in spreadsheet.');
-                        } else {
-                            showError('');
-                            const sheetInfo = workbook.SheetNames.length > 1 ? 
-                                ` from ${workbook.SheetNames.length} sheets` : '';
-                            showSuccess(`✓ Loaded ${customerData.length} customers${sheetInfo} successfully!`, 'successMessage');
-                            updatePreview();
-                        }
-                    } catch (error) {
-                        showLoading(false);
-                        console.error('Excel parsing error:', error);
-                        showError('Error reading Excel file: ' + error.message);
-                    }
-                };
-                reader.readAsArrayBuffer(file);
-            } else {
-                Papa.parse(file, {
-                    complete: function(results) {
-                        originalSpreadsheetData = {
-                            allRows: results.data,
-                            headerRow: results.data[0]
-                        };
-                        customerData = parseCustomerData(results.data);
-                        showLoading(false);
-                        
-                        if (customerData.length === 0) {
-                            showError('No valid customer records found in CSV.');
-                        } else {
-                            showError('');
-                            showSuccess(`✓ Loaded ${customerData.length} customers successfully!`, 'successMessage');
-                            updatePreview();
-                        }
-                    },
-                    error: function(error) {
-                        showLoading(false);
-                        console.error('CSV parsing error:', error);
-                        showError('Error reading CSV file: ' + error.message);
-                    }
-                });
-            }
-        }
-
-        function parseCustomerData(rows) {
-            const customers = [];
-            
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
-                
-                if (!row || row.length === 0) continue;
-                
-                // Skip if column I or J is checked (complete)
-                const columnI = row[8] ? row[8].toString().trim().toLowerCase() : '';
-                const columnJ = row[9] ? row[9].toString().trim().toLowerCase() : '';
-                
-                if (columnI === 'true' || columnI === 'yes' || columnI === 'x' || columnI === '1' || columnI === 'checked') {
-                    continue;
-                }
-                
-                if (columnJ === 'true' || columnJ === 'yes' || columnJ === 'x' || columnJ === '1' || columnJ === 'checked') {
-                    continue;
-                }
-                
-                const hasName = (row[1] && row[1].toString().trim()) || (row[2] && row[2].toString().trim());
-                const hasAddress = row[3] && row[3].toString().trim();
-                
-                if (!hasName && !hasAddress) {
-                    continue;
-                }
-                
-                customers.push({
-                    rowIndex: i,
-                    firstName: row[1] ? row[1].toString().trim() : '',
-                    lastName: row[2] ? row[2].toString().trim() : '',
-                    address: row[3] ? row[3].toString().trim() : '',
-                    mailingAddress: row[12] ? row[12].toString().trim() : (row[3] ? row[3].toString().trim() : '')
-                });
-            }
-            
-            return customers;
-        }
-
         function updateQuantityPreview() {
-            if (currentMode !== 'quantity') return;
-            
             const quantity = parseInt(document.getElementById('certQuantity').value) || 50;
             const prefix = document.getElementById('certPrefix').value;
             const startNum = parseInt(document.getElementById('startNumber').value) || 1;
@@ -710,56 +515,10 @@
             document.getElementById('lastCert').textContent = lastCertNum;
             
             document.getElementById('previewSection').style.display = 'block';
-            document.getElementById('spreadsheetPreview').style.display = 'none';
-            document.getElementById('downloadSpreadsheetBtn').style.display = 'none';
-        }
-
-        function updatePreview() {
-            if (currentMode === 'quantity') {
-                updateQuantityPreview();
-                return;
+            if (templatePDF) {
+                document.getElementById('singleCertSection').style.display = 'block';
+                document.getElementById('singleCertNum').placeholder = firstCertNum;
             }
-            
-            if (!templatePDF || customerData.length === 0) return;
-
-            const prefix = document.getElementById('certPrefix').value;
-            const startNum = parseInt(document.getElementById('startNumber').value) || 1;
-            
-            const firstCertNum = generateCertNumber(prefix, startNum);
-            const lastCertNum = generateCertNumber(prefix, startNum + customerData.length - 1);
-            
-            document.getElementById('totalCerts').textContent = customerData.length;
-            document.getElementById('firstCert').textContent = firstCertNum;
-            document.getElementById('lastCert').textContent = lastCertNum;
-            
-            // Update spreadsheet preview
-            const tbody = document.getElementById('previewTableBody');
-            tbody.innerHTML = '';
-            
-            const previewCount = Math.min(customerData.length, 10);
-            for (let i = 0; i < previewCount; i++) {
-                const customer = customerData[i];
-                const certNum = generateCertNumber(prefix, startNum + i);
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${customer.firstName}</td>
-                    <td>${customer.lastName}</td>
-                    <td>${customer.address}</td>
-                    <td><span class="cert-number-highlight">${certNum}</span></td>
-                `;
-                tbody.appendChild(row);
-            }
-            
-            if (customerData.length > 10) {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td colspan="4" style="text-align: center; color: #6b7280; font-style: italic;">... and ${customerData.length - 10} more</td>`;
-                tbody.appendChild(row);
-            }
-            
-            document.getElementById('previewSection').style.display = 'block';
-            document.getElementById('spreadsheetPreview').style.display = 'block';
-            document.getElementById('downloadSpreadsheetBtn').style.display = 'block';
         }
 
         function generateCertNumber(prefix, number) {
@@ -770,11 +529,6 @@
         async function generateCertificates() {
             if (!templatePDF) {
                 showError('Please upload a template PDF first.');
-                return;
-            }
-            
-            if (currentMode === 'spreadsheet' && customerData.length === 0) {
-                showError('Please upload a customer spreadsheet first.');
                 return;
             }
 
@@ -797,47 +551,30 @@
                 };
                 
                 const textColor = colors[fontColor] || colors.black;
-                
-                const count = currentMode === 'quantity' ? 
-                    parseInt(document.getElementById('certQuantity').value) : 
-                    customerData.length;
+                const count = parseInt(document.getElementById('certQuantity').value);
                 
                 // Get number of pages in template
                 const templatePageCount = templatePDF.getPageCount();
-                console.log(`Template has ${templatePageCount} pages`);
                 
                 const mergedPDF = await PDFLib.PDFDocument.create();
                 
                 for (let i = 0; i < count; i++) {
-                    // Copy ALL pages from template (front and back)
                     const pageIndices = Array.from({length: templatePageCount}, (_, idx) => idx);
                     const copiedPages = await mergedPDF.copyPages(templatePDF, pageIndices);
-                    
-                    // Add all pages
                     copiedPages.forEach(page => mergedPDF.addPage(page));
                     
-                    // Add certificate number to FIRST page only (front of certificate)
                     const certNumber = generateCertNumber(prefix, startNum + i);
-                    const firstPageIndex = i * templatePageCount; // Index of first page for this certificate
+                    const firstPageIndex = i * templatePageCount;
                     const page = mergedPDF.getPage(firstPageIndex);
                     
-                    // Get page dimensions to calculate center if needed
                     const { width } = page.getSize();
-                    
-                    // If X position is close to 4.25 (center of 8.5" page), center the text
                     let xPos = x;
                     if (Math.abs(parseFloat(document.getElementById('certX').value) - 4.25) < 0.5) {
-                        // Center the text
-                        const textWidth = certNumber.length * fontSize * 0.5; // Rough estimate
+                        const textWidth = certNumber.length * fontSize * 0.5;
                         xPos = (width - textWidth) / 2;
                     }
                     
-                    page.drawText(certNumber, {
-                        x: xPos,
-                        y: y,
-                        size: fontSize,
-                        color: textColor
-                    });
+                    page.drawText(certNumber, { x: xPos, y: y, size: fontSize, color: textColor });
                 }
                 
                 const pdfBytes = await mergedPDF.save();
@@ -849,7 +586,7 @@
                 a.download = `MidState_Gift_Certificates_${currentYear}.pdf`;
                 a.click();
                 
-                showSuccess(`✓ Successfully generated ${count} numbered certificates (${templatePageCount} pages each) in one PDF!`, 'successMessage');
+                showSuccess(`✓ Successfully generated ${count} numbered certificates in one PDF!`, 'successMessage');
                 
             } catch (error) {
                 console.error('Certificate generation error:', error);
@@ -862,11 +599,6 @@
         async function generateIndividualCertificates() {
             if (!templatePDF) {
                 showError('Please upload a template PDF first.');
-                return;
-            }
-            
-            if (currentMode === 'spreadsheet' && customerData.length === 0) {
-                showError('Please upload a customer spreadsheet first.');
                 return;
             }
 
@@ -889,78 +621,41 @@
                 };
                 
                 const textColor = colors[fontColor] || colors.black;
-                
-                const count = currentMode === 'quantity' ? 
-                    parseInt(document.getElementById('certQuantity').value) : 
-                    customerData.length;
-                
-                // Get number of pages in template
+                const count = parseInt(document.getElementById('certQuantity').value);
                 const templatePageCount = templatePDF.getPageCount();
                 
-                // Generate each certificate individually
                 for (let i = 0; i < count; i++) {
-                    // Update progress
                     const progress = ((i + 1) / count) * 100;
                     document.getElementById('progressBar').style.width = progress + '%';
                     document.getElementById('progressText').textContent = `Generating certificate ${i + 1} of ${count}...`;
                     
-                    // Create individual PDF
                     const individualPDF = await PDFLib.PDFDocument.create();
-                    
-                    // Copy ALL pages from template
                     const pageIndices = Array.from({length: templatePageCount}, (_, idx) => idx);
                     const copiedPages = await individualPDF.copyPages(templatePDF, pageIndices);
-                    
-                    // Add all pages
                     copiedPages.forEach(page => individualPDF.addPage(page));
                     
-                    // Add certificate number to FIRST page only
                     const certNumber = generateCertNumber(prefix, startNum + i);
                     const page = individualPDF.getPage(0);
-                    
-                    // Get page dimensions
                     const { width } = page.getSize();
                     
-                    // Center the text if X position is close to 4.25
                     let xPos = x;
                     if (Math.abs(parseFloat(document.getElementById('certX').value) - 4.25) < 0.5) {
                         const textWidth = certNumber.length * fontSize * 0.5;
                         xPos = (width - textWidth) / 2;
                     }
                     
-                    page.drawText(certNumber, {
-                        x: xPos,
-                        y: y,
-                        size: fontSize,
-                        color: textColor
-                    });
+                    page.drawText(certNumber, { x: xPos, y: y, size: fontSize, color: textColor });
                     
-                    // Save individual PDF
                     const pdfBytes = await individualPDF.save();
                     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
                     const url = URL.createObjectURL(blob);
                     
-                    // Generate filename
-                    let filename;
-                    if (currentMode === 'spreadsheet' && customerData[i]) {
-                        const customer = customerData[i];
-                        const lastName = customer.lastName || 'Customer';
-                        const firstName = customer.firstName || '';
-                        filename = `${certNumber}_${lastName}${firstName ? '_' + firstName : ''}.pdf`;
-                    } else {
-                        filename = `${certNumber}.pdf`;
-                    }
-                    
-                    // Download
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = filename;
+                    a.download = `${certNumber}.pdf`;
                     a.click();
                     
-                    // Clean up
                     URL.revokeObjectURL(url);
-                    
-                    // Small delay to prevent browser from blocking downloads
                     await new Promise(resolve => setTimeout(resolve, 200));
                 }
                 
@@ -974,113 +669,87 @@
             }
         }
 
-        function downloadUpdatedSpreadsheet() {
-            if (!originalSpreadsheetData || customerData.length === 0) {
-                showError('No spreadsheet data available.');
-                return;
+        function selectSingleCert(certNum) {
+            document.getElementById('singleCertNum').value = certNum;
+            document.getElementById('singleCertSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            document.getElementById('singleCertNum').focus();
+        }
+
+        async function buildSingleCertPDF(certNum) {
+            if (!templatePDF) {
+                showError('Please upload a template PDF first.');
+                return null;
             }
-            
-            showLoading(true, 'Creating updated spreadsheet...');
-            
-            try {
-                const prefix = document.getElementById('certPrefix').value;
-                const startNum = parseInt(document.getElementById('startNumber').value) || 1;
-                
-                if (spreadsheetType === 'xlsx' && originalSpreadsheetData.workbook) {
-                    // Excel with potentially multiple sheets
-                    const workbook = originalSpreadsheetData.workbook;
-                    const wb = XLSX.utils.book_new();
-                    
-                    // Certificate number column index
-                    const certColumnIndex = 13;
-                    
-                    // Track certificate numbers assigned
-                    let certIndex = 0;
-                    
-                    // Process each sheet
-                    for (let sheetIndex = 0; sheetIndex < workbook.SheetNames.length; sheetIndex++) {
-                        const sheetName = workbook.SheetNames[sheetIndex];
-                        const sheet = workbook.Sheets[sheetName];
-                        const rows = XLSX.utils.sheet_to_json(sheet, {header: 1});
-                        
-                        // Add header to column N on first sheet
-                        if (sheetIndex === 0 && rows[0]) {
-                            rows[0][certColumnIndex] = 'Certificate Number';
-                        }
-                        
-                        // Add certificate numbers to valid customer rows
-                        for (let i = 1; i < rows.length; i++) {
-                            const row = rows[i];
-                            if (!row || row.length === 0) continue;
-                            
-                            // Check if this row is a valid customer (same logic as parsing)
-                            const columnI = row[8] ? row[8].toString().trim().toLowerCase() : '';
-                            const columnJ = row[9] ? row[9].toString().trim().toLowerCase() : '';
-                            
-                            if (columnI === 'true' || columnI === 'yes' || columnI === 'x' || columnI === '1' || columnI === 'checked') {
-                                continue;
-                            }
-                            
-                            if (columnJ === 'true' || columnJ === 'yes' || columnJ === 'x' || columnJ === '1' || columnJ === 'checked') {
-                                continue;
-                            }
-                            
-                            const hasName = (row[1] && row[1].toString().trim()) || (row[2] && row[2].toString().trim());
-                            const hasAddress = row[3] && row[3].toString().trim();
-                            
-                            if (hasName || hasAddress) {
-                                // This is a valid customer - assign certificate number
-                                const certNum = generateCertNumber(prefix, startNum + certIndex);
-                                rows[i][certColumnIndex] = certNum;
-                                certIndex++;
-                            }
-                        }
-                        
-                        // Create new sheet with updated data
-                        const ws = XLSX.utils.aoa_to_sheet(rows);
-                        XLSX.utils.book_append_sheet(wb, ws, sheetName);
-                    }
-                    
-                    const filename = `MidState_Customers_with_Certificates_${currentYear}.xlsx`;
-                    XLSX.writeFile(wb, filename);
-                    
-                    const sheetCount = workbook.SheetNames.length;
-                    const sheetInfo = sheetCount > 1 ? ` across ${sheetCount} sheets` : '';
-                    showSuccess(`✓ Downloaded spreadsheet with certificate numbers in column N${sheetInfo}!`, 'successMessage');
-                    
-                } else {
-                    // CSV or single sheet
-                    const updatedData = JSON.parse(JSON.stringify(originalSpreadsheetData.allRows || originalSpreadsheetData));
-                    const certColumnIndex = 13;
-                    
-                    updatedData[0][certColumnIndex] = 'Certificate Number';
-                    
-                    let certIndex = 0;
-                    for (const customer of customerData) {
-                        const certNum = generateCertNumber(prefix, startNum + certIndex);
-                        updatedData[customer.rowIndex][certColumnIndex] = certNum;
-                        certIndex++;
-                    }
-                    
-                    const wb = XLSX.utils.book_new();
-                    const ws = XLSX.utils.aoa_to_sheet(updatedData);
-                    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-                    
-                    const filename = spreadsheetType === 'csv' ? 
-                        `MidState_Customers_with_Certificates_${currentYear}.csv` :
-                        `MidState_Customers_with_Certificates_${currentYear}.xlsx`;
-                    
-                    XLSX.writeFile(wb, filename);
-                    
-                    showSuccess(`✓ Downloaded spreadsheet with certificate numbers in column N!`, 'successMessage');
-                }
-                
-            } catch (error) {
-                console.error('Spreadsheet creation error:', error);
-                showError('Error creating spreadsheet: ' + error.message);
+            if (!certNum) {
+                alert('Please enter a certificate number.');
+                return null;
             }
-            
-            showLoading(false);
+
+            const x = parseFloat(document.getElementById('certX').value) * 72;
+            const y = parseFloat(document.getElementById('certY').value) * 72;
+            const fontSize = parseInt(document.getElementById('fontSize').value);
+            const fontColor = document.getElementById('fontColor').value;
+            const colors = {
+                black: PDFLib.rgb(0, 0, 0),
+                gray: PDFLib.rgb(0.5, 0.5, 0.5),
+                blue: PDFLib.rgb(0, 0, 0.8),
+                red: PDFLib.rgb(0.8, 0, 0)
+            };
+            const textColor = colors[fontColor] || colors.black;
+
+            const templatePageCount = templatePDF.getPageCount();
+            const singlePDF = await PDFLib.PDFDocument.create();
+            const pageIndices = Array.from({length: templatePageCount}, (_, idx) => idx);
+            const copiedPages = await singlePDF.copyPages(templatePDF, pageIndices);
+            copiedPages.forEach(page => singlePDF.addPage(page));
+
+            const page = singlePDF.getPage(0);
+            const { width } = page.getSize();
+            let xPos = x;
+            if (Math.abs(parseFloat(document.getElementById('certX').value) - 4.25) < 0.5) {
+                const textWidth = certNum.length * fontSize * 0.5;
+                xPos = (width - textWidth) / 2;
+            }
+            page.drawText(certNum, { x: xPos, y, size: fontSize, color: textColor });
+
+            return await singlePDF.save();
+        }
+
+        async function printSingleCertificate() {
+            const certNum = document.getElementById('singleCertNum').value.trim();
+            const pdfBytes = await buildSingleCertPDF(certNum);
+            if (!pdfBytes) return;
+
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+
+            const frame = document.getElementById('printFrame');
+            frame.style.display = 'block';
+            frame.src = url;
+            frame.onload = () => {
+                frame.contentWindow.focus();
+                frame.contentWindow.print();
+                setTimeout(() => {
+                    frame.style.display = 'none';
+                    URL.revokeObjectURL(url);
+                }, 2000);
+            };
+            showSuccess(`✓ Opening print dialog for ${certNum}`, 'singleSuccessMessage');
+        }
+
+        async function downloadSingleCertificate() {
+            const certNum = document.getElementById('singleCertNum').value.trim();
+            const pdfBytes = await buildSingleCertPDF(certNum);
+            if (!pdfBytes) return;
+
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${certNum}.pdf`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showSuccess(`✓ Downloaded ${certNum}.pdf`, 'singleSuccessMessage');
         }
 
         function showLoading(show, text = 'Processing...') {
