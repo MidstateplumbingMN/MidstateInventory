@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v4.05 - Google Sheets Integrated - 2026-02-18 -->
+<!-- Mid-State Letter Generator v4.03 - Google Sheets Integrated - 2026-02-18 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v4.05</title>
+    <title>Mid-State Plumbing - Letter Generator v4.03 (Google Sheets)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -465,9 +465,9 @@
                 <div class="input-group">
                     <label for="signerSelect">Default Letter Signer:</label>
                     <select id="signerSelect" onchange="updateSignerFields()" style="width: 100%; padding: 10px; font-size: 14px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 15px;">
-                        <option value="robert">Robert Danaher (<template class="__cf_email__" data-cfemail="186a777a7d6a6c5875717c6b6c796c7d68746d757a71767f367b7775">[email&#160;protected]</template>)</option>
-                        <option value="victoria">Victoria Ellsworth (<template class="__cf_email__" data-cfemail="70061913041f021911301d19140304110415001c051d12191e175e131f1d">[email&#160;protected]</template>)</option>
-                        <option value="midstate">Mid-State Plumbing & Heating (<template class="__cf_email__" data-cfemail="3c55525a537c5155584f485d48594c5049515e55525b125f5351">[email&#160;protected]</template>)</option>
+                        <option value="robert">Robert Danaher (<template class="__cf_email__" data-cfemail="88fae7eaedfafcc8e5e1ecfbfce9fcedf8e4fde5eae1e6efa6ebe7e5">[email&#160;protected]</template>)</option>
+                        <option value="victoria">Victoria Ellsworth (<template class="__cf_email__" data-cfemail="087e616b7c677a61694865616c7b7c697c6d78647d656a61666f266b6765">[email&#160;protected]</template>)</option>
+                        <option value="midstate">Mid-State Plumbing & Heating (<template class="__cf_email__" data-cfemail="e38a8d858ca38e8a879097829786938f968e818a8d84cd808c8e">[email&#160;protected]</template>)</option>
                         <option value="custom">+ Add Custom Signer</option>
                     </select>
                     
@@ -630,6 +630,8 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+        // Version 4.05 - Teal gradient, single community statement with "proudly sponsored"
+        // Version 4.04 - Pink gradient
         // Version 4.03 - Google Sheets - Fixed row count, added filters
         
         // ===== CONFIGURATION =====
@@ -1982,16 +1984,7 @@
                     format: 'letter',
                     compress: true
                 });
-                
-                const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                
-                console.log('Adding image to PDF at: 0, 0, 8.5, 11');
-                
-                // Add image at full letter size (8.5 x 11)
-                pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11, undefined, 'FAST');
-                
-                const customer = customerData[currentIndex];
-                const filename = `Letter_${customer.firstName}_${customer.lastName}.pdf`;
+        `Letter_${customer.firstName}_${customer.lastName}.pdf`;
                 
                 console.log('Saving PDF:', filename);
                 pdf.save(filename);
@@ -2057,4 +2050,17 @@
                 // Generate and download zip file
                 const zipBlob = await zip.generateAsync({ type: 'blob' });
                 const link = document.createElement('a');
-                l
+                link.href = URL.createObjectURL(zipBlob);
+                link.download = 'Customer_Letters.zip';
+                link.click();
+                URL.revokeObjectURL(link.href);
+                
+            } catch (error) {
+                console.error('PDF/Zip error:', error);
+                showError('Error creating zip file: ' + error.message);
+            }
+            showLoading(false);
+        }
+    </script>
+</body>
+</html>
