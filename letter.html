@@ -20,7 +20,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #be185d 0%, #ec4899 100%);
+            background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -35,7 +35,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #be185d 0%, #ec4899 100%);
+            background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -452,7 +452,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 4.04</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 4.05</div>
         </div>
 
         <div class="content">
@@ -465,9 +465,9 @@
                 <div class="input-group">
                     <label for="signerSelect">Default Letter Signer:</label>
                     <select id="signerSelect" onchange="updateSignerFields()" style="width: 100%; padding: 10px; font-size: 14px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 15px;">
-                        <option value="robert">Robert Danaher (robert@midstateplumbing.com)</option>
-                        <option value="victoria">Victoria Ellsworth (victoria@midstateplumbing.com)</option>
-                        <option value="midstate">Mid-State Plumbing & Heating (info@midstateplumbing.com)</option>
+                        <option value="robert">Robert Danaher (<template class="__cf_email__" data-cfemail="186a777a7d6a6c5875717c6b6c796c7d68746d757a71767f367b7775">[email&#160;protected]</template>)</option>
+                        <option value="victoria">Victoria Ellsworth (<template class="__cf_email__" data-cfemail="70061913041f021911301d19140304110415001c051d12191e175e131f1d">[email&#160;protected]</template>)</option>
+                        <option value="midstate">Mid-State Plumbing & Heating (<template class="__cf_email__" data-cfemail="3c55525a537c5155584f485d48594c5049515e55525b125f5351">[email&#160;protected]</template>)</option>
                         <option value="custom">+ Add Custom Signer</option>
                     </select>
                     
@@ -629,7 +629,7 @@
         </div>
     </div>
 
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         // Version 4.03 - Google Sheets - Fixed row count, added filters
         
         // ===== CONFIGURATION =====
@@ -1182,9 +1182,7 @@
                 "A Maintenance Club program is also available, providing proactive care to support your manufacturer warranty requirements, extend the lifespan of your system, offer priority scheduling, and include discounts on repairs and improvements."
             ],
             community: [
-                "Midstate Plumbing and Heating is deeply committed to giving back to the community, supporting the Ability 2 Believe Foundation and was a proud sponsor of Hockey Day MN 2026.",
-                "Giving back matters to us. Midstate Plumbing and Heating proudly supports the Ability 2 Believe Foundation and was a proud sponsor of Hockey Day MN 2026.",
-                "Community involvement is important to us. Midstate Plumbing and Heating supports the Ability 2 Believe Foundation and was a proud sponsor of Hockey Day MN 2026."
+                "Community involvement is important to us. Midstate Plumbing and Heating supports the Ability 2 Believe Foundation and proudly sponsored Hockey Day MN 2026."
             ],
             closing: [
                 "If you have any questions regarding this letter or to make an appointment, please don't hesitate to call <span style='white-space: nowrap;'>(651) 480-1195</span>."
@@ -2059,17 +2057,4 @@
                 // Generate and download zip file
                 const zipBlob = await zip.generateAsync({ type: 'blob' });
                 const link = document.createElement('a');
-                link.href = URL.createObjectURL(zipBlob);
-                link.download = 'Customer_Letters.zip';
-                link.click();
-                URL.revokeObjectURL(link.href);
-                
-            } catch (error) {
-                console.error('PDF/Zip error:', error);
-                showError('Error creating zip file: ' + error.message);
-            }
-            showLoading(false);
-        }
-    </script>
-</body>
-</html>
+                l
