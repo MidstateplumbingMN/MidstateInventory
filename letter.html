@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v4.08 - Google Sheets Integrated - 2026-02-19 -->
+<!-- Mid-State Letter Generator v4.09 - Google Sheets Integrated - 2026-02-19 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v4.08 (Google Sheets)</title>
+    <title>Mid-State Plumbing - Letter Generator v4.09 (Google Sheets)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -20,7 +20,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #be123c 0%, #e11d48 100%);
+            background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -35,7 +35,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #be123c 0%, #e11d48 100%);
+            background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -452,7 +452,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 4.08</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 4.09</div>
         </div>
 
         <div class="content">
@@ -630,6 +630,7 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+        // Version 4.09 - Cyan gradient, single services statement
         // Version 4.08 - Rose gradient, new greeting variations (Dear Neighbor, Warm Greetings, etc.), last name only for residence greetings
         // Version 4.07 - Slate gradient, skip personalized greeting for multiple names (& or "and")
         // Version 4.06 - Amber gradient, greeting variations with names, single maintenance club statement
@@ -1192,9 +1193,7 @@
                 "Please find enclosed a gift certificate for $50 off any service/repair or $500 off a new equipment installation—a small token of our appreciation."
             ],
             services: [
-                "Our services include drain cleaning, water heater installation, furnace and air conditioning services, and much more. We'd be happy to help with any of your future heating, air conditioning, and plumbing needs.",
-                "From drain cleaning to water heater installation to furnace and air conditioning services, we're here to help with all your plumbing and HVAC needs.",
-                "Drain cleaning, water heater installation, furnace and air conditioning services, and more—whatever your heating, cooling, or plumbing needs, we're here to help."
+                "Our services include drain cleaning, water heater installation, furnace and air conditioning service, and much more. Having worked on your home from the start, we're happy to help with any of your future heating, air, and plumbing needs."
             ],
             maintenanceClub: [
                 "Our Maintenance Club program provides proactive care that supports manufacturer warranty requirements, extends system lifespan, offers priority scheduling, and includes discounts on repairs and improvements."
