@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v4.07 - Google Sheets Integrated - 2026-02-19 -->
+<!-- Mid-State Letter Generator v4.08 - Google Sheets Integrated - 2026-02-19 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v4.07 (Google Sheets)</title>
+    <title>Mid-State Plumbing - Letter Generator v4.08 (Google Sheets)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -20,7 +20,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #475569 0%, #64748b 100%);
+            background: linear-gradient(135deg, #be123c 0%, #e11d48 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -35,7 +35,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #475569 0%, #64748b 100%);
+            background: linear-gradient(135deg, #be123c 0%, #e11d48 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -452,7 +452,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 4.07</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 4.08</div>
         </div>
 
         <div class="content">
@@ -630,6 +630,7 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+        // Version 4.08 - Rose gradient, new greeting variations (Dear Neighbor, Warm Greetings, etc.), last name only for residence greetings
         // Version 4.07 - Slate gradient, skip personalized greeting for multiple names (& or "and")
         // Version 4.06 - Amber gradient, greeting variations with names, single maintenance club statement
         // Version 4.05 - Teal gradient, single community statement with "proudly sponsored"
@@ -1157,14 +1158,19 @@
 
         const letterTemplates = {
             greetingsWithName: [
-                "Dear {name},",
-                "Hello {name},",
-                "Hi {name},"
+                "Dear {name} Residence,",
+                "To the {name} Residence,",
+                "To the {name} Household,"
             ],
             greetingsGeneric: [
-                "Greetings,",
-                "Hello,",
-                "Hi there,"
+                "Dear Neighbor,",
+                "To You and Your Household,",
+                "Warm Greetings,",
+                "With Appreciation,",
+                "Good Day,",
+                "From Our Team to Your Household,",
+                "A Brief Note to the Homeowner,",
+                "To the Current Homeowner,"
             ],
             introductions: [
                 "In ${yearBuilt}, we had the privilege of working alongside {builder} to bring your home's {workType} system to life. That experience gave us unique insight into how your system operates.",
@@ -1326,21 +1332,17 @@
                 addressee = "Current Resident";
             }
             
-            // Build greeting - use name if available, with variations
-            // If multiple names (& or "and"), use generic greeting to avoid clutter
+            // Build greeting - use last name for "XX Residence" style, generic otherwise
+            // If multiple names (& or "and") or no last name, use generic greeting
             let greeting;
-            const hasMultipleNames = (firstName && /\s*[&]\s*|\s+and\s+/i.test(firstName)) || 
-                                     (lastName && /\s*[&]\s*|\s+and\s+/i.test(lastName));
+            const hasMultipleLastNames = lastName && /\s*[&]\s*|\s+and\s+/i.test(lastName);
             
-            if (hasMultipleNames) {
-                // Multiple people - keep it simple
+            if (hasMultipleLastNames || !hasLastName) {
+                // Multiple last names or no last name - use generic
                 greeting = getRandomItem(letterTemplates.greetingsGeneric);
-            } else if (hasFirstName && hasLastName) {
-                greeting = getRandomItem(letterTemplates.greetingsWithName).replace('{name}', `${firstName} ${lastName}`);
-            } else if (hasFirstName) {
-                greeting = getRandomItem(letterTemplates.greetingsWithName).replace('{name}', firstName);
             } else {
-                greeting = getRandomItem(letterTemplates.greetingsGeneric);
+                // Single last name - use "Dear Smith Residence," style
+                greeting = getRandomItem(letterTemplates.greetingsWithName).replace('{name}', lastName);
             }
             
             // Clean mailing address - remove any name/residence references
