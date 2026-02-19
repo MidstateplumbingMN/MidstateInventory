@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v4.01 - Google Sheets Integrated - 2026-02-18 -->
+<!-- Mid-State Letter Generator v4.03 - Google Sheets Integrated - 2026-02-18 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v4.01 (Google Sheets)</title>
+    <title>Mid-State Plumbing - Letter Generator v4.03 (Google Sheets)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -20,7 +20,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -35,7 +35,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -452,7 +452,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 4.01 - Google Sheets Integrated</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 4.03 - Google Sheets Integrated</div>
         </div>
 
         <div class="content">
@@ -528,9 +528,16 @@
                 </div>
                 
                 <div class="range-selector">
-                    <label>Print Range:</label>
+                    <label>Show:</label>
+                    <select id="filterType" onchange="applyFilter()">
+                        <option value="all">All Customers</option>
+                        <option value="unprinted">Unprinted Only</option>
+                        <option value="printed">Printed Only</option>
+                    </select>
+                    
+                    <label style="margin-left: 15px;">Print Range:</label>
                     <select id="rangeType" onchange="updateRangeInputs()">
-                        <option value="all">All Letters</option>
+                        <option value="all">All Shown</option>
                         <option value="single">Single Letter</option>
                         <option value="range">Range</option>
                         <option value="selected">Selected Only</option>
@@ -562,6 +569,7 @@
                                 <th>Address</th>
                                 <th>Builder</th>
                                 <th>Year</th>
+                                <th>Letter Printed</th>
                             </tr>
                         </thead>
                         <tbody id="customerTableBody">
@@ -622,7 +630,7 @@
     </div>
 
     <script>
-        // Version 4.01 - Google Sheets Edition with Integrated Sheet
+        // Version 4.03 - Google Sheets - Fixed row count, added filters
         
         // ===== CONFIGURATION =====
         const SHEET_ID = '1eZXS_toxGnWKnqRy-F0UulHEoz9sIiG82NaanijygP8';
@@ -635,6 +643,7 @@
         // ===========================
         
         let customerData = [];
+        let filteredData = []; // Indices of customers matching current filter
         let currentIndex = 0;
         let currentSheetTab = 'Bob'; // Currently selected sheet tab
         let sheetSignerMap = {}; // Maps sheet names to signer keys
@@ -830,19 +839,14 @@
                 const yearBuilt = row[7] || ''; // Column H
                 const department = row[11] || ''; // Column L
                 const mailingAddress = row[12] || ''; // Column M
-                
-                // Check columns I and J for skip logic (same as existing script)
-                const columnI = row[8] ? row[8].toString().trim().toLowerCase() : '';
-                const columnJ = row[9] ? row[9].toString().trim().toLowerCase() : '';
-                
-                // Skip if marked as complete
-                if (['true', 'yes', 'x', '1', 'checked'].includes(columnI) ||
-                    ['true', 'yes', 'x', '1', 'checked'].includes(columnJ)) {
-                    return;
-                }
+                const letterPrinted = row[14] || ''; // Column O (Letter Printed)
 
                 // Skip if no address
                 if (!address.trim()) return;
+                
+                // Skip rows that are mostly empty (less than 3 filled cells)
+                const filledCells = row.filter(cell => cell && cell.toString().trim() !== '').length;
+                if (filledCells < 3) return;
 
                 customerData.push({
                     builder: builder.trim(),
@@ -852,6 +856,7 @@
                     yearBuilt: yearBuilt.toString().trim(),
                     department: department.trim(),
                     mailingAddress: mailingAddress.trim(),
+                    letterPrinted: letterPrinted.toString().trim(),
                     sheetIndex: 0,
                     sheetRow: index + 2, // +2 because: +1 for header row, +1 for 1-based indexing
                     sheetTab: sheetTabName || currentSheetTab
@@ -859,7 +864,7 @@
             });
 
             if (customerData.length === 0) {
-                showError('No valid customer data found in sheet (rows may be marked complete)');
+                showError('No valid customer data found in sheet');
                 showLoading(false);
                 return;
             }
@@ -873,9 +878,20 @@
             const tbody = document.getElementById('customerTableBody');
             tbody.innerHTML = '';
             selectedCustomers.clear();
-
+            
+            // Apply current filter
+            const filterType = document.getElementById('filterType')?.value || 'all';
+            filteredData = [];
+            
             customerData.forEach((customer, index) => {
+                // Check if customer matches filter
+                if (filterType === 'unprinted' && customer.letterPrinted) return;
+                if (filterType === 'printed' && !customer.letterPrinted) return;
+                
+                filteredData.push(index);
+                
                 const name = [customer.firstName, customer.lastName].filter(Boolean).join(' ') || 'Current Resident';
+                const letterPrintedDisplay = customer.letterPrinted ? `✓ ${customer.letterPrinted}` : '—';
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><input type="checkbox" class="customer-checkbox" data-index="${index}" onchange="toggleCustomerSelection(${index})"></td>
@@ -884,17 +900,22 @@
                     <td>${escapeHtml(customer.address)}</td>
                     <td>${escapeHtml(customer.builder || '—')}</td>
                     <td>${escapeHtml(customer.yearBuilt || '—')}</td>
+                    <td style="font-size: 12px; ${customer.letterPrinted ? 'color: #047857;' : 'color: #999;'}">${letterPrintedDisplay}</td>
                 `;
                 tr.id = `customer-row-${index}`;
                 tbody.appendChild(tr);
             });
 
-            // Update range inputs
-            document.getElementById('rangeTo').max = customerData.length;
-            document.getElementById('rangeTo').value = customerData.length;
-            document.getElementById('singleNum').max = customerData.length;
+            // Update range inputs based on filtered data
+            document.getElementById('rangeTo').max = filteredData.length;
+            document.getElementById('rangeTo').value = filteredData.length;
+            document.getElementById('singleNum').max = filteredData.length;
             
             updateSelectionCount();
+        }
+
+        function applyFilter() {
+            populateCustomerTable();
         }
 
         function escapeHtml(text) {
@@ -951,19 +972,20 @@
 
             switch (rangeType) {
                 case 'all':
-                    indices = customerData.map((_, i) => i);
+                    // Use filtered data indices
+                    indices = [...filteredData];
                     break;
                 case 'single':
                     const num = parseInt(document.getElementById('singleNum').value) - 1;
-                    if (num >= 0 && num < customerData.length) {
-                        indices = [num];
+                    if (num >= 0 && num < filteredData.length) {
+                        indices = [filteredData[num]];
                     }
                     break;
                 case 'range':
                     const from = parseInt(document.getElementById('rangeFrom').value) - 1;
                     const to = parseInt(document.getElementById('rangeTo').value) - 1;
-                    for (let i = Math.max(0, from); i <= Math.min(to, customerData.length - 1); i++) {
-                        indices.push(i);
+                    for (let i = Math.max(0, from); i <= Math.min(to, filteredData.length - 1); i++) {
+                        indices.push(filteredData[i]);
                     }
                     break;
                 case 'selected':
@@ -1131,23 +1153,23 @@
 
         const letterTemplates = {
             introductions: [
-                "In ${yearBuilt}, we had the privilege of working alongside {builder} to bring your home's {workType} system to life. That experience gives us unique insight into how your system operates.",
-                "In ${yearBuilt}, our team partnered with {builder} to install your home's {workType} system. That firsthand experience means we understand exactly how your system was designed to work.",
+                "In ${yearBuilt}, we had the privilege of working alongside {builder} to bring your home's {workType} system to life. That experience gave us unique insight into how your system operates.",
+                "In ${yearBuilt}, our team partnered with {builder} to install your home's {workType} system. That firsthand experience gave us a clear understanding of how your system was designed to work.",
                 "Back in ${yearBuilt}, we worked with {builder} to complete the {workType} installation in your home. Having done the original work, we're familiar with your system inside and out.",
-                "In ${yearBuilt}, {builder} trusted us to install the {workType} system in your home. That experience gives us valuable insight into how everything operates.",
+                "In ${yearBuilt}, {builder} trusted us to install the {workType} system in your home. That experience gave us valuable insight into how everything operates.",
                 "We had the honor of working alongside {builder} in ${yearBuilt} to install your home's {workType} system. Because we did the original work, we know your system well."
             ],
             introductionsNoBuilder: [
-                "In ${yearBuilt}, we had the privilege of installing your home's {workType} system. That experience gives us unique insight into how your system operates.",
-                "In ${yearBuilt}, our team completed the {workType} installation in your home. That firsthand experience means we understand exactly how your system was designed to work.",
+                "In ${yearBuilt}, we had the privilege of installing your home's {workType} system. That experience gave us unique insight into how your system operates.",
+                "In ${yearBuilt}, our team completed the {workType} installation in your home. That firsthand experience gave us a clear understanding of how your system was designed to work.",
                 "Back in ${yearBuilt}, we installed the {workType} system in your home. Having done the original work, we're familiar with your system inside and out.",
-                "In ${yearBuilt}, we were trusted to install the {workType} system in your home. That experience gives us valuable insight into how everything operates.",
+                "In ${yearBuilt}, we were trusted to install the {workType} system in your home. That experience gave us valuable insight into how everything operates.",
                 "We had the honor of installing your home's {workType} system in ${yearBuilt}. Because we did the original work, we know your system well."
             ],
             giftCertificate: [
-                "As a small token of appreciation, enclosed is a gift certificate for $50 to be used towards any service or repair, or $500 to be used towards a new equipment installation.",
-                "Enclosed is a gift certificate as a small thank-you: $50 towards any service or repair, or $500 towards a new equipment installation.",
-                "Please find enclosed a gift certificate for $50 off any service or repair, or $500 off a new equipment installation—a small token of our appreciation."
+                "As a small token of appreciation, enclosed is a gift certificate for $50 to be used towards any service/repair or $500 to be used towards a new equipment installation.",
+                "Enclosed is a gift certificate—a small thank-you: $50 towards any service/repair or $500 towards a new equipment installation.",
+                "Please find enclosed a gift certificate for $50 off any service/repair or $500 off a new equipment installation—a small token of our appreciation."
             ],
             services: [
                 "Our services include drain cleaning, water heater installation, furnace and air conditioning services, and much more. We'd be happy to help with any of your future heating, air conditioning, and plumbing needs.",
@@ -1160,7 +1182,7 @@
                 "A Maintenance Club program is also available, providing proactive care to support your manufacturer warranty requirements, extend the lifespan of your system, offer priority scheduling, and include discounts on repairs and improvements."
             ],
             community: [
-                "Midstate Plumbing and Heating is deeply committed to giving back to the community, supporting the Ability 2 Believe Foundation and having proudly sponsored Hockey Day MN 2026.",
+                "Midstate Plumbing and Heating is deeply committed to giving back to the community, supporting the Ability 2 Believe Foundation and being a proud sponsor of Hockey Day MN 2026.",
                 "Giving back matters to us. Midstate Plumbing and Heating proudly supports the Ability 2 Believe Foundation and was a sponsor of Hockey Day MN 2026.",
                 "Community involvement is important to us. Midstate Plumbing and Heating supports the Ability 2 Believe Foundation and proudly sponsored Hockey Day MN 2026."
             ],
