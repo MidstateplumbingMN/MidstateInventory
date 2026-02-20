@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v4.10 - Google Sheets Integrated - 2026-02-19 -->
+<!-- Mid-State Letter Generator v4.12 - Google Sheets Integrated - 2026-02-19 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v4.10 (Google Sheets)</title>
+    <title>Mid-State Plumbing - Letter Generator v4.12 (Google Sheets)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -20,7 +20,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -35,7 +35,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -452,7 +452,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 4.10</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 4.12</div>
         </div>
 
         <div class="content">
@@ -630,6 +630,8 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+        // Version 4.12 - Emerald gradient, capitalized Plumbing in work type
+        // Version 4.11 - Orange gradient, FIXED: department (Column L) now correctly used for work type
         // Version 4.10 - Violet gradient, fixed address to Suite 100
         // Version 4.09 - Cyan gradient, single services statement
         // Version 4.08 - Rose gradient, new greeting variations (Dear Neighbor, Warm Greetings, etc.), last name only for residence greetings
@@ -1225,17 +1227,17 @@
         }
 
         function formatWorkType(workType) {
-            if (!workType) return "plumbing and HVAC";
+            if (!workType) return "Plumbing and HVAC";
             workType = workType.toLowerCase().trim();
             
             if (workType === 'both') {
-                return "plumbing and HVAC";
+                return "Plumbing and HVAC";
             }
             if (workType.includes('hvac') || workType.includes('heating') || workType.includes('ventilation')) {
                 return "HVAC";
             }
             if (workType.includes('plumb')) {
-                return "plumbing";
+                return "Plumbing";
             }
             return workType;
         }
@@ -1318,7 +1320,7 @@
             const firstName = hasFirstName ? customer.firstName : "";
             const lastName = hasLastName ? customer.lastName : "";
             const address = cleanAddress(customer.address || "your new home");
-            const workType = formatWorkType(customer.workType);
+            const workType = formatWorkType(customer.department);
             
             // Build the addressee line - only use one format
             let addressee;
@@ -1373,7 +1375,7 @@
             
             // Determine work description based on department
             let workDescription;
-            if (customer.workType && customer.workType.toLowerCase().trim() === 'both') {
+            if (customer.department && customer.department.toLowerCase().trim() === 'both') {
                 workDescription = "work";
             } else if (workType.toLowerCase().includes('hvac')) {
                 workDescription = "installation";
@@ -1596,7 +1598,7 @@
                     lastName: row[2] ? row[2].toString().trim() : 'Resident',
                     address: row[3] ? row[3].toString().trim() : '',
                     yearBuilt: row[7] ? row[7].toString().trim() : new Date().getFullYear().toString(),
-                    workType: row[11] ? row[11].toString().trim() : '',
+                    department: row[11] ? row[11].toString().trim() : '',
                     mailingAddress: row[12] ? row[12].toString().trim() : (row[3] ? row[3].toString().trim() : ''),
                     sheetNumber: sheetNumber  // Track which sheet this customer is from
                 });
