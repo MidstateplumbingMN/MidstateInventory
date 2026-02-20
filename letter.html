@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v4.09 - Google Sheets Integrated - 2026-02-19 -->
+<!-- Mid-State Letter Generator v4.10 - Google Sheets Integrated - 2026-02-19 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v4.09 (Google Sheets)</title>
+    <title>Mid-State Plumbing - Letter Generator v4.10 (Google Sheets)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -20,7 +20,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+            background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -35,7 +35,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+            background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -452,7 +452,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 4.09</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 4.10</div>
         </div>
 
         <div class="content">
@@ -630,6 +630,7 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+        // Version 4.10 - Violet gradient, fixed address to Suite 100
         // Version 4.09 - Cyan gradient, single services statement
         // Version 4.08 - Rose gradient, new greeting variations (Dear Neighbor, Warm Greetings, etc.), last name only for residence greetings
         // Version 4.07 - Slate gradient, skip personalized greeting for multiple names (& or "and")
@@ -1120,7 +1121,7 @@
             robert: {
                 name: "Robert Danaher",
                 title: "Mid-State Plumbing & Heating",
-                address: "3500 Cannon St #101",
+                address: "3500 Cannon St #100",
                 city: "Hastings, MN 55033",
                 phone: "(651) 480-1195",
                 email: "robert@midstateplumbing.com",
@@ -1129,7 +1130,7 @@
             victoria: {
                 name: "Victoria Ellsworth",
                 title: "Mid-State Plumbing & Heating",
-                address: "3500 Cannon St #101",
+                address: "3500 Cannon St #100",
                 city: "Hastings, MN 55033",
                 phone: "(651) 480-1195",
                 email: "victoria@midstateplumbing.com",
@@ -1138,7 +1139,7 @@
             midstate: {
                 name: "Mid-State Plumbing & Heating",
                 title: "",
-                address: "3500 Cannon St #101",
+                address: "3500 Cannon St #100",
                 city: "Hastings, MN 55033",
                 phone: "(651) 480-1195",
                 email: "info@midstateplumbing.com",
@@ -1147,7 +1148,7 @@
             custom: {
                 name: "Custom Signer",
                 title: "Mid-State Plumbing & Heating",
-                address: "3500 Cannon St. #101",
+                address: "3500 Cannon St. #100",
                 city: "Hastings, MN 55033",
                 phone: "(651) 480-1195",
                 email: "info@midstateplumbing.com",
@@ -1405,7 +1406,7 @@
                         
                         <div class="letter-from">
                             <strong>Midstate Plumbing &amp; Heating</strong><br>
-                            3500 Cannon St. #101<br>
+                            3500 Cannon St. #100<br>
                             Hastings, MN 55033<br>
                             (651) 480-1195
                         </div>
@@ -1695,7 +1696,7 @@
                 sheetSigners[sheetNum] = {
                     name: name,
                     title: "Mid-State Plumbing & Heating",
-                    address: "3500 Cannon St. #101",
+                    address: "3500 Cannon St. #100",
                     city: "Hastings, MN 55033",
                     phone: "(651) 480-1195",
                     email: email
