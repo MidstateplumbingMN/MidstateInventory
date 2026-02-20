@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v4.12 - Google Sheets Integrated - 2026-02-19 -->
+<!-- Mid-State Letter Generator v4.13 - Google Sheets Integrated - 2026-02-19 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v4.12 (Google Sheets)</title>
+    <title>Mid-State Plumbing - Letter Generator v4.13 (Google Sheets)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -20,7 +20,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -35,7 +35,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -452,7 +452,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 4.12</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 4.13</div>
         </div>
 
         <div class="content">
@@ -630,6 +630,7 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+        // Version 4.13 - Sky gradient, fixed PDF download function (missing code)
         // Version 4.12 - Emerald gradient, capitalized Plumbing in work type
         // Version 4.11 - Orange gradient, FIXED: department (Column L) now correctly used for work type
         // Version 4.10 - Violet gradient, fixed address to Suite 100
@@ -2012,7 +2013,13 @@
                     format: 'letter',
                     compress: true
                 });
-        `Letter_${customer.firstName}_${customer.lastName}.pdf`;
+                
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11, undefined, 'FAST');
+                
+                // Get current customer for filename
+                const customer = customerData[currentIndex] || { firstName: 'Letter', lastName: '' };
+                const filename = `Letter_${customer.firstName}_${customer.lastName}.pdf`.replace(/[^a-zA-Z0-9_\-.]/g, '_');
                 
                 console.log('Saving PDF:', filename);
                 pdf.save(filename);
