@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Mid-State Letter Generator v4.13 - Google Sheets Integrated - 2026-02-19 -->
+<!-- Mid-State Letter Generator v4.14 - Google Sheets Integrated - 2026-02-19 -->
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Plumbing - Letter Generator v4.13 (Google Sheets)</title>
+    <title>Mid-State Plumbing - Letter Generator v4.14 (Google Sheets)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -20,7 +20,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+            background: linear-gradient(135deg, #a21caf 0%, #d946ef 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -35,7 +35,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+            background: linear-gradient(135deg, #a21caf 0%, #d946ef 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -452,7 +452,7 @@
         <div class="header">
             <h1>🏠 Mid-State Plumbing & Heating</h1>
             <p>Customer Letter Generator</p>
-            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 4.13</div>
+            <div style="margin-top: 10px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1em;">Version 4.14</div>
         </div>
 
         <div class="content">
@@ -630,6 +630,7 @@
     </div>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+        // Version 4.14 - Fuchsia gradient, no-builder intros now mention "your builder" generically
         // Version 4.13 - Sky gradient, fixed PDF download function (missing code)
         // Version 4.12 - Emerald gradient, capitalized Plumbing in work type
         // Version 4.11 - Orange gradient, FIXED: department (Column L) now correctly used for work type
@@ -1185,11 +1186,11 @@
                 "We had the honor of working alongside {builder} in ${yearBuilt} to install your home's {workType} system. Because we did the original work, we know your system well."
             ],
             introductionsNoBuilder: [
-                "In ${yearBuilt}, we had the privilege of installing your home's {workType} system. That experience gave us unique insight into how your system operates.",
-                "In ${yearBuilt}, our team completed the {workType} installation in your home. That firsthand experience gave us a clear understanding of how your system was designed to work.",
-                "Back in ${yearBuilt}, we installed the {workType} system in your home. Having done the original work, we're familiar with your system inside and out.",
-                "In ${yearBuilt}, we were trusted to install the {workType} system in your home. That experience gave us valuable insight into how everything operates.",
-                "We had the honor of installing your home's {workType} system in ${yearBuilt}. Because we did the original work, we know your system well."
+                "In ${yearBuilt}, we worked alongside your builder during the construction phase and installed your home's {workType} system. That experience gave us unique insight into how your system operates.",
+                "During the construction of your home in ${yearBuilt}, we partnered with your builder to install the {workType} system. That firsthand experience gave us a clear understanding of how your system was designed to work.",
+                "Back in ${yearBuilt}, we worked with your builder to complete the {workType} installation in your home. Having done the original work, we're familiar with your system inside and out.",
+                "In ${yearBuilt}, your builder trusted us to install the {workType} system in your home. That experience gave us valuable insight into how everything operates.",
+                "We had the honor of working alongside your builder in ${yearBuilt} to install your home's {workType} system. Because we did the original work, we know your system well."
             ],
             giftCertificate: [
                 "As a small token of appreciation, enclosed is a gift certificate for $50 to be used towards any service/repair or $500 to be used towards a new equipment installation.",
