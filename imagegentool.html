@@ -15,7 +15,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--mono);min-height:10
 .card{width:100%;max-width:860px;background:var(--sur);border:1px solid var(--brd);border-radius:3px;padding:32px;margin-bottom:16px}
 .ctitle{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--faint);margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--brd)}
 .lbl{display:block;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
-textarea,select{width:100%;background:var(--bg);border:1px solid var(--brd2);border-radius:2px;color:var(--txt);font-family:var(--mono);font-size:13px;padding:12px;transition:border-color .2s;outline:none;appearance:none}
+textarea,select{width:100%;background:var(--bg);border:1px solid var(--brd2);border-radius:2px;color:var(--txt);font-family:var(--mono);font-size:13px;padding:12px;transition:border-color .2s;outline:none;-webkit-appearance:none;appearance:none}
 textarea:focus,select:focus{border-color:var(--acc)}
 textarea{resize:vertical}
 .fg{margin-bottom:18px}
@@ -55,6 +55,8 @@ textarea{resize:vertical}
 .dlbtn:hover{border-color:var(--dim);color:var(--txt)}
 .bdg{background:#1a1a1a;border:1px solid var(--brd2);border-radius:2px;padding:2px 8px;font-size:9px;color:var(--faint);letter-spacing:1px;margin-left:10px}
 .spn{display:inline-block;width:11px;height:11px;border:2px solid #444;border-top-color:#fff;border-radius:50%;animation:spin .75s linear infinite;vertical-align:middle;margin-right:8px}
+.cfg-note{font-size:11px;color:#ff9944;background:#1a1200;border:1px solid #3a2800;border-radius:2px;padding:12px 14px;margin-bottom:16px;line-height:1.6}
+.cfg-note a{color:#ffaa55;text-decoration:underline}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes slidein{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
@@ -62,17 +64,26 @@ textarea{resize:vertical}
 </style>
 </head>
 <body>
+
 <div class="hdr">
   <h1>IMG<span>::</span>GEN</h1>
   <p>AI Image Generation Studio</p>
 </div>
 
+<!-- PROMPT -->
 <div class="card">
   <div class="ctitle">01 &mdash; Describe your vision</div>
-  <div class="fg"><label class="lbl">Prompt</label><textarea id="prompt" rows="4" placeholder="A lone figure at the edge of a glass city floating above storm clouds, golden hour light bleeding through the mist..."></textarea></div>
-  <div class="fg"><label class="lbl">Negative prompt <span style="color:#2a2a2a;font-size:9px">optional</span></label><textarea id="neg" rows="2" placeholder="blur, watermark, low quality, text..."></textarea></div>
+  <div class="fg">
+    <label class="lbl">Prompt</label>
+    <textarea id="prompt" rows="4" placeholder="A lone figure at the edge of a glass city floating above storm clouds, golden hour light bleeding through the mist..."></textarea>
+  </div>
+  <div class="fg">
+    <label class="lbl">Negative prompt <span style="color:#2a2a2a;font-size:9px">optional</span></label>
+    <textarea id="neg" rows="2" placeholder="blur, watermark, low quality, text..."></textarea>
+  </div>
 </div>
 
+<!-- UPLOAD -->
 <div class="card">
   <div class="ctitle">02 &mdash; Reference images <span style="color:#2a2a2a;font-size:9px">optional</span></div>
   <div class="dz" id="dz">
@@ -84,6 +95,7 @@ textarea{resize:vertical}
   <div class="pgrid" id="pg"></div>
 </div>
 
+<!-- STYLE -->
 <div class="card">
   <div class="ctitle">03 &mdash; Style &amp; settings</div>
   <label class="lbl" style="margin-bottom:12px">Visual style</label>
@@ -96,11 +108,16 @@ textarea{resize:vertical}
     <button class="sbtn" data-s="raw">Raw / Gritty</button>
   </div>
   <div class="row">
-    <div class="col"><label class="lbl">Quality</label><select id="qual"><option value="standard">Standard</option><option value="hd">HD</option></select></div>
-    <div class="col"><label class="lbl">Aspect ratio</label><select id="sz"><option value="1024x1024">Square 1:1</option><option value="1792x1024">Landscape 16:9</option><option value="1024x1792">Portrait 9:16</option></select></div>
+    <div class="col"><label class="lbl">Quality</label>
+      <select id="qual"><option value="standard">Standard</option><option value="hd">HD</option></select>
+    </div>
+    <div class="col"><label class="lbl">Aspect ratio</label>
+      <select id="sz"><option value="1024x1024">Square 1:1</option><option value="1792x1024">Landscape 16:9</option><option value="1024x1792">Portrait 9:16</option></select>
+    </div>
   </div>
 </div>
 
+<!-- GENERATE -->
 <div class="card">
   <div class="ctitle">04 &mdash; Generate</div>
   <button class="gbtn" id="gbtn" disabled>Generate Image</button>
@@ -108,235 +125,288 @@ textarea{resize:vertical}
   <div class="err" id="err" style="display:none"></div>
 </div>
 
+<!-- RESULTS -->
 <div class="card" id="rcard" style="display:none">
   <div class="ctitle">Results <span class="bdg" id="rcount">0</span></div>
   <div class="rgrid" id="rg"></div>
 </div>
 
+<!-- SETUP INSTRUCTIONS -->
+<div class="card">
+  <div class="ctitle">Cloudflare Worker Setup</div>
+  <div style="font-size:12px;color:#666;line-height:2">
+    <b style="color:#e8e4de">1.</b> Sign up free at <a href="https://workers.cloudflare.com" target="_blank" style="color:#e8481a">workers.cloudflare.com</a><br>
+    <b style="color:#e8e4de">2.</b> Click <b style="color:#e8e4de">Create Worker</b> &rarr; replace all code with the worker script below<br>
+    <b style="color:#e8e4de">3.</b> Replace <code style="color:#ffaa55">YOUR_ANTHROPIC_KEY</code> with your API key<br>
+    <b style="color:#e8e4de">4.</b> Click <b style="color:#e8e4de">Deploy</b> &rarr; copy the <code style="color:#ffaa55">.workers.dev</code> URL into the field above
+  </div>
+  <pre style="margin-top:18px;background:#080808;border:1px solid #1e1e1e;border-radius:2px;padding:18px;font-size:11px;color:#8a9fb8;overflow-x:auto;line-height:1.7">export default {
+  async fetch(request) {
+    if (request.method === "OPTIONS") {
+      return new Response(null, {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type",
+        },
+      });
+    }
+    const body = await request.json();
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": "YOUR_ANTHROPIC_KEY",
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify(body),
+    });
+    const data = await response.json();
+    return new Response(JSON.stringify(data), {
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  },
+};</pre>
+</div>
+
 <script>
-var files=[], style='cinematic', resultCount=0;
-var prompt=document.getElementById('prompt');
-var neg=document.getElementById('neg');
-var dz=document.getElementById('dz');
-var fi=document.getElementById('fi');
-var pg=document.getElementById('pg');
-var sg=document.getElementById('sg');
-var gbtn=document.getElementById('gbtn');
-var stat=document.getElementById('stat');
-var err=document.getElementById('err');
-var rcard=document.getElementById('rcard');
-var rg=document.getElementById('rg');
-var rcount=document.getElementById('rcount');
+var files = [], selectedStyle = 'cinematic', resultCount = 0;
 
-prompt.addEventListener('input',function(){gbtn.disabled=!prompt.value.trim();});
+var promptEl  = document.getElementById('prompt');
+var negEl     = document.getElementById('neg');
+var dz        = document.getElementById('dz');
+var fi        = document.getElementById('fi');
+var pg        = document.getElementById('pg');
+var sg        = document.getElementById('sg');
+var gbtn      = document.getElementById('gbtn');
+var stat      = document.getElementById('stat');
+var errEl     = document.getElementById('err');
+var rcard     = document.getElementById('rcard');
+var rg        = document.getElementById('rg');
+var rcount    = document.getElementById('rcount');
 
-sg.addEventListener('click',function(e){
-  var b=e.target.closest('.sbtn');
-  if(!b)return;
-  document.querySelectorAll('.sbtn').forEach(function(x){x.classList.remove('on');});
+function checkReady() {
+  gbtn.disabled = !promptEl.value.trim();
+}
+promptEl.addEventListener('input', checkReady);
+
+sg.addEventListener('click', function(e) {
+  var b = e.target.closest('.sbtn');
+  if (!b) return;
+  document.querySelectorAll('.sbtn').forEach(function(x) { x.classList.remove('on'); });
   b.classList.add('on');
-  style=b.dataset.s;
+  selectedStyle = b.dataset.s;
 });
 
-dz.addEventListener('click',function(){fi.click();});
-dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('over');});
-dz.addEventListener('dragleave',function(){dz.classList.remove('over');});
-dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('over');addFiles(e.dataTransfer.files);});
-fi.addEventListener('change',function(e){addFiles(e.target.files);});
+dz.addEventListener('click', function() { fi.click(); });
+dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', function() { dz.classList.remove('over'); });
+dz.addEventListener('drop', function(e) { e.preventDefault(); dz.classList.remove('over'); addFiles(e.dataTransfer.files); });
+fi.addEventListener('change', function(e) { addFiles(e.target.files); fi.value = ''; });
 
-function addFiles(list){
-  Array.from(list).filter(function(f){return f.type.startsWith('image/');}).forEach(function(f){
-    var r=new FileReader();
-    r.onload=function(e){
-      files.push({id:Date.now()+Math.random(),name:f.name,data:e.target.result,file:f});
+function addFiles(list) {
+  Array.from(list).filter(function(f) { return f.type.startsWith('image/'); }).forEach(function(f) {
+    var r = new FileReader();
+    r.onload = function(e) {
+      files.push({ id: Date.now() + Math.random(), name: f.name, data: e.target.result, file: f });
       renderPreviews();
     };
     r.readAsDataURL(f);
   });
 }
 
-function renderPreviews(){
-  pg.innerHTML='';
-  files.forEach(function(f){
-    var d=document.createElement('div');
-    d.className='pi';
-    d.innerHTML='<img src="'+f.data+'" alt=""/><button class="prm" data-id="'+f.id+'">&times;</button>';
+function renderPreviews() {
+  pg.innerHTML = '';
+  files.forEach(function(f) {
+    var d = document.createElement('div');
+    d.className = 'pi';
+    d.innerHTML = '<img src="' + f.data + '" alt=""/><button class="prm" data-id="' + f.id + '">&times;</button>';
     pg.appendChild(d);
   });
-  pg.querySelectorAll('.prm').forEach(function(b){
-    b.addEventListener('click',function(e){
+  pg.querySelectorAll('.prm').forEach(function(b) {
+    b.addEventListener('click', function(e) {
       e.stopPropagation();
-      var id=parseFloat(b.dataset.id);
-      files=files.filter(function(f){return f.id!==id;});
+      files = files.filter(function(f) { return f.id !== parseFloat(b.dataset.id); });
       renderPreviews();
     });
   });
 }
 
-var styleMap={
-  cinematic:'cinematic, anamorphic lens flare, film grain, 35mm, dramatic contrast, volumetric lighting',
-  neon:'neon noir, cyberpunk city, rain-slicked streets, neon reflections, deep shadows, electric glow',
-  painterly:'oil painting, impasto technique, visible brushwork, rich texture, fine art, gallery quality',
-  minimal:'minimalist composition, soft diffused light, clean lines, editorial photography, muted palette',
-  surreal:'surrealism, dreamlike atmosphere, impossible physics, hyperrealistic detail, Dali-esque',
-  raw:'gritty realism, raw documentary style, harsh shadows, desaturated, street photography'
+var styleMap = {
+  cinematic: 'cinematic, anamorphic lens flare, film grain, 35mm, dramatic contrast, volumetric lighting',
+  neon:      'neon noir, cyberpunk city, rain-slicked streets, neon reflections, deep shadows, electric glow',
+  painterly: 'oil painting, impasto technique, visible brushwork, rich texture, fine art, gallery quality',
+  minimal:   'minimalist composition, soft diffused light, clean lines, editorial photography, muted palette',
+  surreal:   'surrealism, dreamlike atmosphere, impossible physics, hyperrealistic detail, Dali-esque',
+  raw:       'gritty realism, raw documentary style, harsh shadows, desaturated, street photography'
 };
 
-var palettes={
-  cinematic:{bg:'#0a0d14',a:'#c8a46e',b:'#4a6080',c:'#8a9fb8'},
-  neon:{bg:'#060810',a:'#ff2d7a',b:'#00e5ff',c:'#bf00ff'},
-  painterly:{bg:'#1a1208',a:'#c87941',b:'#8b5e3c',c:'#e8c97a'},
-  minimal:{bg:'#f2f0ec',a:'#2a2826',b:'#888480',c:'#c8c4be'},
-  surreal:{bg:'#0e0818',a:'#e040fb',b:'#00bcd4',c:'#ff6090'},
-  raw:{bg:'#0c0c0c',a:'#d4cfc8',b:'#666260',c:'#9a9590'}
+var palettes = {
+  cinematic: { bg: '#0a0d14', a: '#c8a46e', b: '#4a6080', c: '#8a9fb8' },
+  neon:      { bg: '#060810', a: '#ff2d7a', b: '#00e5ff', c: '#bf00ff' },
+  painterly: { bg: '#1a1208', a: '#c87941', b: '#8b5e3c', c: '#e8c97a' },
+  minimal:   { bg: '#f2f0ec', a: '#2a2826', b: '#888480', c: '#c8c4be' },
+  surreal:   { bg: '#0e0818', a: '#e040fb', b: '#00bcd4', c: '#ff6090' },
+  raw:       { bg: '#0c0c0c', a: '#d4cfc8', b: '#666260', c: '#9a9590' }
 };
 
-gbtn.addEventListener('click',generate);
+gbtn.addEventListener('click', generate);
 
-async function generate(){
-  var pval=prompt.value.trim();
-  if(!pval)return;
-  gbtn.disabled=true;
-  gbtn.innerHTML='<span class="spn"></span>Processing&hellip;';
-  stat.style.display='flex';
-  err.style.display='none';
-  try{
-    var content=[];
-    files.forEach(function(f){
-      content.push({type:'image',source:{type:'base64',media_type:f.file.type||'image/jpeg',data:f.data.split(',')[1]}});
+async function generate() {
+  var pval = promptEl.value.trim();
+  var proxy = 'https://snowy-limit-c047.robert-d78.workers.dev';
+  if (!pval) return;
+
+  gbtn.disabled = true;
+  gbtn.innerHTML = '<span class="spn"></span>Processing&hellip;';
+  stat.style.display = 'flex';
+  errEl.style.display = 'none';
+
+  try {
+    var content = [];
+    files.forEach(function(f) {
+      content.push({ type: 'image', source: { type: 'base64', media_type: f.file.type || 'image/jpeg', data: f.data.split(',')[1] } });
     });
-    var txt=pval;
-    if(neg.value.trim())txt+='\n\nAvoid: '+neg.value.trim();
-    txt+='\n\nVisual style: '+(styleMap[style]||styleMap.cinematic);
-    if(files.length>0)txt='Use uploaded image(s) as visual reference. Prompt:\n\n'+txt;
-    content.push({type:'text',text:txt});
-    var SYS='You are an expert image generation prompt engineer. Respond ONLY with a JSON object, no markdown: {"imagePrompt":"<detailed prompt>","description":"<one sentence>","technicalDetails":"<lighting, composition, palette>"}';
-    var res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYS,messages:[{role:'user',content:content}]})
+
+    var txt = pval;
+    if (negEl.value.trim()) txt += '\n\nAvoid: ' + negEl.value.trim();
+    txt += '\n\nVisual style: ' + (styleMap[selectedStyle] || styleMap.cinematic);
+    if (files.length > 0) txt = 'Use uploaded image(s) as visual reference. Prompt:\n\n' + txt;
+    content.push({ type: 'text', text: txt });
+
+    var SYS = 'You are an expert image generation prompt engineer. Respond ONLY with a JSON object, no markdown: {"imagePrompt":"<detailed prompt>","description":"<one sentence>","technicalDetails":"<lighting, composition, palette>"}';
+
+    var res = await fetch(proxy, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYS,
+        messages: [{ role: 'user', content: content }]
+      })
     });
-    var data=await res.json();
-    if(data.error)throw new Error(data.error.message);
-    var raw=((data.content||[]).find(function(b){return b.type==='text';})||{}).text||'';
-    var parsed={imagePrompt:pval,description:'Generated image',technicalDetails:''};
-    try{parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(x){}
+
+    var data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+
+    var raw = ((data.content || []).find(function(b) { return b.type === 'text'; }) || {}).text || '';
+    var parsed = { imagePrompt: pval, description: 'Generated image', technicalDetails: '' };
+    try { parsed = JSON.parse(raw.replace(/```json|```/g, '').trim()); } catch(x) {}
+
     addResult(parsed);
-  }catch(e){
-    err.textContent='Error: '+(e.message||'Generation failed.');
-    err.style.display='block';
-  }finally{
-    gbtn.disabled=false;
-    gbtn.innerHTML='Generate Image';
-    stat.style.display='none';
+  } catch(e) {
+    errEl.textContent = 'Error: ' + (e.message || 'Generation failed. Check your proxy URL and API key.');
+    errEl.style.display = 'block';
+  } finally {
+    gbtn.disabled = false;
+    gbtn.innerHTML = 'Generate Image';
+    stat.style.display = 'none';
+    checkReady();
   }
 }
 
-function addResult(parsed){
+function addResult(parsed) {
   resultCount++;
-  var id='r'+Date.now();
-  var pal=palettes[style]||palettes.cinematic;
-  var refs=files.map(function(f){return f.data;});
-  var time=new Date().toLocaleTimeString();
-  var desc=parsed.description||'Generated image';
-  var tech=parsed.technicalDetails||'';
+  var id = 'r' + Date.now();
+  var pal = palettes[selectedStyle] || palettes.cinematic;
+  var refs = files.map(function(f) { return f.data; });
+  var time = new Date().toLocaleTimeString();
+  var desc = parsed.description || 'Generated image';
+  var tech = parsed.technicalDetails || '';
 
-  var card=document.createElement('div');
-  card.className='rc';
-  card.id='card-'+id;
+  var card = document.createElement('div');
+  card.className = 'rc';
+  card.id = 'card-' + id;
 
-  var cv=document.createElement('canvas');
-  cv.width=680;cv.height=382;
-  cv.style.width='100%';cv.style.display='block';
+  var cv = document.createElement('canvas');
+  cv.width = 680; cv.height = 382;
+  cv.style.width = '100%'; cv.style.display = 'block';
   card.appendChild(cv);
-  drawCanvas(cv,pal,desc,style);
+  drawCanvas(cv, pal, desc, selectedStyle);
 
-  if(refs.length>0){
-    var rd=document.createElement('div');
-    rd.className='rrefs';
-    refs.forEach(function(src){
-      var img=document.createElement('img');
-      img.src=src;
-      rd.appendChild(img);
+  if (refs.length > 0) {
+    var rd = document.createElement('div');
+    rd.className = 'rrefs';
+    refs.forEach(function(src) {
+      var img = document.createElement('img'); img.src = src; rd.appendChild(img);
     });
-    var sp=document.createElement('span');
-    sp.textContent='REFS';
-    rd.appendChild(sp);
+    var sp = document.createElement('span'); sp.textContent = 'REFS'; rd.appendChild(sp);
     card.appendChild(rd);
   }
 
-  var body=document.createElement('div');
-  body.className='rbody';
-  var techHtml=tech?'<div class="rtech">'+tech+'</div>':'';
-  body.innerHTML='<div class="rdesc">'+desc+'</div>'+techHtml+'<div class="rftr"><button class="dlbtn" onclick="dl(\''+id+'\')">&#8595; Save PNG</button><span class="rtime">'+time+'</span></div>';
+  var body = document.createElement('div');
+  body.className = 'rbody';
+  body.innerHTML = '<div class="rdesc">' + desc + '</div>' +
+    (tech ? '<div class="rtech">' + tech + '</div>' : '') +
+    '<div class="rftr"><button class="dlbtn" onclick="dl(\'' + id + '\')">&#8595; Save PNG</button><span class="rtime">' + time + '</span></div>';
   card.appendChild(body);
 
-  rg.insertBefore(card,rg.firstChild);
-  rcard.style.display='block';
-  rcount.textContent=resultCount;
+  rg.insertBefore(card, rg.firstChild);
+  rcard.style.display = 'block';
+  rcount.textContent = resultCount;
 }
 
-function drawCanvas(cv,pal,desc,sty){
-  var ctx=cv.getContext('2d');
-  var W=cv.width,H=cv.height;
-  ctx.fillStyle=pal.bg;
-  ctx.fillRect(0,0,W,H);
-  var g1=ctx.createRadialGradient(W/2,H*0.45,0,W/2,H*0.45,W*0.55);
-  g1.addColorStop(0,ha(pal.a,0.2));g1.addColorStop(0.5,ha(pal.b,0.09));g1.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle=g1;ctx.fillRect(0,0,W,H);
-  var g2=ctx.createRadialGradient(W*0.2,H*0.75,0,W*0.2,H*0.75,W*0.38);
-  g2.addColorStop(0,ha(pal.c,0.13));g2.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle=g2;ctx.fillRect(0,0,W,H);
-  ctx.strokeStyle=ha(pal.a,0.06);ctx.lineWidth=0.5;
-  for(var x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
-  for(var y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
-  ctx.strokeStyle=ha(pal.a,0.22);ctx.lineWidth=0.75;
-  ctx.beginPath();ctx.moveTo(80,H*0.52);ctx.lineTo(W-80,H*0.52);ctx.stroke();
-  [80,46,22].forEach(function(r,i){
-    ctx.beginPath();ctx.arc(W/2,H*0.43,r,0,Math.PI*2);
-    ctx.strokeStyle=ha(pal.a,0.2+i*0.15);ctx.lineWidth=1;ctx.stroke();
+function drawCanvas(cv, pal, desc, sty) {
+  var ctx = cv.getContext('2d');
+  var W = cv.width, H = cv.height;
+  ctx.fillStyle = pal.bg; ctx.fillRect(0, 0, W, H);
+  var g1 = ctx.createRadialGradient(W/2, H*0.45, 0, W/2, H*0.45, W*0.55);
+  g1.addColorStop(0, ha(pal.a, 0.2)); g1.addColorStop(0.5, ha(pal.b, 0.09)); g1.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g1; ctx.fillRect(0, 0, W, H);
+  var g2 = ctx.createRadialGradient(W*0.2, H*0.75, 0, W*0.2, H*0.75, W*0.38);
+  g2.addColorStop(0, ha(pal.c, 0.13)); g2.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g2; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = ha(pal.a, 0.06); ctx.lineWidth = 0.5;
+  for (var x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (var y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+  ctx.strokeStyle = ha(pal.a, 0.22); ctx.lineWidth = 0.75;
+  ctx.beginPath(); ctx.moveTo(80, H*0.52); ctx.lineTo(W-80, H*0.52); ctx.stroke();
+  [80, 46, 22].forEach(function(r, i) {
+    ctx.beginPath(); ctx.arc(W/2, H*0.43, r, 0, Math.PI*2);
+    ctx.strokeStyle = ha(pal.a, 0.2 + i*0.15); ctx.lineWidth = 1; ctx.stroke();
   });
-  ctx.beginPath();ctx.arc(W/2,H*0.43,9,0,Math.PI*2);
-  ctx.fillStyle=ha(pal.a,0.45);ctx.fill();
-  ctx.strokeStyle=ha(pal.a,0.18);ctx.lineWidth=0.75;
-  ctx.beginPath();ctx.moveTo(W/2,H*0.43-75);ctx.lineTo(W/2,H*0.43+75);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(W/2-75,H*0.43);ctx.lineTo(W/2+75,H*0.43);ctx.stroke();
-  ctx.fillStyle=ha(pal.a,0.5);ctx.font='600 9px Courier New';
-  ctx.textAlign='center';
-  ctx.fillText(sty.toUpperCase()+'  \u00b7  AI GENERATED',W/2,H*0.72);
-  ctx.fillStyle=ha(pal==='minimal'?'#111111':'#e8e4de',0.82);
-  ctx.font='11px Courier New';
-  var words=desc.split(' '),line='',lines=[];
-  words.forEach(function(w){
-    var t=line+w+' ';
-    if(ctx.measureText(t).width>W-120&&line){lines.push(line.trim());line=w+' ';}else line=t;
+  ctx.beginPath(); ctx.arc(W/2, H*0.43, 9, 0, Math.PI*2);
+  ctx.fillStyle = ha(pal.a, 0.45); ctx.fill();
+  ctx.strokeStyle = ha(pal.a, 0.18); ctx.lineWidth = 0.75;
+  ctx.beginPath(); ctx.moveTo(W/2, H*0.43-75); ctx.lineTo(W/2, H*0.43+75); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W/2-75, H*0.43); ctx.lineTo(W/2+75, H*0.43); ctx.stroke();
+  ctx.fillStyle = ha(pal.a, 0.5); ctx.font = '600 9px Courier New'; ctx.textAlign = 'center';
+  ctx.fillText(sty.toUpperCase() + '  \u00b7  AI GENERATED', W/2, H*0.72);
+  ctx.fillStyle = ha('#e8e4de', 0.82); ctx.font = '11px Courier New';
+  var words = desc.split(' '), line = '', lines = [];
+  words.forEach(function(w) {
+    var t = line + w + ' ';
+    if (ctx.measureText(t).width > W-120 && line) { lines.push(line.trim()); line = w + ' '; } else line = t;
   });
-  if(line)lines.push(line.trim());
-  lines.slice(0,2).forEach(function(l,i){ctx.fillText(l,W/2,H*0.81+i*18);});
-  ctx.strokeStyle=ha(pal.a,0.28);ctx.lineWidth=1;
-  [[20,20,1,1],[W-20,20,-1,1],[W-20,H-20,-1,-1],[20,H-20,1,-1]].forEach(function(p){
-    ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(p[0]+p[2]*14,p[1]);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(p[0],p[1]+p[3]*14);ctx.stroke();
+  if (line) lines.push(line.trim());
+  lines.slice(0, 2).forEach(function(l, i) { ctx.fillText(l, W/2, H*0.81 + i*18); });
+  [[20,20,1,1],[W-20,20,-1,1],[W-20,H-20,-1,-1],[20,H-20,1,-1]].forEach(function(p) {
+    ctx.strokeStyle = ha(pal.a, 0.28); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(p[0]+p[2]*14,p[1]); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(p[0],p[1]+p[3]*14); ctx.stroke();
   });
-  ctx.strokeStyle=ha(pal.a,0.14);ctx.lineWidth=1;
-  ctx.strokeRect(1,1,W-2,H-2);
+  ctx.strokeStyle = ha(pal.a, 0.14); ctx.lineWidth = 1; ctx.strokeRect(1,1,W-2,H-2);
 }
 
-function ha(hex,alpha){
-  hex=hex.replace('#','');
-  if(hex.length===3)hex=hex.split('').map(function(c){return c+c;}).join('');
-  var r=parseInt(hex.slice(0,2),16),g=parseInt(hex.slice(2,4),16),b=parseInt(hex.slice(4,6),16);
+function ha(hex, alpha) {
+  hex = hex.replace('#','');
+  if (hex.length === 3) hex = hex.split('').map(function(c){return c+c;}).join('');
+  var r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b = parseInt(hex.slice(4,6),16);
   return 'rgba('+r+','+g+','+b+','+alpha+')';
 }
 
-function dl(id){
-  var card=document.getElementById('card-'+id);
-  if(!card)return;
-  var cv=card.querySelector('canvas');
-  if(!cv)return;
-  var a=document.createElement('a');
-  a.href=cv.toDataURL('image/png');
-  a.download='imggen-'+id+'.png';
+function dl(id) {
+  var card = document.getElementById('card-' + id);
+  if (!card) return;
+  var cv = card.querySelector('canvas');
+  if (!cv) return;
+  var a = document.createElement('a');
+  a.href = cv.toDataURL('image/png');
+  a.download = 'imggen-' + id + '.png';
   a.click();
 }
 </script>
