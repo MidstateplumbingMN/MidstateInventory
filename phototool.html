@@ -495,8 +495,10 @@
 
             let html = '';
             photos.forEach((photo, index) => {
-                const letter = String.fromCharCode(97 + index); // a, b, c, etc.
-                const newName = `MidState_Photo_${String(itemNumber).padStart(2, '0')}${letter}.${photo.extension}`;
+                const sanitizedTitle = sanitizeForFilename(uploadedPhotos[itemNumber].title);
+                const fileNumber = String(index + 1).padStart(2, '0');
+                const mediaType = photo.isVideo ? '_Video' : '';
+                const newName = `${sanitizedTitle}${mediaType}_${fileNumber}.${photo.extension}`;
                 
                 const mediaElement = photo.isVideo 
                     ? `<video src="${photo.dataUrl}" class="thumbnail" controls></video>
@@ -572,24 +574,28 @@
 
             try {
                 const zip = new JSZip();
-                const photosFolder = zip.folder("media");
 
-                // Add photos to ZIP
+                // Add photos to ZIP - organized by checklist item
                 for (const [itemNumber, item] of Object.entries(uploadedPhotos)) {
+                    const sanitizedTitle = sanitizeForFilename(item.title);
+                    const folderName = `${String(itemNumber).padStart(2, '0')}_${sanitizedTitle}`;
+                    const itemFolder = zip.folder(folderName);
+                    
                     for (let i = 0; i < item.photos.length; i++) {
                         const photo = item.photos[i];
-                        const letter = String.fromCharCode(97 + i);
-                        const newName = `MidState_Photo_${String(itemNumber).padStart(2, '0')}${letter}.${photo.extension}`;
+                        const fileNumber = String(i + 1).padStart(2, '0');
+                        const mediaType = photo.isVideo ? '_Video' : '';
+                        const newName = `${sanitizedTitle}${mediaType}_${fileNumber}.${photo.extension}`;
                         
                         const response = await fetch(photo.dataUrl);
                         const blob = await response.blob();
-                        photosFolder.file(newName, blob);
+                        itemFolder.file(newName, blob);
                     }
                 }
 
                 // Generate PDF reference sheet
                 const pdfBlob = await generatePDF();
-                zip.file("Media_Reference_Sheet.pdf", pdfBlob);
+                zip.file("00_Contents_Summary.pdf", pdfBlob);
 
                 // Generate ZIP
                 const zipBlob = await zip.generateAsync({ type: "blob" });
@@ -597,7 +603,7 @@
                 // Download
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(zipBlob);
-                link.download = `MidState_Photos_${new Date().toISOString().split('T')[0]}.zip`;
+                link.download = `MidState_Media_Package_${new Date().toISOString().split('T')[0]}.zip`;
                 link.click();
 
                 btn.textContent = '✅ Package Downloaded!';
@@ -624,13 +630,14 @@
             doc.text('Mid-State Plumbing & Heating', 105, 20, { align: 'center' });
             
             doc.setFontSize(14);
-            doc.text('Photo & Video Reference Sheet', 105, 30, { align: 'center' });
+            doc.text('Media Package Contents Summary', 105, 30, { align: 'center' });
             
             doc.setFontSize(10);
             doc.setTextColor(100);
             doc.text(`Generated: ${new Date().toLocaleDateString()}`, 105, 38, { align: 'center' });
+            doc.text('ZIP File Structure & Contents', 105, 44, { align: 'center' });
             
-            let y = 50;
+            let y = 54;
             let currentCategory = '';
 
             // Sort by item number
@@ -638,9 +645,11 @@
 
             for (const [itemNumber, item] of sortedItems) {
                 const photoItem = photoItems[parseInt(itemNumber) - 1];
+                const sanitizedTitle = sanitizeForFilename(item.title);
+                const folderName = `${String(itemNumber).padStart(2, '0')}_${sanitizedTitle}`;
                 
                 // Check if we need a new page
-                if (y > 240) {
+                if (y > 235) {
                     doc.addPage();
                     y = 20;
                 }
@@ -648,14 +657,14 @@
                 // Category header
                 if (photoItem.category !== currentCategory) {
                     currentCategory = photoItem.category;
-                    doc.setFontSize(12);
+                    doc.setFontSize(11);
                     doc.setTextColor(26, 77, 143);
                     doc.setFont(undefined, 'bold');
                     doc.text(photoItem.category, 20, y);
-                    y += 8;
+                    y += 7;
                 }
 
-                // Item details
+                // Folder name
                 doc.setFontSize(10);
                 doc.setTextColor(0);
                 doc.setFont(undefined, 'bold');
@@ -664,35 +673,42 @@
 
                 doc.setFont(undefined, 'normal');
                 doc.setTextColor(80);
+                doc.text(`Folder: ${folderName}/`, 25, y);
+                y += 5;
                 doc.text(`Files: ${item.photos.length}`, 25, y);
                 y += 5;
 
                 // List all photo filenames
                 item.photos.forEach((photo, index) => {
-                    const letter = String.fromCharCode(97 + index);
-                    const newName = `MidState_Photo_${String(itemNumber).padStart(2, '0')}${letter}.${photo.extension}`;
-                    const mediaType = photo.isVideo ? ' [VIDEO]' : '';
-                    doc.text(`  - ${newName}${mediaType}`, 25, y);
+                    const fileNumber = String(index + 1).padStart(2, '0');
+                    const mediaType = photo.isVideo ? '_Video' : '';
+                    const newName = `${sanitizedTitle}${mediaType}_${fileNumber}.${photo.extension}`;
+                    const mediaLabel = photo.isVideo ? ' [VIDEO]' : '';
+                    
+                    doc.text(`  - ${newName}${mediaLabel}`, 25, y);
                     y += 4;
                     
                     if (photo.description) {
-                        const descLines = doc.splitTextToSize(`    "${photo.description}"`, 155);
+                        const descLines = doc.splitTextToSize(`    "${photo.description}"`, 150);
                         doc.setTextColor(100);
+                        doc.setFontSize(9);
                         doc.text(descLines, 25, y);
                         doc.setTextColor(80);
+                        doc.setFontSize(10);
                         y += descLines.length * 4;
                     }
                 });
 
-                y += 4;
+                y += 6;
             }
 
             // Summary at the end
-            if (y > 230) {
+            if (y > 225) {
                 doc.addPage();
                 y = 20;
             }
 
+            y += 5;
             doc.setFontSize(12);
             doc.setTextColor(26, 77, 143);
             doc.setFont(undefined, 'bold');
@@ -709,15 +725,39 @@
             doc.setFont(undefined, 'normal');
             doc.text(`Checklist items completed: ${Object.keys(uploadedPhotos).length} of ${photoItems.length}`, 20, y);
             y += 6;
-            doc.text(`Total files uploaded: ${totalPhotos} (${imageCount} photos, ${videoCount} videos)`, 20, y);
+            doc.text(`Total folders: ${Object.keys(uploadedPhotos).length}`, 20, y);
+            y += 6;
+            doc.text(`Total files: ${totalPhotos} (${imageCount} photos, ${videoCount} videos)`, 20, y);
             y += 6;
             doc.text(`Completion: ${Math.round((Object.keys(uploadedPhotos).length / photoItems.length) * 100)}%`, 20, y);
+            y += 10;
+            
+            doc.setTextColor(80);
+            doc.setFontSize(9);
+            doc.text('Each checklist item has its own folder containing all associated media files.', 20, y);
+            y += 4;
+            doc.text('Folder names use format: [Item#]_[Item_Title]/', 20, y);
 
             return doc.output('blob');
         }
 
         // Initialize on load
         initializeChecklist();
+        
+        // Sanitize title for use in filename
+        function sanitizeForFilename(title) {
+            // Remove content in parentheses
+            let cleaned = title.replace(/\([^)]*\)/g, '');
+            // Replace special characters and spaces with underscores
+            cleaned = cleaned.replace(/[^a-zA-Z0-9\s]/g, '');
+            // Replace multiple spaces with single underscore
+            cleaned = cleaned.replace(/\s+/g, '_');
+            // Remove trailing/leading underscores
+            cleaned = cleaned.replace(/^_+|_+$/g, '');
+            // Limit length to 50 characters
+            cleaned = cleaned.substring(0, 50);
+            return cleaned;
+        }
     </script>
 </body>
 </html>
