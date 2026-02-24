@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mid-State Photo Checklist Tool</title>
+    <title>Mid-State Photo & Video Checklist Tool</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
@@ -181,20 +181,6 @@
             transform: translateY(-1px);
         }
         
-        .description-input {
-            flex: 1;
-            min-width: 200px;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 13px;
-        }
-        
-        .description-input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
         .photos-preview {
             margin-top: 12px;
             display: grid;
@@ -218,6 +204,19 @@
             margin-bottom: 6px;
         }
         
+        .video-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-weight: bold;
+            z-index: 1;
+        }
+        
         .photo-info {
             font-size: 11px;
             color: #666;
@@ -228,14 +227,6 @@
             color: #333;
             display: block;
             margin-bottom: 2px;
-        }
-        
-        .photo-description {
-            font-size: 10px;
-            color: #888;
-            font-style: italic;
-            margin-bottom: 6px;
-            line-height: 1.3;
         }
         
         .remove-photo-btn {
@@ -314,14 +305,6 @@
         }
         
         @media (max-width: 768px) {
-            .item-controls {
-                flex-direction: column;
-            }
-            
-            .description-input {
-                width: 100%;
-            }
-            
             .action-buttons {
                 flex-direction: column;
             }
@@ -340,15 +323,15 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📸 Mid-State Photo Checklist</h1>
-            <p>Upload photos for social media content - March 2026</p>
+            <h1>📸 Mid-State Photo & Video Checklist</h1>
+            <p>Upload photos and videos for social media content - March 2026</p>
         </div>
         
         <div class="progress-section">
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
             </div>
-            <div class="progress-text" id="progressText">0 of 30 items with photos</div>
+            <div class="progress-text" id="progressText">0 of 30 items with media</div>
         </div>
         
         <div class="checklist" id="checklist"></div>
@@ -433,14 +416,12 @@
                         </div>
                         <div class="item-controls">
                             <div class="file-input-wrapper">
-                                <input type="file" id="file-${itemNumber}" accept="image/*" multiple
+                                <input type="file" id="file-${itemNumber}" accept="image/*,video/*" multiple
                                        onchange="handleFileUpload(${itemNumber}, this)">
                                 <label for="file-${itemNumber}" class="file-input-label">
-                                    📁 Add Photos
+                                    📁 Add Photos/Videos
                                 </label>
                             </div>
-                            <input type="text" class="description-input" id="desc-${itemNumber}" 
-                                   placeholder="Add description for all photos (optional)...">
                         </div>
                         <div class="photos-preview" id="preview-${itemNumber}"></div>
                     </div>
@@ -458,7 +439,6 @@
             if (!uploadedPhotos[itemNumber]) {
                 uploadedPhotos[itemNumber] = {
                     photos: [],
-                    description: '',
                     title: photoItems[itemNumber - 1].title
                 };
             }
@@ -466,6 +446,8 @@
             const promises = files.map(file => {
                 return new Promise((resolve) => {
                     const reader = new FileReader();
+                    const isVideo = file.type.startsWith('video/');
+                    
                     reader.onload = function(e) {
                         const photoId = Date.now() + Math.random();
                         uploadedPhotos[itemNumber].photos.push({
@@ -473,7 +455,10 @@
                             file: file,
                             dataUrl: e.target.result,
                             originalName: file.name,
-                            extension: file.name.split('.').pop()
+                            extension: file.name.split('.').pop(),
+                            isVideo: isVideo,
+                            fileType: file.type,
+                            description: ''
                         });
                         resolve();
                     };
@@ -482,8 +467,6 @@
             });
 
             Promise.all(promises).then(() => {
-                const description = document.getElementById(`desc-${itemNumber}`).value;
-                uploadedPhotos[itemNumber].description = description;
                 updateItemDisplay(itemNumber);
                 updateProgress();
                 input.value = ''; // Reset input to allow re-selecting same files
@@ -508,20 +491,30 @@
 
             item.classList.add('completed');
             countBadge.style.display = 'block';
-            countBadge.textContent = `${photos.length} photo${photos.length > 1 ? 's' : ''}`;
+            countBadge.textContent = `${photos.length} file${photos.length > 1 ? 's' : ''}`;
 
             let html = '';
             photos.forEach((photo, index) => {
                 const letter = String.fromCharCode(97 + index); // a, b, c, etc.
                 const newName = `MidState_Photo_${String(itemNumber).padStart(2, '0')}${letter}.${photo.extension}`;
                 
+                const mediaElement = photo.isVideo 
+                    ? `<video src="${photo.dataUrl}" class="thumbnail" controls></video>
+                       <div class="video-badge">VIDEO</div>`
+                    : `<img src="${photo.dataUrl}" class="thumbnail" alt="Preview">`;
+                
                 html += `
                     <div class="photo-card">
-                        <img src="${photo.dataUrl}" class="thumbnail" alt="Preview">
+                        ${mediaElement}
                         <div class="photo-info">
                             <strong>${newName}</strong>
-                            ${description ? `<div class="photo-description">${description}</div>` : ''}
                         </div>
+                        <input type="text" 
+                               class="description-input" 
+                               style="width: 100%; margin: 4px 0; padding: 6px; font-size: 11px; border: 1px solid #ddd; border-radius: 4px;"
+                               placeholder="Description (optional)..."
+                               value="${photo.description || ''}"
+                               onchange="updatePhotoDescription(${itemNumber}, '${photo.id}', this.value)">
                         <button class="remove-photo-btn" onclick="removePhoto(${itemNumber}, '${photo.id}')">
                             Remove
                         </button>
@@ -537,11 +530,19 @@
                 
                 if (uploadedPhotos[itemNumber].photos.length === 0) {
                     delete uploadedPhotos[itemNumber];
-                    document.getElementById(`desc-${itemNumber}`).value = '';
                 }
                 
                 updateItemDisplay(itemNumber);
                 updateProgress();
+            }
+        }
+
+        function updatePhotoDescription(itemNumber, photoId, description) {
+            if (uploadedPhotos[itemNumber]) {
+                const photo = uploadedPhotos[itemNumber].photos.find(p => p.id == photoId);
+                if (photo) {
+                    photo.description = description;
+                }
             }
         }
 
@@ -552,7 +553,7 @@
             const percentage = (completed / total) * 100;
 
             document.getElementById('progressFill').style.width = percentage + '%';
-            document.getElementById('progressText').textContent = `${completed} of ${total} items with photos (${totalPhotos} total photos)`;
+            document.getElementById('progressText').textContent = `${completed} of ${total} items with media (${totalPhotos} total files)`;
             document.getElementById('downloadBtn').disabled = completed === 0;
         }
 
@@ -571,7 +572,7 @@
 
             try {
                 const zip = new JSZip();
-                const photosFolder = zip.folder("photos");
+                const photosFolder = zip.folder("media");
 
                 // Add photos to ZIP
                 for (const [itemNumber, item] of Object.entries(uploadedPhotos)) {
@@ -588,7 +589,7 @@
 
                 // Generate PDF reference sheet
                 const pdfBlob = await generatePDF();
-                zip.file("Photo_Reference_Sheet.pdf", pdfBlob);
+                zip.file("Media_Reference_Sheet.pdf", pdfBlob);
 
                 // Generate ZIP
                 const zipBlob = await zip.generateAsync({ type: "blob" });
@@ -623,7 +624,7 @@
             doc.text('Mid-State Plumbing & Heating', 105, 20, { align: 'center' });
             
             doc.setFontSize(14);
-            doc.text('Photo Reference Sheet', 105, 30, { align: 'center' });
+            doc.text('Photo & Video Reference Sheet', 105, 30, { align: 'center' });
             
             doc.setFontSize(10);
             doc.setTextColor(100);
@@ -663,25 +664,27 @@
 
                 doc.setFont(undefined, 'normal');
                 doc.setTextColor(80);
-                doc.text(`Photos: ${item.photos.length}`, 25, y);
+                doc.text(`Files: ${item.photos.length}`, 25, y);
                 y += 5;
 
                 // List all photo filenames
                 item.photos.forEach((photo, index) => {
                     const letter = String.fromCharCode(97 + index);
                     const newName = `MidState_Photo_${String(itemNumber).padStart(2, '0')}${letter}.${photo.extension}`;
-                    doc.text(`  - ${newName}`, 25, y);
+                    const mediaType = photo.isVideo ? ' [VIDEO]' : '';
+                    doc.text(`  - ${newName}${mediaType}`, 25, y);
                     y += 4;
+                    
+                    if (photo.description) {
+                        const descLines = doc.splitTextToSize(`    "${photo.description}"`, 155);
+                        doc.setTextColor(100);
+                        doc.text(descLines, 25, y);
+                        doc.setTextColor(80);
+                        y += descLines.length * 4;
+                    }
                 });
 
-                if (item.description) {
-                    y += 2;
-                    const descLines = doc.splitTextToSize(`Description: ${item.description}`, 160);
-                    doc.text(descLines, 25, y);
-                    y += descLines.length * 5;
-                }
-
-                y += 8;
+                y += 4;
             }
 
             // Summary at the end
@@ -697,12 +700,16 @@
             y += 8;
 
             const totalPhotos = Object.values(uploadedPhotos).reduce((sum, item) => sum + item.photos.length, 0);
+            const videoCount = Object.values(uploadedPhotos).reduce((sum, item) => 
+                sum + item.photos.filter(p => p.isVideo).length, 0);
+            const imageCount = totalPhotos - videoCount;
+            
             doc.setFontSize(10);
             doc.setTextColor(0);
             doc.setFont(undefined, 'normal');
             doc.text(`Checklist items completed: ${Object.keys(uploadedPhotos).length} of ${photoItems.length}`, 20, y);
             y += 6;
-            doc.text(`Total photos uploaded: ${totalPhotos}`, 20, y);
+            doc.text(`Total files uploaded: ${totalPhotos} (${imageCount} photos, ${videoCount} videos)`, 20, y);
             y += 6;
             doc.text(`Completion: ${Math.round((Object.keys(uploadedPhotos).length / photoItems.length) * 100)}%`, 20, y);
 
