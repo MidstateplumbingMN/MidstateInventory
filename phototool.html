@@ -150,6 +150,7 @@
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
+            align-items: center;
         }
         
         .file-input-wrapper {
@@ -194,35 +195,72 @@
             border-color: #667eea;
         }
         
-        .file-info {
-            margin-top: 8px;
-            padding: 8px 12px;
-            background: #e8f4ea;
-            border-radius: 6px;
-            font-size: 12px;
-            color: #2e7d32;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .photos-preview {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
         }
         
-        .file-info strong {
-            color: #1b5e20;
+        .photo-card {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 8px;
+            position: relative;
         }
         
-        .remove-btn {
+        .thumbnail {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 6px;
+        }
+        
+        .photo-info {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        
+        .photo-info strong {
+            color: #333;
+            display: block;
+            margin-bottom: 2px;
+        }
+        
+        .photo-description {
+            font-size: 10px;
+            color: #888;
+            font-style: italic;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        
+        .remove-photo-btn {
             background: #f44336;
             color: white;
             border: none;
-            padding: 4px 12px;
+            padding: 4px 8px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 11px;
-            margin-left: auto;
+            font-size: 10px;
+            width: 100%;
         }
         
-        .remove-btn:hover {
+        .remove-photo-btn:hover {
             background: #d32f2f;
+        }
+        
+        .photo-count {
+            background: #4caf50;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: auto;
         }
         
         .action-buttons {
@@ -275,15 +313,6 @@
             background: #e0e8f0;
         }
         
-        .thumbnail {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 4px;
-            margin-top: 8px;
-            border: 2px solid #ddd;
-        }
-        
         @media (max-width: 768px) {
             .item-controls {
                 flex-direction: column;
@@ -301,6 +330,10 @@
                 width: 100%;
                 justify-content: center;
             }
+            
+            .photos-preview {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
         }
     </style>
 </head>
@@ -315,7 +348,7 @@
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
             </div>
-            <div class="progress-text" id="progressText">0 of 30 photos uploaded</div>
+            <div class="progress-text" id="progressText">0 of 30 items with photos</div>
         </div>
         
         <div class="checklist" id="checklist"></div>
@@ -396,20 +429,20 @@
                         <div class="item-header">
                             <div class="item-number" data-number="${itemNumber}"></div>
                             <div class="item-title">${item.title}</div>
+                            <span class="photo-count" id="count-${itemNumber}" style="display: none;">0 photos</span>
                         </div>
                         <div class="item-controls">
                             <div class="file-input-wrapper">
-                                <input type="file" id="file-${itemNumber}" accept="image/*" 
+                                <input type="file" id="file-${itemNumber}" accept="image/*" multiple
                                        onchange="handleFileUpload(${itemNumber}, this)">
                                 <label for="file-${itemNumber}" class="file-input-label">
-                                    📁 Choose Photo
+                                    📁 Add Photos
                                 </label>
                             </div>
                             <input type="text" class="description-input" id="desc-${itemNumber}" 
-                                   placeholder="Add description (optional)..." 
-                                   onchange="updateDescription(${itemNumber}, this.value)">
+                                   placeholder="Add description for all photos (optional)...">
                         </div>
-                        <div id="preview-${itemNumber}"></div>
+                        <div class="photos-preview" id="preview-${itemNumber}"></div>
                     </div>
                 `;
             });
@@ -419,69 +452,104 @@
         }
 
         function handleFileUpload(itemNumber, input) {
-            const file = input.files[0];
-            if (!file) return;
+            const files = Array.from(input.files);
+            if (files.length === 0) return;
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const description = document.getElementById(`desc-${itemNumber}`).value;
-                
+            if (!uploadedPhotos[itemNumber]) {
                 uploadedPhotos[itemNumber] = {
-                    file: file,
-                    dataUrl: e.target.result,
-                    originalName: file.name,
-                    newName: `MidState_Photo_${String(itemNumber).padStart(2, '0')}.${file.name.split('.').pop()}`,
-                    description: description,
+                    photos: [],
+                    description: '',
                     title: photoItems[itemNumber - 1].title
                 };
+            }
 
+            const promises = files.map(file => {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const photoId = Date.now() + Math.random();
+                        uploadedPhotos[itemNumber].photos.push({
+                            id: photoId,
+                            file: file,
+                            dataUrl: e.target.result,
+                            originalName: file.name,
+                            extension: file.name.split('.').pop()
+                        });
+                        resolve();
+                    };
+                    reader.readAsDataURL(file);
+                });
+            });
+
+            Promise.all(promises).then(() => {
+                const description = document.getElementById(`desc-${itemNumber}`).value;
+                uploadedPhotos[itemNumber].description = description;
                 updateItemDisplay(itemNumber);
                 updateProgress();
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function updateDescription(itemNumber, description) {
-            if (uploadedPhotos[itemNumber]) {
-                uploadedPhotos[itemNumber].description = description;
-            }
+                input.value = ''; // Reset input to allow re-selecting same files
+            });
         }
 
         function updateItemDisplay(itemNumber) {
             const item = document.getElementById(`item-${itemNumber}`);
             const preview = document.getElementById(`preview-${itemNumber}`);
-            const photo = uploadedPhotos[itemNumber];
+            const countBadge = document.getElementById(`count-${itemNumber}`);
+            const photos = uploadedPhotos[itemNumber].photos;
+            const description = uploadedPhotos[itemNumber].description;
 
-            item.classList.add('completed');
-            
-            preview.innerHTML = `
-                <div class="file-info">
-                    <img src="${photo.dataUrl}" class="thumbnail" alt="Preview">
-                    <div style="flex: 1;">
-                        <strong>New filename:</strong> ${photo.newName}<br>
-                        ${photo.description ? `<strong>Description:</strong> ${photo.description}` : '<em>No description</em>'}
-                    </div>
-                    <button class="remove-btn" onclick="removePhoto(${itemNumber})">Remove</button>
-                </div>
-            `;
+            if (photos.length > 0) {
+                item.classList.add('completed');
+                countBadge.style.display = 'block';
+                countBadge.textContent = `${photos.length} photo${photos.length > 1 ? 's' : ''}`;
+
+                let html = '';
+                photos.forEach((photo, index) => {
+                    const letter = String.fromCharCode(97 + index); // a, b, c, etc.
+                    const newName = `MidState_Photo_${String(itemNumber).padStart(2, '0')}${letter}.${photo.extension}`;
+                    
+                    html += `
+                        <div class="photo-card">
+                            <img src="${photo.dataUrl}" class="thumbnail" alt="Preview">
+                            <div class="photo-info">
+                                <strong>${newName}</strong>
+                                ${description ? `<div class="photo-description">${description}</div>` : ''}
+                            </div>
+                            <button class="remove-photo-btn" onclick="removePhoto(${itemNumber}, '${photo.id}')">
+                                Remove
+                            </button>
+                        </div>
+                    `;
+                });
+                preview.innerHTML = html;
+            } else {
+                item.classList.remove('completed');
+                countBadge.style.display = 'none';
+                preview.innerHTML = '';
+            }
         }
 
-        function removePhoto(itemNumber) {
-            delete uploadedPhotos[itemNumber];
-            document.getElementById(`item-${itemNumber}`).classList.remove('completed');
-            document.getElementById(`preview-${itemNumber}`).innerHTML = '';
-            document.getElementById(`file-${itemNumber}`).value = '';
-            document.getElementById(`desc-${itemNumber}`).value = '';
-            updateProgress();
+        function removePhoto(itemNumber, photoId) {
+            if (uploadedPhotos[itemNumber]) {
+                uploadedPhotos[itemNumber].photos = uploadedPhotos[itemNumber].photos.filter(p => p.id != photoId);
+                
+                if (uploadedPhotos[itemNumber].photos.length === 0) {
+                    delete uploadedPhotos[itemNumber];
+                    document.getElementById(`desc-${itemNumber}`).value = '';
+                }
+                
+                updateItemDisplay(itemNumber);
+                updateProgress();
+            }
         }
 
         function updateProgress() {
             const completed = Object.keys(uploadedPhotos).length;
             const total = photoItems.length;
+            const totalPhotos = Object.values(uploadedPhotos).reduce((sum, item) => sum + item.photos.length, 0);
             const percentage = (completed / total) * 100;
 
             document.getElementById('progressFill').style.width = percentage + '%';
-            document.getElementById('progressText').textContent = `${completed} of ${total} photos uploaded`;
+            document.getElementById('progressText').textContent = `${completed} of ${total} items with photos (${totalPhotos} total photos)`;
             document.getElementById('downloadBtn').disabled = completed === 0;
         }
 
@@ -503,11 +571,16 @@
                 const photosFolder = zip.folder("photos");
 
                 // Add photos to ZIP
-                for (const [itemNumber, photo] of Object.entries(uploadedPhotos)) {
-                    // Convert data URL to blob
-                    const response = await fetch(photo.dataUrl);
-                    const blob = await response.blob();
-                    photosFolder.file(photo.newName, blob);
+                for (const [itemNumber, item] of Object.entries(uploadedPhotos)) {
+                    for (let i = 0; i < item.photos.length; i++) {
+                        const photo = item.photos[i];
+                        const letter = String.fromCharCode(97 + i);
+                        const newName = `MidState_Photo_${String(itemNumber).padStart(2, '0')}${letter}.${photo.extension}`;
+                        
+                        const response = await fetch(photo.dataUrl);
+                        const blob = await response.blob();
+                        photosFolder.file(newName, blob);
+                    }
                 }
 
                 // Generate PDF reference sheet
@@ -559,22 +632,22 @@
             // Sort by item number
             const sortedItems = Object.entries(uploadedPhotos).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
 
-            for (const [itemNumber, photo] of sortedItems) {
-                const item = photoItems[parseInt(itemNumber) - 1];
+            for (const [itemNumber, item] of sortedItems) {
+                const photoItem = photoItems[parseInt(itemNumber) - 1];
                 
                 // Check if we need a new page
-                if (y > 250) {
+                if (y > 240) {
                     doc.addPage();
                     y = 20;
                 }
 
                 // Category header
-                if (item.category !== currentCategory) {
-                    currentCategory = item.category;
+                if (photoItem.category !== currentCategory) {
+                    currentCategory = photoItem.category;
                     doc.setFontSize(12);
                     doc.setTextColor(26, 77, 143);
                     doc.setFont(undefined, 'bold');
-                    doc.text(item.category, 20, y);
+                    doc.text(photoItem.category, 20, y);
                     y += 8;
                 }
 
@@ -582,16 +655,25 @@
                 doc.setFontSize(10);
                 doc.setTextColor(0);
                 doc.setFont(undefined, 'bold');
-                doc.text(`${itemNumber}. ${item.title}`, 20, y);
+                doc.text(`${itemNumber}. ${photoItem.title}`, 20, y);
                 y += 5;
 
                 doc.setFont(undefined, 'normal');
                 doc.setTextColor(80);
-                doc.text(`Filename: ${photo.newName}`, 25, y);
+                doc.text(`Photos: ${item.photos.length}`, 25, y);
                 y += 5;
 
-                if (photo.description) {
-                    const descLines = doc.splitTextToSize(`Description: ${photo.description}`, 160);
+                // List all photo filenames
+                item.photos.forEach((photo, index) => {
+                    const letter = String.fromCharCode(97 + index);
+                    const newName = `MidState_Photo_${String(itemNumber).padStart(2, '0')}${letter}.${photo.extension}`;
+                    doc.text(`  - ${newName}`, 25, y);
+                    y += 4;
+                });
+
+                if (item.description) {
+                    y += 2;
+                    const descLines = doc.splitTextToSize(`Description: ${item.description}`, 160);
                     doc.text(descLines, 25, y);
                     y += descLines.length * 5;
                 }
@@ -611,10 +693,13 @@
             doc.text('Summary', 20, y);
             y += 8;
 
+            const totalPhotos = Object.values(uploadedPhotos).reduce((sum, item) => sum + item.photos.length, 0);
             doc.setFontSize(10);
             doc.setTextColor(0);
             doc.setFont(undefined, 'normal');
-            doc.text(`Total photos: ${Object.keys(uploadedPhotos).length} of ${photoItems.length}`, 20, y);
+            doc.text(`Checklist items completed: ${Object.keys(uploadedPhotos).length} of ${photoItems.length}`, 20, y);
+            y += 6;
+            doc.text(`Total photos uploaded: ${totalPhotos}`, 20, y);
             y += 6;
             doc.text(`Completion: ${Math.round((Object.keys(uploadedPhotos).length / photoItems.length) * 100)}%`, 20, y);
 
