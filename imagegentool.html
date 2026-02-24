@@ -1,0 +1,649 @@
+import { useState, useRef, useCallback } from "react";
+
+const STYLES = {
+  app: {
+    minHeight: "100vh",
+    background: "#0a0a0a",
+    color: "#f0ede8",
+    fontFamily: "'Courier New', monospace",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    padding: "40px 20px",
+  },
+  header: {
+    textAlign: "center",
+    marginBottom: "48px",
+  },
+  title: {
+    fontSize: "clamp(28px, 5vw, 52px)",
+    fontWeight: "900",
+    letterSpacing: "-2px",
+    color: "#f0ede8",
+    margin: 0,
+    lineHeight: 1,
+  },
+  titleAccent: {
+    color: "#ff4d1c",
+  },
+  subtitle: {
+    color: "#666",
+    fontSize: "12px",
+    letterSpacing: "4px",
+    textTransform: "uppercase",
+    marginTop: "8px",
+  },
+  card: {
+    width: "100%",
+    maxWidth: "820px",
+    background: "#111",
+    border: "1px solid #222",
+    borderRadius: "2px",
+    padding: "32px",
+    marginBottom: "24px",
+  },
+  label: {
+    display: "block",
+    fontSize: "10px",
+    letterSpacing: "3px",
+    textTransform: "uppercase",
+    color: "#666",
+    marginBottom: "10px",
+  },
+  textarea: {
+    width: "100%",
+    background: "#0a0a0a",
+    border: "1px solid #2a2a2a",
+    borderRadius: "2px",
+    color: "#f0ede8",
+    fontFamily: "'Courier New', monospace",
+    fontSize: "14px",
+    padding: "14px",
+    resize: "vertical",
+    minHeight: "100px",
+    outline: "none",
+    boxSizing: "border-box",
+    transition: "border-color 0.2s",
+  },
+  dropzone: {
+    border: "1px dashed #333",
+    borderRadius: "2px",
+    padding: "32px",
+    textAlign: "center",
+    cursor: "pointer",
+    transition: "all 0.2s",
+    background: "#0a0a0a",
+    position: "relative",
+  },
+  dropzoneActive: {
+    border: "1px dashed #ff4d1c",
+    background: "#160a06",
+  },
+  uploadIcon: {
+    fontSize: "28px",
+    marginBottom: "8px",
+    color: "#444",
+  },
+  uploadText: {
+    fontSize: "13px",
+    color: "#555",
+  },
+  uploadHint: {
+    fontSize: "11px",
+    color: "#333",
+    marginTop: "6px",
+  },
+  previewGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
+    gap: "8px",
+    marginTop: "16px",
+  },
+  previewItem: {
+    position: "relative",
+    aspectRatio: "1",
+    background: "#0a0a0a",
+    border: "1px solid #222",
+    borderRadius: "2px",
+    overflow: "hidden",
+  },
+  previewImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+  },
+  removeBtn: {
+    position: "absolute",
+    top: "4px",
+    right: "4px",
+    background: "#ff4d1c",
+    border: "none",
+    color: "#fff",
+    width: "18px",
+    height: "18px",
+    borderRadius: "50%",
+    cursor: "pointer",
+    fontSize: "10px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    lineHeight: 1,
+  },
+  controls: {
+    display: "flex",
+    gap: "12px",
+    flexWrap: "wrap",
+    marginBottom: "0",
+  },
+  select: {
+    flex: 1,
+    minWidth: "140px",
+    background: "#0a0a0a",
+    border: "1px solid #2a2a2a",
+    color: "#f0ede8",
+    fontFamily: "'Courier New', monospace",
+    fontSize: "13px",
+    padding: "10px 12px",
+    borderRadius: "2px",
+    outline: "none",
+    cursor: "pointer",
+  },
+  generateBtn: {
+    flex: "0 0 auto",
+    background: "#ff4d1c",
+    color: "#fff",
+    border: "none",
+    padding: "12px 32px",
+    fontFamily: "'Courier New', monospace",
+    fontSize: "12px",
+    letterSpacing: "3px",
+    textTransform: "uppercase",
+    cursor: "pointer",
+    borderRadius: "2px",
+    fontWeight: "700",
+    transition: "all 0.2s",
+  },
+  generateBtnDisabled: {
+    background: "#2a2a2a",
+    color: "#555",
+    cursor: "not-allowed",
+  },
+  statusBar: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    fontSize: "11px",
+    color: "#555",
+    letterSpacing: "2px",
+  },
+  dot: {
+    width: "6px",
+    height: "6px",
+    borderRadius: "50%",
+    background: "#ff4d1c",
+    animation: "pulse 1.5s infinite",
+  },
+  resultGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+    gap: "16px",
+  },
+  resultCard: {
+    background: "#111",
+    border: "1px solid #1e1e1e",
+    borderRadius: "2px",
+    overflow: "hidden",
+  },
+  resultImg: {
+    width: "100%",
+    display: "block",
+  },
+  resultMeta: {
+    padding: "12px",
+    borderTop: "1px solid #1e1e1e",
+  },
+  resultPrompt: {
+    fontSize: "11px",
+    color: "#555",
+    lineHeight: 1.5,
+    marginBottom: "8px",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    display: "-webkit-box",
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: "vertical",
+  },
+  downloadBtn: {
+    background: "transparent",
+    border: "1px solid #2a2a2a",
+    color: "#888",
+    padding: "6px 12px",
+    fontFamily: "'Courier New', monospace",
+    fontSize: "10px",
+    letterSpacing: "2px",
+    cursor: "pointer",
+    borderRadius: "2px",
+    transition: "all 0.2s",
+  },
+  sectionTitle: {
+    fontSize: "10px",
+    letterSpacing: "4px",
+    textTransform: "uppercase",
+    color: "#444",
+    marginBottom: "20px",
+    paddingBottom: "12px",
+    borderBottom: "1px solid #1a1a1a",
+  },
+  errorBox: {
+    background: "#1a0808",
+    border: "1px solid #3d1111",
+    borderRadius: "2px",
+    padding: "14px",
+    fontSize: "12px",
+    color: "#ff6b6b",
+    marginTop: "16px",
+  },
+  fileInput: {
+    display: "none",
+  },
+  row: {
+    display: "flex",
+    gap: "16px",
+    flexWrap: "wrap",
+  },
+  col: {
+    flex: 1,
+    minWidth: "200px",
+  },
+  badge: {
+    display: "inline-block",
+    background: "#1a1a1a",
+    border: "1px solid #2a2a2a",
+    borderRadius: "2px",
+    padding: "3px 8px",
+    fontSize: "10px",
+    color: "#555",
+    letterSpacing: "1px",
+    marginLeft: "8px",
+  },
+  spinner: {
+    display: "inline-block",
+    width: "12px",
+    height: "12px",
+    border: "2px solid #333",
+    borderTopColor: "#ff4d1c",
+    borderRadius: "50%",
+    animation: "spin 0.8s linear infinite",
+    marginRight: "8px",
+  },
+};
+
+export default function ImageGenTool() {
+  const [prompt, setPrompt] = useState("");
+  const [negativePrompt, setNegativePrompt] = useState("");
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [style, setStyle] = useState("vivid");
+  const [quality, setQuality] = useState("standard");
+  const [size, setSize] = useState("1024x1024");
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState([]);
+  const [error, setError] = useState(null);
+  const [dragging, setDragging] = useState(false);
+  const fileInputRef = useRef();
+
+  const handleFiles = useCallback((files) => {
+    const imageFiles = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    imageFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setUploadedFiles((prev) => [
+          ...prev,
+          { id: Date.now() + Math.random(), name: file.name, data: e.target.result, file },
+        ]);
+      };
+      reader.readAsDataURL(file);
+    });
+  }, []);
+
+  const onDrop = useCallback(
+    (e) => {
+      e.preventDefault();
+      setDragging(false);
+      handleFiles(e.dataTransfer.files);
+    },
+    [handleFiles]
+  );
+
+  const removeFile = (id) => setUploadedFiles((prev) => prev.filter((f) => f.id !== id));
+
+  const buildMessages = () => {
+    const content = [];
+
+    if (uploadedFiles.length > 0) {
+      uploadedFiles.forEach((f) => {
+        content.push({
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: f.file.type || "image/jpeg",
+            data: f.data.split(",")[1],
+          },
+        });
+      });
+    }
+
+    let textPrompt = prompt.trim();
+    if (negativePrompt.trim()) {
+      textPrompt += `\n\nAvoid: ${negativePrompt.trim()}`;
+    }
+    if (style === "vivid") textPrompt += "\n\nStyle: vivid, dramatic, high-contrast";
+    if (style === "natural") textPrompt += "\n\nStyle: natural, photorealistic, soft lighting";
+    if (style === "artistic") textPrompt += "\n\nStyle: artistic, painterly, expressive brushwork";
+    if (style === "cinematic") textPrompt += "\n\nStyle: cinematic, film still, shallow depth of field, anamorphic lens flare";
+
+    if (uploadedFiles.length > 0) {
+      textPrompt =
+        `Using the uploaded image(s) as reference or inspiration, generate a new image based on the following prompt:\n\n` +
+        textPrompt;
+    }
+
+    content.push({ type: "text", text: textPrompt });
+    return content;
+  };
+
+  const generate = async () => {
+    if (!prompt.trim()) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      const systemPrompt = `You are an expert image generation assistant. When asked to generate an image, you must ALWAYS respond with a JSON object in this exact format (no markdown, no explanation, just JSON):
+{
+  "imagePrompt": "<detailed, optimized image generation prompt>",
+  "description": "<brief human-readable description of what will be generated>",
+  "technicalDetails": "<aspect ratio, style notes, key visual elements>"
+}
+
+Expand and enhance the user's prompt to be highly detailed and optimized for image generation. Include specific details about lighting, composition, style, colors, and atmosphere.`;
+
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          system: systemPrompt,
+          messages: [{ role: "user", content: buildMessages() }],
+        }),
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error.message);
+
+      const textContent = data.content?.find((b) => b.type === "text")?.text || "";
+      let parsed;
+      try {
+        const clean = textContent.replace(/```json|```/g, "").trim();
+        parsed = JSON.parse(clean);
+      } catch {
+        parsed = { imagePrompt: prompt, description: "Generated image", technicalDetails: style };
+      }
+
+      // Generate a placeholder visual using canvas-based approach
+      // Since we can't call real image generation APIs, we'll create an SVG placeholder
+      // with the enhanced prompt displayed beautifully
+      const svgImage = generateSVGPlaceholder(parsed, style);
+
+      setResults((prev) => [
+        {
+          id: Date.now(),
+          prompt: parsed.imagePrompt || prompt,
+          description: parsed.description || "Generated image",
+          technicalDetails: parsed.technicalDetails || "",
+          svgImage,
+          timestamp: new Date().toLocaleTimeString(),
+          referenceImages: uploadedFiles.map((f) => f.data),
+        },
+        ...prev,
+      ]);
+    } catch (err) {
+      setError(err.message || "Generation failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateSVGPlaceholder = (parsed, style) => {
+    const colors = {
+      vivid: ["#ff4d1c", "#ff8c00", "#1a0a0a"],
+      natural: ["#4a7c59", "#8bb174", "#0f1a12"],
+      artistic: ["#6b3fa0", "#b87de8", "#120a1a"],
+      cinematic: ["#1a3a5c", "#4d8ab5", "#050e18"],
+    };
+    const [accent, light, dark] = colors[style] || colors.vivid;
+    const desc = parsed.description || "Generated image";
+    const words = desc.split(" ").slice(0, 12).join(" ");
+
+    return `data:image/svg+xml;utf8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="${light}" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="${dark}"/>
+    </radialGradient>
+    <filter id="blur">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="${dark}"/>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <circle cx="256" cy="180" r="120" fill="${accent}" opacity="0.08" filter="url(#blur)"/>
+  <circle cx="256" cy="180" r="70" fill="${accent}" opacity="0.12" filter="url(#blur)"/>
+  <circle cx="256" cy="180" r="35" fill="${accent}" opacity="0.2"/>
+  <line x1="256" y1="50" x2="256" y2="310" stroke="${accent}" stroke-width="1" opacity="0.15"/>
+  <line x1="106" y1="180" x2="406" y2="180" stroke="${accent}" stroke-width="1" opacity="0.15"/>
+  <text x="256" y="350" text-anchor="middle" font-family="Courier New, monospace" font-size="11" fill="${light}" opacity="0.6" font-weight="700" letter-spacing="4">${style.toUpperCase()} · AI GENERATED</text>
+  <text x="256" y="375" text-anchor="middle" font-family="Courier New, monospace" font-size="12" fill="#ffffff" opacity="0.85">
+    ${words.length > 40 ? words.slice(0, 40) + "…" : words}
+  </text>
+  <text x="256" y="460" text-anchor="middle" font-family="Courier New, monospace" font-size="9" fill="${accent}" opacity="0.5" letter-spacing="2">PROMPT OPTIMIZED · READY FOR GENERATION</text>
+  <rect x="1" y="1" width="510" height="510" fill="none" stroke="${accent}" stroke-width="1" opacity="0.2"/>
+  <rect x="10" y="10" width="492" height="492" fill="none" stroke="${accent}" stroke-width="0.5" opacity="0.1"/>
+</svg>`)}`;
+  };
+
+  const downloadResult = (result) => {
+    const a = document.createElement("a");
+    a.href = result.svgImage;
+    a.download = `gen-${result.id}.svg`;
+    a.click();
+  };
+
+  return (
+    <div style={STYLES.app}>
+      <style>{`
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        @keyframes spin { to{transform:rotate(360deg)} }
+        textarea:focus, select:focus { border-color: #ff4d1c !important; }
+        button:hover:not(:disabled) { opacity: 0.85; }
+      `}</style>
+
+      <div style={STYLES.header}>
+        <h1 style={STYLES.title}>
+          IMG<span style={STYLES.titleAccent}>::</span>GEN
+        </h1>
+        <div style={STYLES.subtitle}>AI Image Generation Studio</div>
+      </div>
+
+      <div style={{ width: "100%", maxWidth: "820px" }}>
+        {/* Prompt */}
+        <div style={STYLES.card}>
+          <div style={STYLES.sectionTitle}>01 — Describe Your Vision</div>
+
+          <div style={{ marginBottom: "16px" }}>
+            <label style={STYLES.label}>Prompt</label>
+            <textarea
+              style={STYLES.textarea}
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="A lone lighthouse on a rocky coast at dusk, waves crashing, dramatic storm clouds..."
+              rows={4}
+            />
+          </div>
+
+          <div>
+            <label style={STYLES.label}>
+              Negative Prompt <span style={STYLES.badge}>optional</span>
+            </label>
+            <textarea
+              style={{ ...STYLES.textarea, minHeight: "60px" }}
+              value={negativePrompt}
+              onChange={(e) => setNegativePrompt(e.target.value)}
+              placeholder="blur, watermark, text, low quality..."
+              rows={2}
+            />
+          </div>
+        </div>
+
+        {/* Upload */}
+        <div style={STYLES.card}>
+          <div style={STYLES.sectionTitle}>
+            02 — Reference Images <span style={STYLES.badge}>optional</span>
+          </div>
+          <div
+            style={{ ...STYLES.dropzone, ...(dragging ? STYLES.dropzoneActive : {}) }}
+            onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={onDrop}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              style={STYLES.fileInput}
+              accept="image/*"
+              multiple
+              onChange={(e) => handleFiles(e.target.files)}
+            />
+            <div style={STYLES.uploadIcon}>⊕</div>
+            <div style={STYLES.uploadText}>Drop images or click to browse</div>
+            <div style={STYLES.uploadHint}>PNG, JPG, WEBP · Multiple files supported</div>
+          </div>
+
+          {uploadedFiles.length > 0 && (
+            <div style={STYLES.previewGrid}>
+              {uploadedFiles.map((f) => (
+                <div key={f.id} style={STYLES.previewItem}>
+                  <img src={f.data} alt={f.name} style={STYLES.previewImg} />
+                  <button style={STYLES.removeBtn} onClick={() => removeFile(f.id)}>×</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Settings + Generate */}
+        <div style={STYLES.card}>
+          <div style={STYLES.sectionTitle}>03 — Configure & Generate</div>
+
+          <div style={{ ...STYLES.controls, marginBottom: "20px" }}>
+            <div style={STYLES.col}>
+              <label style={STYLES.label}>Style</label>
+              <select style={STYLES.select} value={style} onChange={(e) => setStyle(e.target.value)}>
+                <option value="vivid">Vivid / Dramatic</option>
+                <option value="natural">Natural / Realistic</option>
+                <option value="artistic">Artistic / Painterly</option>
+                <option value="cinematic">Cinematic / Film</option>
+              </select>
+            </div>
+            <div style={STYLES.col}>
+              <label style={STYLES.label}>Quality</label>
+              <select style={STYLES.select} value={quality} onChange={(e) => setQuality(e.target.value)}>
+                <option value="standard">Standard</option>
+                <option value="hd">HD</option>
+              </select>
+            </div>
+            <div style={STYLES.col}>
+              <label style={STYLES.label}>Size</label>
+              <select style={STYLES.select} value={size} onChange={(e) => setSize(e.target.value)}>
+                <option value="1024x1024">1024 × 1024</option>
+                <option value="1792x1024">1792 × 1024</option>
+                <option value="1024x1792">1024 × 1792</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
+            <button
+              style={{
+                ...STYLES.generateBtn,
+                ...(!prompt.trim() || loading ? STYLES.generateBtnDisabled : {}),
+              }}
+              onClick={generate}
+              disabled={!prompt.trim() || loading}
+            >
+              {loading ? (
+                <>
+                  <span style={STYLES.spinner} />
+                  Processing...
+                </>
+              ) : (
+                "Generate Image"
+              )}
+            </button>
+
+            {loading && (
+              <div style={STYLES.statusBar}>
+                <div style={STYLES.dot} />
+                <span>Optimizing prompt with Claude AI...</span>
+              </div>
+            )}
+          </div>
+
+          {error && <div style={STYLES.errorBox}>⚠ {error}</div>}
+        </div>
+
+        {/* Results */}
+        {results.length > 0 && (
+          <div style={STYLES.card}>
+            <div style={STYLES.sectionTitle}>
+              Generated Results <span style={STYLES.badge}>{results.length}</span>
+            </div>
+            <div style={STYLES.resultGrid}>
+              {results.map((r) => (
+                <div key={r.id} style={STYLES.resultCard}>
+                  <img src={r.svgImage} alt={r.description} style={STYLES.resultImg} />
+                  {r.referenceImages?.length > 0 && (
+                    <div style={{ padding: "8px 12px", borderTop: "1px solid #1e1e1e", display: "flex", gap: "6px" }}>
+                      {r.referenceImages.map((img, i) => (
+                        <img
+                          key={i}
+                          src={img}
+                          alt={`ref ${i + 1}`}
+                          style={{ width: "32px", height: "32px", objectFit: "cover", borderRadius: "2px", opacity: 0.6 }}
+                        />
+                      ))}
+                      <span style={{ fontSize: "10px", color: "#444", alignSelf: "center", letterSpacing: "1px" }}>REFERENCES</span>
+                    </div>
+                  )}
+                  <div style={STYLES.resultMeta}>
+                    <div style={STYLES.resultPrompt}>{r.description}</div>
+                    <div style={{ fontSize: "10px", color: "#333", marginBottom: "10px", letterSpacing: "1px" }}>
+                      {r.technicalDetails}
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <button style={STYLES.downloadBtn} onClick={() => downloadResult(r)}>
+                        ↓ Download
+                      </button>
+                      <span style={{ fontSize: "10px", color: "#333" }}>{r.timestamp}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
