@@ -55,8 +55,6 @@ textarea{resize:vertical}
 .dlbtn:hover{border-color:var(--dim);color:var(--txt)}
 .bdg{background:#1a1a1a;border:1px solid var(--brd2);border-radius:2px;padding:2px 8px;font-size:9px;color:var(--faint);letter-spacing:1px;margin-left:10px}
 .spn{display:inline-block;width:11px;height:11px;border:2px solid #444;border-top-color:#fff;border-radius:50%;animation:spin .75s linear infinite;vertical-align:middle;margin-right:8px}
-.cfg-note{font-size:11px;color:#ff9944;background:#1a1200;border:1px solid #3a2800;border-radius:2px;padding:12px 14px;margin-bottom:16px;line-height:1.6}
-.cfg-note a{color:#ffaa55;text-decoration:underline}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes slidein{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
@@ -130,7 +128,6 @@ textarea{resize:vertical}
   <div class="ctitle">Results <span class="bdg" id="rcount">0</span></div>
   <div class="rgrid" id="rg"></div>
 </div>
-
 <script>
 var files = [], selectedStyle = 'cinematic', resultCount = 0;
 
