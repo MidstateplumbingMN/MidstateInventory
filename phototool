@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mid-State Photo Checklist Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1a4d8f 0%, #2c5f8d 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .progress-section {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+        }
+        
+        .checklist {
+            padding: 30px;
+        }
+        
+        .category-section {
+            margin-bottom: 30px;
+        }
+        
+        .category-title {
+            font-size: 18px;
+            color: #1a4d8f;
+            font-weight: bold;
+            padding: 12px 15px;
+            background: #f0f4f8;
+            border-left: 4px solid #1a4d8f;
+            margin-bottom: 15px;
+        }
+        
+        .checklist-item {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .checklist-item.completed {
+            border-color: #4caf50;
+            background: #f1f8f4;
+        }
+        
+        .item-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .item-number {
+            background: #1a4d8f;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .checklist-item.completed .item-number {
+            background: #4caf50;
+        }
+        
+        .item-number::after {
+            content: attr(data-number);
+        }
+        
+        .checklist-item.completed .item-number::after {
+            content: '✓';
+        }
+        
+        .item-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+        }
+        
+        .item-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .file-input-label {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-block;
+        }
+        
+        .file-input-label:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+        }
+        
+        .description-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        
+        .description-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .file-info {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: #e8f4ea;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #2e7d32;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .file-info strong {
+            color: #1b5e20;
+        }
+        
+        .remove-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            margin-left: auto;
+        }
+        
+        .remove-btn:hover {
+            background: #d32f2f;
+        }
+        
+        .action-buttons {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 20px 30px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-secondary {
+            background: #f0f4f8;
+            color: #1a4d8f;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e8f0;
+        }
+        
+        .thumbnail {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-top: 8px;
+            border: 2px solid #ddd;
+        }
+        
+        @media (max-width: 768px) {
+            .item-controls {
+                flex-direction: column;
+            }
+            
+            .description-input {
+                width: 100%;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📸 Mid-State Photo Checklist</h1>
+            <p>Upload photos for social media content - March 2026</p>
+        </div>
+        
+        <div class="progress-section">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">0 of 30 photos uploaded</div>
+        </div>
+        
+        <div class="checklist" id="checklist"></div>
+        
+        <div class="action-buttons">
+            <button class="btn btn-secondary" onclick="clearAll()">🗑️ Clear All</button>
+            <button class="btn btn-primary" id="downloadBtn" onclick="generatePackage()" disabled>
+                📦 Generate ZIP Package
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const photoItems = [
+            // Team & Company Identity
+            { category: "Team & Company Identity", title: "Photo of full team at company facility (with Mid-State signage visible)" },
+            { category: "Team & Company Identity", title: "Photo of Mid-State truck in downtown Hastings (main street or recognizable landmark)" },
+            { category: "Team & Company Identity", title: "Photo of Mid-State truck in Red Wing (pottery district or riverfront area)" },
+            { category: "Team & Company Identity", title: "Photo of Mid-State truck in Stillwater (lift bridge area or downtown)" },
+            { category: "Team & Company Identity", title: "Photo of Mid-State truck in Hudson, WI (riverfront or downtown)" },
+            { category: "Team & Company Identity", title: "Photo of Mid-State truck in Lakeville (recognizable shopping area or neighborhood)" },
+            
+            // Technicians at Work
+            { category: "Technicians at Work", title: "Technician in uniform performing plumbing inspection (showing professional setup)" },
+            { category: "Technicians at Work", title: "Technician working on sump pump installation or inspection" },
+            { category: "Technicians at Work", title: "Technician at furnace/heating system during inspection" },
+            { category: "Technicians at Work", title: "Technician at outdoor AC unit during installation or service" },
+            { category: "Technicians at Work", title: "Technician performing drain cleaning or camera inspection" },
+            { category: "Technicians at Work", title: "Clean job site setup showing tarps, organized tools, attention to detail" },
+            
+            // Seasonal Photos
+            { category: "Seasonal Photos (March-Specific)", title: "Outdoor spigot/hose bib close-up (showing proper winter cap or potential problem)" },
+            { category: "Seasonal Photos (March-Specific)", title: "Sump pump in basement with water actively draining (spring context)" },
+            { category: "Seasonal Photos (March-Specific)", title: "Minnesota home exterior with snow on roof and ground (late winter/early spring)" },
+            { category: "Seasonal Photos (March-Specific)", title: "Spring flooding prep or basement waterproofing work in progress" },
+            
+            // Before/After Projects
+            { category: "Before/After Project Photos", title: "Water heater installation (before: old unit, after: new installation)" },
+            { category: "Before/After Project Photos", title: "Furnace installation or replacement (before/after comparison)" },
+            { category: "Before/After Project Photos", title: "AC unit installation (before/after or installation in progress)" },
+            { category: "Before/After Project Photos", title: "New construction plumbing/HVAC work (to represent testimonials)" },
+            { category: "Before/After Project Photos", title: "Drain clearing results or sump pump replacement project" },
+            
+            // Community Involvement
+            { category: "Community Involvement", title: "Photo from Hockey Day Minnesota event (booth, banner, or team interaction)" },
+            { category: "Community Involvement", title: "Photo from Ability 2 Believe involvement or event" },
+            { category: "Community Involvement", title: "Photo at builder partnership project site (any of our builder partners)" },
+            { category: "Community Involvement", title: "American flag with Mid-State truck (for military/veteran appreciation posts)" },
+            
+            // Equipment & Details
+            { category: "Equipment & Detail Shots", title: "Basement floor drain close-up (clean, professional shot)" },
+            { category: "Equipment & Detail Shots", title: "Professional tools and equipment laid out neatly" },
+            { category: "Equipment & Detail Shots", title: "Mid-State branded materials (uniform shirt, vehicle door logo, business cards)" },
+            { category: "Equipment & Detail Shots", title: "Clean, professional technician portrait (for employee spotlight posts)" },
+            { category: "Equipment & Detail Shots", title: "Home Maintenance Club materials or membership card (if available)" }
+        ];
+
+        let uploadedPhotos = {};
+
+        function initializeChecklist() {
+            const checklistContainer = document.getElementById('checklist');
+            let currentCategory = '';
+            let html = '';
+
+            photoItems.forEach((item, index) => {
+                if (item.category !== currentCategory) {
+                    if (currentCategory !== '') {
+                        html += '</div>';
+                    }
+                    currentCategory = item.category;
+                    html += `<div class="category-section">
+                        <div class="category-title">${item.category}</div>`;
+                }
+
+                const itemNumber = index + 1;
+                html += `
+                    <div class="checklist-item" id="item-${itemNumber}">
+                        <div class="item-header">
+                            <div class="item-number" data-number="${itemNumber}"></div>
+                            <div class="item-title">${item.title}</div>
+                        </div>
+                        <div class="item-controls">
+                            <div class="file-input-wrapper">
+                                <input type="file" id="file-${itemNumber}" accept="image/*" 
+                                       onchange="handleFileUpload(${itemNumber}, this)">
+                                <label for="file-${itemNumber}" class="file-input-label">
+                                    📁 Choose Photo
+                                </label>
+                            </div>
+                            <input type="text" class="description-input" id="desc-${itemNumber}" 
+                                   placeholder="Add description (optional)..." 
+                                   onchange="updateDescription(${itemNumber}, this.value)">
+                        </div>
+                        <div id="preview-${itemNumber}"></div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            checklistContainer.innerHTML = html;
+        }
+
+        function handleFileUpload(itemNumber, input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const description = document.getElementById(`desc-${itemNumber}`).value;
+                
+                uploadedPhotos[itemNumber] = {
+                    file: file,
+                    dataUrl: e.target.result,
+                    originalName: file.name,
+                    newName: `MidState_Photo_${String(itemNumber).padStart(2, '0')}.${file.name.split('.').pop()}`,
+                    description: description,
+                    title: photoItems[itemNumber - 1].title
+                };
+
+                updateItemDisplay(itemNumber);
+                updateProgress();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updateDescription(itemNumber, description) {
+            if (uploadedPhotos[itemNumber]) {
+                uploadedPhotos[itemNumber].description = description;
+            }
+        }
+
+        function updateItemDisplay(itemNumber) {
+            const item = document.getElementById(`item-${itemNumber}`);
+            const preview = document.getElementById(`preview-${itemNumber}`);
+            const photo = uploadedPhotos[itemNumber];
+
+            item.classList.add('completed');
+            
+            preview.innerHTML = `
+                <div class="file-info">
+                    <img src="${photo.dataUrl}" class="thumbnail" alt="Preview">
+                    <div style="flex: 1;">
+                        <strong>New filename:</strong> ${photo.newName}<br>
+                        ${photo.description ? `<strong>Description:</strong> ${photo.description}` : '<em>No description</em>'}
+                    </div>
+                    <button class="remove-btn" onclick="removePhoto(${itemNumber})">Remove</button>
+                </div>
+            `;
+        }
+
+        function removePhoto(itemNumber) {
+            delete uploadedPhotos[itemNumber];
+            document.getElementById(`item-${itemNumber}`).classList.remove('completed');
+            document.getElementById(`preview-${itemNumber}`).innerHTML = '';
+            document.getElementById(`file-${itemNumber}`).value = '';
+            document.getElementById(`desc-${itemNumber}`).value = '';
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const completed = Object.keys(uploadedPhotos).length;
+            const total = photoItems.length;
+            const percentage = (completed / total) * 100;
+
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = `${completed} of ${total} photos uploaded`;
+            document.getElementById('downloadBtn').disabled = completed === 0;
+        }
+
+        function clearAll() {
+            if (confirm('Are you sure you want to clear all uploaded photos?')) {
+                uploadedPhotos = {};
+                initializeChecklist();
+                updateProgress();
+            }
+        }
+
+        async function generatePackage() {
+            const btn = document.getElementById('downloadBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Generating...';
+
+            try {
+                const zip = new JSZip();
+                const photosFolder = zip.folder("photos");
+
+                // Add photos to ZIP
+                for (const [itemNumber, photo] of Object.entries(uploadedPhotos)) {
+                    // Convert data URL to blob
+                    const response = await fetch(photo.dataUrl);
+                    const blob = await response.blob();
+                    photosFolder.file(photo.newName, blob);
+                }
+
+                // Generate PDF reference sheet
+                const pdfBlob = await generatePDF();
+                zip.file("Photo_Reference_Sheet.pdf", pdfBlob);
+
+                // Generate ZIP
+                const zipBlob = await zip.generateAsync({ type: "blob" });
+
+                // Download
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(zipBlob);
+                link.download = `MidState_Photos_${new Date().toISOString().split('T')[0]}.zip`;
+                link.click();
+
+                btn.textContent = '✅ Package Downloaded!';
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.textContent = '📦 Generate ZIP Package';
+                }, 3000);
+
+            } catch (error) {
+                console.error('Error generating package:', error);
+                alert('Error generating package. Please try again.');
+                btn.disabled = false;
+                btn.textContent = '📦 Generate ZIP Package';
+            }
+        }
+
+        async function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Title
+            doc.setFontSize(20);
+            doc.setTextColor(26, 77, 143);
+            doc.text('Mid-State Plumbing & Heating', 105, 20, { align: 'center' });
+            
+            doc.setFontSize(14);
+            doc.text('Photo Reference Sheet', 105, 30, { align: 'center' });
+            
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text(`Generated: ${new Date().toLocaleDateString()}`, 105, 38, { align: 'center' });
+            
+            let y = 50;
+            let currentCategory = '';
+
+            // Sort by item number
+            const sortedItems = Object.entries(uploadedPhotos).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+
+            for (const [itemNumber, photo] of sortedItems) {
+                const item = photoItems[parseInt(itemNumber) - 1];
+                
+                // Check if we need a new page
+                if (y > 250) {
+                    doc.addPage();
+                    y = 20;
+                }
+
+                // Category header
+                if (item.category !== currentCategory) {
+                    currentCategory = item.category;
+                    doc.setFontSize(12);
+                    doc.setTextColor(26, 77, 143);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(item.category, 20, y);
+                    y += 8;
+                }
+
+                // Item details
+                doc.setFontSize(10);
+                doc.setTextColor(0);
+                doc.setFont(undefined, 'bold');
+                doc.text(`${itemNumber}. ${item.title}`, 20, y);
+                y += 5;
+
+                doc.setFont(undefined, 'normal');
+                doc.setTextColor(80);
+                doc.text(`Filename: ${photo.newName}`, 25, y);
+                y += 5;
+
+                if (photo.description) {
+                    const descLines = doc.splitTextToSize(`Description: ${photo.description}`, 160);
+                    doc.text(descLines, 25, y);
+                    y += descLines.length * 5;
+                }
+
+                y += 8;
+            }
+
+            // Summary at the end
+            if (y > 230) {
+                doc.addPage();
+                y = 20;
+            }
+
+            doc.setFontSize(12);
+            doc.setTextColor(26, 77, 143);
+            doc.setFont(undefined, 'bold');
+            doc.text('Summary', 20, y);
+            y += 8;
+
+            doc.setFontSize(10);
+            doc.setTextColor(0);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Total photos: ${Object.keys(uploadedPhotos).length} of ${photoItems.length}`, 20, y);
+            y += 6;
+            doc.text(`Completion: ${Math.round((Object.keys(uploadedPhotos).length / photoItems.length) * 100)}%`, 20, y);
+
+            return doc.output('blob');
+        }
+
+        // Initialize on load
+        initializeChecklist();
+    </script>
+</body>
+</html>
