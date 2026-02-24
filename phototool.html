@@ -494,38 +494,41 @@
             const item = document.getElementById(`item-${itemNumber}`);
             const preview = document.getElementById(`preview-${itemNumber}`);
             const countBadge = document.getElementById(`count-${itemNumber}`);
-            const photos = uploadedPhotos[itemNumber].photos;
-            const description = uploadedPhotos[itemNumber].description;
-
-            if (photos.length > 0) {
-                item.classList.add('completed');
-                countBadge.style.display = 'block';
-                countBadge.textContent = `${photos.length} photo${photos.length > 1 ? 's' : ''}`;
-
-                let html = '';
-                photos.forEach((photo, index) => {
-                    const letter = String.fromCharCode(97 + index); // a, b, c, etc.
-                    const newName = `MidState_Photo_${String(itemNumber).padStart(2, '0')}${letter}.${photo.extension}`;
-                    
-                    html += `
-                        <div class="photo-card">
-                            <img src="${photo.dataUrl}" class="thumbnail" alt="Preview">
-                            <div class="photo-info">
-                                <strong>${newName}</strong>
-                                ${description ? `<div class="photo-description">${description}</div>` : ''}
-                            </div>
-                            <button class="remove-photo-btn" onclick="removePhoto(${itemNumber}, '${photo.id}')">
-                                Remove
-                            </button>
-                        </div>
-                    `;
-                });
-                preview.innerHTML = html;
-            } else {
+            
+            // Check if this item has any photos
+            if (!uploadedPhotos[itemNumber] || !uploadedPhotos[itemNumber].photos || uploadedPhotos[itemNumber].photos.length === 0) {
                 item.classList.remove('completed');
                 countBadge.style.display = 'none';
                 preview.innerHTML = '';
+                return;
             }
+            
+            const photos = uploadedPhotos[itemNumber].photos;
+            const description = uploadedPhotos[itemNumber].description;
+
+            item.classList.add('completed');
+            countBadge.style.display = 'block';
+            countBadge.textContent = `${photos.length} photo${photos.length > 1 ? 's' : ''}`;
+
+            let html = '';
+            photos.forEach((photo, index) => {
+                const letter = String.fromCharCode(97 + index); // a, b, c, etc.
+                const newName = `MidState_Photo_${String(itemNumber).padStart(2, '0')}${letter}.${photo.extension}`;
+                
+                html += `
+                    <div class="photo-card">
+                        <img src="${photo.dataUrl}" class="thumbnail" alt="Preview">
+                        <div class="photo-info">
+                            <strong>${newName}</strong>
+                            ${description ? `<div class="photo-description">${description}</div>` : ''}
+                        </div>
+                        <button class="remove-photo-btn" onclick="removePhoto(${itemNumber}, '${photo.id}')">
+                            Remove
+                        </button>
+                    </div>
+                `;
+            });
+            preview.innerHTML = html;
         }
 
         function removePhoto(itemNumber, photoId) {
