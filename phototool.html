@@ -233,15 +233,32 @@
             background: #f44336;
             color: white;
             border: none;
-            padding: 4px 8px;
+            padding: 6px 12px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 10px;
-            width: 100%;
+            font-size: 11px;
+            flex: 1;
+            font-weight: 600;
         }
         
         .remove-photo-btn:hover {
             background: #d32f2f;
+        }
+        
+        .download-file-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            flex: 1;
+            font-weight: 600;
+        }
+        
+        .download-file-btn:hover {
+            background: #45a049;
         }
         
         .photo-count {
@@ -324,22 +341,22 @@
     <div class="container">
         <div class="header">
             <h1>📸 Mid-State Photo & Video Checklist</h1>
-            <p>Upload photos and videos for social media content - March 2026</p>
+            <p>Upload, rename, and download files - then organize into folders for Google Drive</p>
         </div>
         
         <div class="progress-section">
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
             </div>
-            <div class="progress-text" id="progressText">0 of 30 items with media</div>
+            <div class="progress-text" id="progressText">0 of 45 items with media</div>
         </div>
         
         <div class="checklist" id="checklist"></div>
         
         <div class="action-buttons">
             <button class="btn btn-secondary" onclick="clearAll()">🗑️ Clear All</button>
-            <button class="btn btn-primary" id="downloadBtn" onclick="generatePackage()" disabled>
-                📦 Generate ZIP Package
+            <button class="btn btn-primary" id="downloadBtn" onclick="downloadSummaryPDF()" disabled>
+                📄 Download Summary PDF
             </button>
         </div>
     </div>
@@ -353,6 +370,27 @@
             { category: "Team & Company Identity", title: "Photo of Mid-State truck in Stillwater (lift bridge area or downtown)" },
             { category: "Team & Company Identity", title: "Photo of Mid-State truck in Hudson, WI (riverfront or downtown)" },
             { category: "Team & Company Identity", title: "Photo of Mid-State truck in Lakeville (recognizable shopping area or neighborhood)" },
+            
+            // Service Team - HVAC
+            { category: "Service Team - HVAC", title: "Lukas Schlosser - HVAC Technician (professional portrait or action shot)" },
+            { category: "Service Team - HVAC", title: "Doug McNamara - HVAC Technician (professional portrait or action shot)" },
+            { category: "Service Team - HVAC", title: "Gannon Blaiser - HVAC Technician (professional portrait or action shot)" },
+            { category: "Service Team - HVAC", title: "Eric Stoffel - HVAC Technician (professional portrait or action shot)" },
+            
+            // Service Team - Plumbing
+            { category: "Service Team - Plumbing", title: "Gordy Radant - Plumbing Technician (professional portrait or action shot)" },
+            { category: "Service Team - Plumbing", title: "Mark Daniels - Plumbing Technician (professional portrait or action shot)" },
+            { category: "Service Team - Plumbing", title: "Jon Glenn - Plumbing and Drains Technician (professional portrait or action shot)" },
+            
+            // Service Team - Office
+            { category: "Service Team - Office", title: "Cory Hanson - Managing Director (professional portrait)" },
+            { category: "Service Team - Office", title: "Bob Secrest - New Construction Plumbing Manager (professional portrait)" },
+            { category: "Service Team - Office", title: "Jason Cornell - Estimating Manager (professional portrait)" },
+            { category: "Service Team - Office", title: "Jody Serres - Financial Controller (professional portrait)" },
+            { category: "Service Team - Office", title: "Bryan Meyer - New Construction HVAC Manager (professional portrait)" },
+            { category: "Service Team - Office", title: "Victoria Ellsworth - Schedule Coordinator (professional portrait)" },
+            { category: "Service Team - Office", title: "Tony Engesether - Purchasing Manager (professional portrait)" },
+            { category: "Service Team - Office", title: "Bob Danaher (professional portrait)" },
             
             // Technicians at Work
             { category: "Technicians at Work", title: "Technician in uniform performing plumbing inspection (showing professional setup)" },
@@ -499,6 +537,7 @@
                 const fileNumber = String(index + 1).padStart(2, '0');
                 const mediaType = photo.isVideo ? '_Video' : '';
                 const newName = `${sanitizedTitle}${mediaType}_${fileNumber}.${photo.extension}`;
+                const folderName = `${String(itemNumber).padStart(2, '0')}_${sanitizedTitle}`;
                 
                 const mediaElement = photo.isVideo 
                     ? `<video src="${photo.dataUrl}" class="thumbnail" controls></video>
@@ -510,6 +549,7 @@
                         ${mediaElement}
                         <div class="photo-info">
                             <strong>${newName}</strong>
+                            <div style="font-size: 10px; color: #888; margin-top: 2px;">Folder: ${folderName}</div>
                         </div>
                         <input type="text" 
                                class="description-input" 
@@ -517,9 +557,14 @@
                                placeholder="Description (optional)..."
                                value="${photo.description || ''}"
                                onchange="updatePhotoDescription(${itemNumber}, '${photo.id}', this.value)">
-                        <button class="remove-photo-btn" onclick="removePhoto(${itemNumber}, '${photo.id}')">
-                            Remove
-                        </button>
+                        <div style="display: flex; gap: 4px;">
+                            <button class="download-file-btn" onclick="downloadFile(${itemNumber}, '${photo.id}')">
+                                📥 Download
+                            </button>
+                            <button class="remove-photo-btn" onclick="removePhoto(${itemNumber}, '${photo.id}')">
+                                Remove
+                            </button>
+                        </div>
                     </div>
                 `;
             });
@@ -567,56 +612,51 @@
             }
         }
 
-        async function generatePackage() {
+        function downloadFile(itemNumber, photoId) {
+            if (!uploadedPhotos[itemNumber]) return;
+            
+            const photo = uploadedPhotos[itemNumber].photos.find(p => p.id == photoId);
+            if (!photo) return;
+            
+            const sanitizedTitle = sanitizeForFilename(uploadedPhotos[itemNumber].title);
+            const photoIndex = uploadedPhotos[itemNumber].photos.findIndex(p => p.id == photoId);
+            const fileNumber = String(photoIndex + 1).padStart(2, '0');
+            const mediaType = photo.isVideo ? '_Video' : '';
+            const newName = `${sanitizedTitle}${mediaType}_${fileNumber}.${photo.extension}`;
+            
+            // Download the file
+            const link = document.createElement('a');
+            link.href = photo.dataUrl;
+            link.download = newName;
+            link.click();
+        }
+
+        async function downloadSummaryPDF() {
             const btn = document.getElementById('downloadBtn');
+            const originalText = btn.textContent;
             btn.disabled = true;
             btn.textContent = '⏳ Generating...';
 
             try {
-                const zip = new JSZip();
-
-                // Add photos to ZIP - organized by checklist item
-                for (const [itemNumber, item] of Object.entries(uploadedPhotos)) {
-                    const sanitizedTitle = sanitizeForFilename(item.title);
-                    const folderName = `${String(itemNumber).padStart(2, '0')}_${sanitizedTitle}`;
-                    const itemFolder = zip.folder(folderName);
-                    
-                    for (let i = 0; i < item.photos.length; i++) {
-                        const photo = item.photos[i];
-                        const fileNumber = String(i + 1).padStart(2, '0');
-                        const mediaType = photo.isVideo ? '_Video' : '';
-                        const newName = `${sanitizedTitle}${mediaType}_${fileNumber}.${photo.extension}`;
-                        
-                        const response = await fetch(photo.dataUrl);
-                        const blob = await response.blob();
-                        itemFolder.file(newName, blob);
-                    }
-                }
-
-                // Generate PDF reference sheet
                 const pdfBlob = await generatePDF();
-                zip.file("00_Contents_Summary.pdf", pdfBlob);
-
-                // Generate ZIP
-                const zipBlob = await zip.generateAsync({ type: "blob" });
-
+                
                 // Download
                 const link = document.createElement('a');
-                link.href = URL.createObjectURL(zipBlob);
-                link.download = `MidState_Media_Package_${new Date().toISOString().split('T')[0]}.zip`;
+                link.href = URL.createObjectURL(pdfBlob);
+                link.download = `MidState_Media_Summary_${new Date().toISOString().split('T')[0]}.pdf`;
                 link.click();
 
-                btn.textContent = '✅ Package Downloaded!';
+                btn.textContent = '✅ Downloaded!';
                 setTimeout(() => {
                     btn.disabled = false;
-                    btn.textContent = '📦 Generate ZIP Package';
-                }, 3000);
+                    btn.textContent = originalText;
+                }, 2000);
 
             } catch (error) {
-                console.error('Error generating package:', error);
-                alert('Error generating package. Please try again.');
+                console.error('Error generating PDF:', error);
+                alert('Error generating PDF. Please try again.');
                 btn.disabled = false;
-                btn.textContent = '📦 Generate ZIP Package';
+                btn.textContent = originalText;
             }
         }
 
@@ -635,7 +675,7 @@
             doc.setFontSize(10);
             doc.setTextColor(100);
             doc.text(`Generated: ${new Date().toLocaleDateString()}`, 105, 38, { align: 'center' });
-            doc.text('ZIP File Structure & Contents', 105, 44, { align: 'center' });
+            doc.text('Download files individually and organize into folders locally', 105, 44, { align: 'center' });
             
             let y = 54;
             let currentCategory = '';
@@ -673,9 +713,9 @@
 
                 doc.setFont(undefined, 'normal');
                 doc.setTextColor(80);
-                doc.text(`Folder: ${folderName}/`, 25, y);
+                doc.text(`Create folder: ${folderName}/`, 25, y);
                 y += 5;
-                doc.text(`Files: ${item.photos.length}`, 25, y);
+                doc.text(`Files to download: ${item.photos.length}`, 25, y);
                 y += 5;
 
                 // List all photo filenames
@@ -725,18 +765,20 @@
             doc.setFont(undefined, 'normal');
             doc.text(`Checklist items completed: ${Object.keys(uploadedPhotos).length} of ${photoItems.length}`, 20, y);
             y += 6;
-            doc.text(`Total folders: ${Object.keys(uploadedPhotos).length}`, 20, y);
+            doc.text(`Total folders to create: ${Object.keys(uploadedPhotos).length}`, 20, y);
             y += 6;
-            doc.text(`Total files: ${totalPhotos} (${imageCount} photos, ${videoCount} videos)`, 20, y);
+            doc.text(`Total files to download: ${totalPhotos} (${imageCount} photos, ${videoCount} videos)`, 20, y);
             y += 6;
             doc.text(`Completion: ${Math.round((Object.keys(uploadedPhotos).length / photoItems.length) * 100)}%`, 20, y);
             y += 10;
             
             doc.setTextColor(80);
             doc.setFontSize(9);
-            doc.text('Each checklist item has its own folder containing all associated media files.', 20, y);
+            doc.text('Workflow: Click "Download" on each file, then organize downloaded files into the folders', 20, y);
             y += 4;
-            doc.text('Folder names use format: [Item#]_[Item_Title]/', 20, y);
+            doc.text('shown above. Once organized locally, upload folder structure to Google Drive.', 20, y);
+            y += 4;
+            doc.text('Folder format: [Item#]_[Item_Title]/', 20, y);
 
             return doc.output('blob');
         }
