@@ -505,7 +505,7 @@
         function updateQuantityPreview() {
             const quantity = parseInt(document.getElementById('certQuantity').value) || 50;
             const prefix = document.getElementById('certPrefix').value;
-            const startNum = parseInt(document.getElementById('startNumber').value) || 1;
+            const startNum = parseInt(document.getElementById('startNumber').value) || 1; // preview only, safe fallback
             
             const firstCertNum = generateCertNumber(prefix, startNum);
             const lastCertNum = generateCertNumber(prefix, startNum + quantity - 1);
@@ -537,7 +537,12 @@
             
             try {
                 const prefix = document.getElementById('certPrefix').value;
-                const startNum = parseInt(document.getElementById('startNumber').value) || 1;
+                const startNum = parseInt(document.getElementById('startNumber').value);
+                if (isNaN(startNum) || startNum < 1) {
+                    showError('Please enter a valid starting number (must be 1 or greater).');
+                    showLoading(false);
+                    return;
+                }
                 const x = parseFloat(document.getElementById('certX').value) * 72;
                 const y = parseFloat(document.getElementById('certY').value) * 72;
                 const fontSize = parseInt(document.getElementById('fontSize').value);
@@ -607,7 +612,12 @@
             
             try {
                 const prefix = document.getElementById('certPrefix').value;
-                const startNum = parseInt(document.getElementById('startNumber').value) || 1;
+                const startNum = parseInt(document.getElementById('startNumber').value);
+                if (isNaN(startNum) || startNum < 1) {
+                    showError('Please enter a valid starting number (must be 1 or greater).');
+                    document.getElementById('downloadProgress').style.display = 'none';
+                    return;
+                }
                 const x = parseFloat(document.getElementById('certX').value) * 72;
                 const y = parseFloat(document.getElementById('certY').value) * 72;
                 const fontSize = parseInt(document.getElementById('fontSize').value);
