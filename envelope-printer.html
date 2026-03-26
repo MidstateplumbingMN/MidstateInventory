@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Midstate Plumbing - #10 Envelope Printer v3.8</title>
+    <title>Midstate Plumbing - #10 Envelope Printer v4.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
@@ -462,7 +462,7 @@
     <div class="container">
         <header>
             <h1>📮 #10 Envelope Printer</h1>
-            <div class="version">Version 3.8 | Midstate Plumbing & Heating</div>
+            <div class="version">Version 4.0 | Midstate Plumbing & Heating</div>
         </header>
 
         <!-- Connection Status -->
@@ -758,9 +758,14 @@
         }
 
         async function savePrintHistoryToFirebase(indices) {
-            if (!firebaseInitialized || !database || !currentFileHash) return;
+            if (!firebaseInitialized || !database || !currentFileHash) {
+                console.log('Firebase save skipped:', { firebaseInitialized, hasDatabase: !!database, currentFileHash });
+                return;
+            }
 
             try {
+                updateFirebaseStatus('Syncing to cloud...', '#3b82f6');
+                
                 const updates = {};
                 indices.forEach(idx => {
                     const addr = addresses[idx];
@@ -772,11 +777,14 @@
                     };
                 });
 
+                console.log('Firebase save attempt:', { path: databasePath, hash: currentFileHash, count: indices.length });
                 await database.ref().update(updates);
-                updateFirebaseStatus('Synced to cloud', '#10b981');
+                updateFirebaseStatus('Synced to cloud ✓', '#10b981');
+                console.log('Firebase save success');
             } catch (error) {
-                console.error('Error saving to Firebase:', error);
-                updateFirebaseStatus('Sync failed', '#ef4444');
+                console.error('Firebase save error:', error);
+                console.error('Error details:', error.code, error.message);
+                updateFirebaseStatus(`Sync failed: ${error.message}`, '#ef4444');
             }
         }
 
@@ -1290,6 +1298,8 @@
 
                 const returnLines = returnAddr.split('\n');
 
+                let envelopeNum = startIdx + 1;  // Track actual envelope number
+
                 for (let i = startIdx; i <= endIdx; i++) {
                     if (i > startIdx) doc.addPage([4.125, 9.5], 'landscape');
 
@@ -1309,7 +1319,7 @@
                     const lineH = 0.2;
                     const blockHeight = mailLines.length * lineH;
                     
-                    const mailX = 3.25;  // Was 4.75", moved left 1.5" to 3.25"
+                    const mailX = 3.25;
                     const mailY = 2.2 - (blockHeight / 2);
 
                     mailLines.forEach((line, li) => {
@@ -1319,8 +1329,10 @@
                     // ── Envelope number — tiny, bottom-left ──
                     doc.setFontSize(6);
                     doc.setTextColor(220, 220, 220);
-                    doc.text(`#${i + 1}`, 0.1, 4.0);
+                    doc.text(`#${envelopeNum}`, 0.1, 4.0);
                     doc.setTextColor(0, 0, 0);
+                    
+                    envelopeNum++;  // Increment for next envelope
                 }
 
                 // Save the PDF
