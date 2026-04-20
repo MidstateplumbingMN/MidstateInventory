@@ -474,20 +474,29 @@ async function generate() {
   try {
     const { PDFDocument, rgb, StandardFonts } = PDFLib;
 
-    // Build merged doc page-by-page
-    const mergedDoc = await PDFDocument.create();
-    const font      = await mergedDoc.embedFont(StandardFonts.Helvetica);
+    setProgress(5, 'Loading PDF template…');
+    await new Promise(r => setTimeout(r, 0));
+
+    // Load source ONCE
+    const srcDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+
+    setProgress(10, 'Copying pages…');
+    await new Promise(r => setTimeout(r, 0));
+
+    // Copy all pages in one batch — vastly faster than one-at-a-time
+    const mergedDoc   = await PDFDocument.create();
+    const pageIndices = Array.from({ length: count }, () => 0);
+    const copiedPages = await mergedDoc.copyPages(srcDoc, pageIndices);
+    copiedPages.forEach(p => mergedDoc.addPage(p));
+
+    setProgress(30, 'Stamping numbers…');
+    await new Promise(r => setTimeout(r, 0));
+
+    const font  = await mergedDoc.embedFont(StandardFonts.Helvetica);
+    const pages = mergedDoc.getPages();
 
     for (let i = 0; i < count; i++) {
-      // Reload source each iteration so we always get a fresh copy
-      const srcDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
-      const [copiedPage] = await mergedDoc.copyPages(srcDoc, [0]);
-      mergedDoc.addPage(copiedPage);
-
-      const pages = mergedDoc.getPages();
-      const page  = pages[pages.length - 1];
-
-      page.drawText(makeCertNum(i), {
+      pages[i].drawText(makeCertNum(i), {
         x: posX, y: posY,
         size: fontSize,
         font,
@@ -495,10 +504,10 @@ async function generate() {
         opacity: 0.85
       });
 
-      // Yield to the browser every 5 certs so UI stays responsive
-      if ((i + 1) % 5 === 0 || i === count - 1) {
-        const pct = Math.round(((i + 1) / count) * 90);
-        setProgress(pct, `Processed ${i + 1} of ${count}…`);
+      // Yield every 20 stamps to keep UI live
+      if ((i + 1) % 20 === 0 || i === count - 1) {
+        const pct = 30 + Math.round(((i + 1) / count) * 60);
+        setProgress(pct, `Stamping ${i + 1} of ${count}…`);
         await new Promise(r => setTimeout(r, 0));
       }
     }
